@@ -17,14 +17,7 @@ Query& Query::filter(uint componentTypeId, inclusivity inverted)
 {
     set<Entity*> filtered;
     for(Entity* entity : entities) {
-        bool hasComponent = false;
-        for(Component* component : entity->getComponents()) {
-            if(component->getTypeId() == componentTypeId) {
-                hasComponent = true;
-                break;
-            }
-        }
-        if(hasComponent) {
+        if(entity->findComponentByType(componentTypeId)) {
             filtered.insert(entity);
         }
     }

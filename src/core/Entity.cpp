@@ -17,3 +17,24 @@ Entity* Entity::detach(Component* component)
     components.erase(component);
     return this;
 }
+
+Component* Entity::findComponentByType(int typeId)
+{
+    for(Component* component : components) {
+        if(component->getTypeId() == typeId) {
+            return component;
+        }
+    }
+    return nullptr;
+}
+
+set<Component*> Entity::findComponentsByType(int typeId)
+{
+    set<Component*> typedComponents;
+    for(Component* component : components) {
+        if(component->getTypeId() == typeId) {
+            typedComponents.insert(component);
+        }
+    }
+    return typedComponents;
+}
