@@ -23,6 +23,10 @@ public:
     delta is the phyics rate.
     */
     virtual void gameplayTick(float delta) {}
+
+    inline World* getWorld() const {
+        return world;
+    }
 private:
     World* world = nullptr; // The world that this system manages.
 
