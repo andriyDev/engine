@@ -10,8 +10,11 @@ class World;
 class Universe
 {
 public:
+    // Initializes the Universe singleton. Also returns the pointer to it.
     static Universe* init();
+    // Deletes the Universe singleton.
     static void cleanUp();
+    // Gets a pointer to the Universe singleton.
     static Universe* get();
 
     // Assigns the entity an id and stores it. Returns the entity pointer.
