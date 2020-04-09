@@ -17,12 +17,21 @@ public:
     // Gets a pointer to the Universe singleton.
     static Universe* get();
 
+    ~Universe();
+
     // Assigns the entity an id and stores it. Returns the entity pointer.
-    Entity* registerEntity(Entity* entity);
+    Entity* addEntity(Entity* entity);
     // Assigns the component an id and stores it. Returns the component pointer.
-    Component* registerComponent(Component* component);
+    Component* addComponent(Component* component);
     // Assigns the world an id and stores it. Returns the world pointer.
-    World* registerWorld(World* world);
+    World* addWorld(World* world);
+    
+    // Removes and deletes the entity. Also removes attached components iff removeDependent = true
+    void removeEntity(Entity* entity, bool removeDependent);
+    // Removes and deletes the component.
+    void removeComponent(Component* component);
+    // Removes and deletes the world. Also removes attached components/entities iff removeDependent = true
+    void removeWorld(World* world, bool removeDependent);
 
     Entity* getEntity(uint id) const {
         auto f = entities.find(id);

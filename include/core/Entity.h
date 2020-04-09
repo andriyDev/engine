@@ -8,18 +8,25 @@ class Component;
 class Entity
 {
 public:
-    // Attaches the provided component to this entity.
+    // Attaches the provided component to this entity. Fails is the component is attached to another entity.
     Entity* attach(Component* component);
+    // Detaches the provided component from this entity. Fails if the component was not attached.
+    Entity* detach(Component* component);
 
     inline uint getId() const {
         return id;
     }
-    inline set<uint> getComponentIds() const {
+    inline uint getWorldId() const {
+        return worldId;
+    }
+    inline set<Component*> getComponents() const {
         return components;
     }
 private:
     uint id = 0; // The id of the entity.
-    set<uint> components; // The components attached to this entity.
+    uint worldId = 0; // The id of the world this entity is in.
+    set<Component*> components; // The components attached to this entity.
 
     friend class Universe;
+    friend class World;
 };

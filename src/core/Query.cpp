@@ -10,12 +10,7 @@
 
 Query::Query(World* world)
 {
-    set<uint> ids = world->getEntities();
-    for(uint id : ids) {
-        Entity* entity = Universe::get()->getEntity(id);
-        assert(entity);
-        entities.insert(entity);
-    }
+    entities = world->getEntities();
 }
 
 Query& Query::filter(uint componentTypeId, inclusivity inverted)
@@ -23,10 +18,8 @@ Query& Query::filter(uint componentTypeId, inclusivity inverted)
     set<Entity*> filtered;
     for(Entity* entity : entities) {
         bool hasComponent = false;
-        for(uint componentId : entity->getComponentIds()) {
-            Component* component = Universe::get()->getComponent(componentId);
-            assert(component);
-            if(component->getTypeId() == componentId) {
+        for(Component* component : entity->getComponents()) {
+            if(component->getTypeId() == componentTypeId) {
                 hasComponent = true;
                 break;
             }

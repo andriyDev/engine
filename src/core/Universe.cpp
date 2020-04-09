@@ -23,6 +23,19 @@ Universe* Universe::get()
     return Universe::U;
 }
 
+Universe::~Universe()
+{
+    for(auto p : entities) {
+        delete p.second;
+    }
+    for(auto p : components) {
+        delete p.second;
+    }
+    for(auto p : worlds) {
+        delete p.second;
+    }
+}
+
 uint generateUniqueId()
 {
     uint r = rand();
@@ -40,7 +53,7 @@ uint generateUnusedId(map<uint, V>& space)
     return id;
 }
 
-Entity* Universe::registerEntity(Entity* entity)
+Entity* Universe::addEntity(Entity* entity)
 {
     uint id = generateUnusedId(entities);
     entity->id = id;
@@ -48,7 +61,7 @@ Entity* Universe::registerEntity(Entity* entity)
     return entity;
 }
 
-Component* Universe::registerComponent(Component* component)
+Component* Universe::addComponent(Component* component)
 {
     uint id = generateUnusedId(components);
     component->id = id;
@@ -56,10 +69,53 @@ Component* Universe::registerComponent(Component* component)
     return component;
 }
 
-World* Universe::registerWorld(World* world)
+World* Universe::addWorld(World* world)
 {
     uint id = generateUnusedId(worlds);
     world->id = id;
     worlds.insert(make_pair(id, world));
     return world;
+}
+
+void Universe::removeEntity(Entity* entity, bool removeDependent)
+{
+    assert(entity->id);
+    entities.erase(entity->id);
+    if(entity->worldId) {
+        World* world = getWorld(entity->worldId);
+        assert(world);
+        world->detach(entity);
+    }
+    if(removeDependent) {
+        for(Component* component : entity->components) {
+            component->ownerId = 0;
+            removeComponent(component);
+        }
+    }
+    delete entity;
+}
+
+void Universe::removeComponent(Component* component)
+{
+    assert(component->id);
+    components.erase(component->id);
+    if(component->ownerId) {
+        Entity* entity = getEntity(component->ownerId);
+        assert(entity);
+        entity->detach(component);
+    }
+    delete component;
+}
+
+void Universe::removeWorld(World* world, bool removeDependent)
+{
+    assert(world->id);
+    worlds.erase(world->id);
+    if(removeDependent) {
+        for(Entity* entity : world->entities) {
+            entity->worldId = 0;
+            removeEntity(entity, true);
+        }
+    }
+    delete world;
 }
