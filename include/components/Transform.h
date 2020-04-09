@@ -12,14 +12,17 @@ using namespace glm;
 
 struct TransformData
 {
-    vec3 position;
+    vec3 translation;
     quat rotation;
     vec3 scale;
 
-    TransformData()
-        : position(vec3(0,0,0)),
-        rotation(quat(1,0,0,0)),
-        scale(vec3(1,1,1))
+    TransformData(
+        vec3 _translation = vec3(0,0,0),
+        quat _rotation = quat(1,0,0,0),
+        vec3 _scale = vec3(1,1,1))
+        : translation(_translation),
+        rotation(_rotation),
+        scale(_scale)
     {}
 
     // Computes the inverse of this transformation.
@@ -37,6 +40,8 @@ struct TransformData
         return lhs *= rhs;
     }
 };
+
+string to_string(const TransformData& data);
 
 class Transform : public Component
 {

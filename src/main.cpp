@@ -8,14 +8,16 @@
 #include "core/System.h"
 #include "core/World.h"
 
+#include "components/Transform.h"
+
 class TestSystem : public System
 {
 public:
     virtual void frameTick(float delta, float tickPercen) override {
-        printf("Frame Tick!\n");
+        //printf("Frame Tick!\n");
     }
     virtual void gameplayTick(float delta) override {
-        printf("Gameplay Tick!\n");
+        //printf("Gameplay Tick!\n");
     }
 };
 
@@ -41,6 +43,14 @@ int main()
         return -1;
     }
 
+    TransformData t(vec3(10, 0, 0), quat(vec3(3.14f/2,0,0)));
+    TransformData t2(vec3(0, 23, 5), quat(vec3(3.14f/2,0,0)), vec3(1,2,3));
+    printf("%s\n%s\n%s\n%s\n%s\n",
+        to_string(t).c_str(),
+        to_string(t2).c_str(),
+        to_string(t2 * t).c_str(),
+        to_string(t * t2.inverse() * t2 * t.inverse()).c_str(),
+        to_string(t).c_str());
 
     Universe* U = Universe::init();
     U->gameplayRate = 1;

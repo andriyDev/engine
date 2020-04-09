@@ -2,6 +2,9 @@
 #include "components/Transform.h"
 #include "core/Entity.h"
 
+#include <sstream>
+#include <glm/gtx/string_cast.hpp>
+
 void Transform::setParent(Transform* newParent)
 {
     if(parent == newParent) {
@@ -31,9 +34,22 @@ void Transform::setParent(Transform* newParent)
     parent = newParent;
 }
 
+string to_string(const TransformData& data)
+{
+    stringstream ss;
+    ss << "T(";
+    ss << to_string(data.translation);
+    ss << "), R(";
+    ss << to_string(data.rotation);
+    ss << "), S(";
+    ss << to_string(data.scale);
+    ss << ")";
+    return ss.str();
+}
+
 TransformData& TransformData::operator*=(const TransformData& rhs)
 {
-    position += rotation * (scale * rhs.position);
+    translation += rotation * (scale * rhs.translation);
     rotation *= rhs.rotation;
     scale *= rhs.scale;
     return *this;
@@ -47,13 +63,13 @@ TransformData TransformData::inverse() {
         scale.y == 0 ? 0 : (1.0f / scale.y),
         scale.z == 0 ? 0 : (1.0f / scale.z)
     );
-    inv.position = (-position) * inv.rotation * inv.scale;
+    inv.translation = -(inv.rotation * (inv.scale * translation));
     return inv;
 }
 
 vec3 TransformData::transformPoint(const vec3& point)
 {
-    return rotation * (scale * point) + position;
+    return rotation * (scale * point) + translation;
 }
 
 vec3 TransformData::transformDirection(const vec3& direction)
