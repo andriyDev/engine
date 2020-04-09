@@ -30,6 +30,8 @@ set(MAIN_SRC ${MAIN_SRC}
     src/core/Universe.cpp
     src/core/Entity.cpp
     src/core/World.cpp)
+set(MAIN_SRC ${MAIN_SRC}
+    src/components/Transform.cpp)
 
 add_executable(engine ${MAIN_SRC})
 

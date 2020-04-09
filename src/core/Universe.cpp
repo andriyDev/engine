@@ -46,8 +46,7 @@ template<typename V>
 uint generateUnusedId(map<uint, V>& space)
 {
     uint id;
-    do
-    {
+    do {
         id = generateUniqueId();
     } while(space.count(id));
     return id;
@@ -82,8 +81,7 @@ void Universe::removeEntity(Entity* entity, bool removeDependent)
     assert(entity->id);
     entities.erase(entity->id);
     if(entity->worldId) {
-        World* world = getWorld(entity->worldId);
-        assert(world);
+        World* world = check(getWorld(entity->worldId));
         world->detach(entity);
     }
     if(removeDependent) {
@@ -100,8 +98,7 @@ void Universe::removeComponent(Component* component)
     assert(component->id);
     components.erase(component->id);
     if(component->ownerId) {
-        Entity* entity = getEntity(component->ownerId);
-        assert(entity);
+        Entity* entity = check(getEntity(component->ownerId));
         entity->detach(component);
     }
     delete component;
