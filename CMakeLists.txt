@@ -24,9 +24,13 @@ set(GLFW_LIB glfw)
 set(MAIN_INCLUDE ${OPENGL_INCLUDE} ${GLM_INCLUDE} ${GLEW_INCLUDE} ${GLFW_INCLUDE})
 set(MAIN_LIB ${OPENGL_LIB} ${GLM_LIB} ${GLEW_LIB} ${GLFW_LIB})
 
+set(MAIN_SRC src/main.cpp)
+set(MAIN_SRC ${MAIN_SRC}
+    src/core/Query.cpp
+    src/core/Universe.cpp)
 
-add_executable(engine src/main.cpp)
+add_executable(engine ${MAIN_SRC})
 
-target_include_directories(engine PRIVATE ${MAIN_INCLUDE})
+target_include_directories(engine PRIVATE ${MAIN_INCLUDE} include/)
 target_link_libraries(engine ${MAIN_LIB})
 
