@@ -45,3 +45,17 @@ World* World::addSystem(System* system)
     systems.push_back(system);
     return this;
 }
+
+void World::frameTick(float delta, float tickPercent)
+{
+    for(System* system : systems) {
+        system->frameTick(delta, tickPercent);
+    }
+}
+
+void World::gameplayTick(float delta)
+{
+    for(System* system : systems) {
+        system->gameplayTick(delta);
+    }
+}

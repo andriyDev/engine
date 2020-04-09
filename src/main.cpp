@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 
+#include "core/Universe.h"
+
 int main()
 {
     GLFWwindow* window;
@@ -26,10 +28,25 @@ int main()
         return -1;
     }
 
+
+    Universe* U = Universe::init();
+
+    float previousTime = (float)glfwGetTime();
+
     do {
+        float newTime = (float)glfwGetTime();
+        float delta = newTime - previousTime;
+        previousTime = newTime;
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        U->tick(delta);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     } while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
+
+    Universe::cleanUp();
 
     return 0;
 }

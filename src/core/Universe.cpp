@@ -119,3 +119,29 @@ void Universe::removeWorld(World* world, bool removeDependent)
     }
     delete world;
 }
+
+void Universe::tick(float deltaTime)
+{
+    totalTime += deltaTime;
+    float gameplayDelta = 1.0f / gameplayRate;
+    float remainingGameplayTime = totalTime - gameplayTime;
+    int desiredGameplayFrames = (int)(remainingGameplayTime * gameplayRate);
+    int issuedGameplayFrames = desiredGameplayFrames < maxGameplayTicksPerFrame
+        ? desiredGameplayFrames : maxGameplayTicksPerFrame;
+
+    for(int i = 0; i < issuedGameplayFrames; i++) {
+        gameplayTime += gameplayDelta;
+        for(auto p : worlds) {
+            p.second->gameplayTick(gameplayDelta);
+        }
+    }
+
+    float currentSkippedTime = (desiredGameplayFrames - issuedGameplayFrames) * gameplayRate;
+    skippedTime += currentSkippedTime;
+    gameplayTime += currentSkippedTime;
+
+    float tickPercent = (totalTime - gameplayTime) * gameplayRate;
+    for(auto p : worlds) {
+        p.second->frameTick(deltaTime, tickPercent);
+    }
+}
