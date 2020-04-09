@@ -15,23 +15,21 @@ Query::Query(World* world)
 
 Query& Query::filter(uint componentTypeId, inclusivity inverted)
 {
+    return filter([componentTypeId, inverted](Entity* e){
+        bool hasComponent = e->findComponentByType(componentTypeId) != nullptr;
+        return hasComponent != inverted;
+    });
+}
+
+Query& Query::filter(function<bool(Entity*)> predicate)
+{
     set<Entity*> filtered;
     for(Entity* entity : entities) {
-        if(entity->findComponentByType(componentTypeId)) {
+        if(predicate(entity)) {
             filtered.insert(entity);
         }
     }
-    if(inverted == INCLUSIVE) {
-        entities = move(filtered);
-    } else {
-        set<Entity*> diff;
-        set_difference(
-            entities.begin(), entities.end(),
-            filtered.begin(), filtered.end(),
-            inserter(diff, diff.end())
-        );
-        entities = move(diff);
-    }
+    entities = move(filtered);
     return *this;
 }
 

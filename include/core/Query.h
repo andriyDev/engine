@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "std.h"
 
 class Entity;
@@ -24,6 +26,8 @@ public:
     Returns a reference to this query, mutated.
     */
     Query& filter(uint componentTypeId, inclusivity inverted=INCLUSIVE);
+
+    Query& filter(function<bool(Entity*)> predicate);
 
     // Creates a new set containing the ids of all entities in the query.
     set<uint> toIdSet() const;
