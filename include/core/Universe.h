@@ -20,7 +20,7 @@ public:
     ~Universe();
 
     // The rate at which gameplay ticks should be issued (ticks / second).
-    float gameplayRate = 1.0f / 50;
+    float gameplayRate = 50;
     // The maximum number of gameplay ticks that can be issued before we must skip.
     int maxGameplayTicksPerFrame = 10;
 

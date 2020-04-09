@@ -5,6 +5,19 @@
 #include <stdio.h>
 
 #include "core/Universe.h"
+#include "core/System.h"
+#include "core/World.h"
+
+class TestSystem : public System
+{
+public:
+    virtual void frameTick(float delta, float tickPercen) override {
+        printf("Frame Tick!\n");
+    }
+    virtual void gameplayTick(float delta) override {
+        printf("Gameplay Tick!\n");
+    }
+};
 
 int main()
 {
@@ -30,6 +43,10 @@ int main()
 
 
     Universe* U = Universe::init();
+    U->gameplayRate = 1;
+
+    World* w = U->addWorld(new World());
+    w->addSystem(new TestSystem());
 
     float previousTime = (float)glfwGetTime();
 
