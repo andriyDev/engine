@@ -3,8 +3,8 @@
 
 #include "std.h"
 
+class Entity;
 class World;
-class Universe;
 
 typedef bool inclusivity;
 #define INCLUSIVE false
@@ -13,6 +13,7 @@ typedef bool inclusivity;
 class Query
 {
 public:
+    // Constructs a query initially containing all entities in the provided world.
     Query(World* world);
 
     /*
@@ -23,6 +24,9 @@ public:
     Returns a reference to this query, mutated.
     */
     Query& filter(uint componentTypeId, inclusivity inverted=INCLUSIVE);
+
+    // Creates a new set containing the ids of all entities in the query.
+    set<uint> toIdSet() const;
 
     // Takes the union of the two queries (mutating the left Query).
     Query& operator|=(const Query& other);
@@ -49,7 +53,6 @@ public:
     */
     Query& operator~();
 private:
-    set<uint> entityIds; // The set of entities currently in the query
+    set<Entity*> entities; // The set of entities currently in the query
     World* world; // The world which the query is taking place for.
-    Universe* universe; // The universe for this query.
 };

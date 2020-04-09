@@ -20,9 +20,10 @@ public:
         return ownerId;
     }
 private:
-    uint id = 0;
-    uint typeId;
-    uint ownerId = 0;
+    uint id = 0; // The id of the component.
+    uint typeId; // The type id that determines this component.
+    uint ownerId = 0; // The id of the entity that owns this component.
 
     friend class Universe;
+    friend class Entity;
 };

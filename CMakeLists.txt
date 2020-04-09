@@ -27,7 +27,9 @@ set(MAIN_LIB ${OPENGL_LIB} ${GLM_LIB} ${GLEW_LIB} ${GLFW_LIB})
 set(MAIN_SRC src/main.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/core/Query.cpp
-    src/core/Universe.cpp)
+    src/core/Universe.cpp
+    src/core/Entity.cpp
+    src/core/World.cpp)
 
 add_executable(engine ${MAIN_SRC})
 

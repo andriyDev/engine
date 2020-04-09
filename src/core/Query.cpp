@@ -8,15 +8,23 @@
 #include <algorithm>
 #include <iterator>
 
+Query::Query(World* world)
+{
+    set<uint> ids = world->getEntities();
+    for(uint id : ids) {
+        Entity* entity = Universe::get()->getEntity(id);
+        assert(entity);
+        entities.insert(entity);
+    }
+}
+
 Query& Query::filter(uint componentTypeId, inclusivity inverted)
 {
-    set<uint> filtered;
-    for(uint entityId : entityIds) {
-        Entity* entity = universe->getEntity(entityId);
-        assert(entity);
+    set<Entity*> filtered;
+    for(Entity* entity : entities) {
         bool hasComponent = false;
         for(uint componentId : entity->getComponentIds()) {
-            Component* component = universe->getComponent(componentId);
+            Component* component = Universe::get()->getComponent(componentId);
             assert(component);
             if(component->getTypeId() == componentId) {
                 hasComponent = true;
@@ -24,65 +32,74 @@ Query& Query::filter(uint componentTypeId, inclusivity inverted)
             }
         }
         if(hasComponent) {
-            filtered.insert(entityId);
+            filtered.insert(entity);
         }
     }
     if(inverted == INCLUSIVE) {
-        entityIds = move(filtered);
+        entities = move(filtered);
     } else {
-        set<uint> diff;
+        set<Entity*> diff;
         set_difference(
-            entityIds.begin(), entityIds.end(),
+            entities.begin(), entities.end(),
             filtered.begin(), filtered.end(),
             inserter(diff, diff.end())
         );
-        entityIds = move(diff);
+        entities = move(diff);
     }
     return *this;
 }
 
+set<uint> Query::toIdSet() const
+{
+    set<uint> ids;
+    for(Entity* entity : entities) {
+        ids.insert(entity->getId());
+    }
+    return ids;
+}
+
 Query& Query::operator|=(const Query& other)
 {
-    entityIds.insert(other.entityIds.begin(), other.entityIds.end());
+    entities.insert(other.entities.begin(), other.entities.end());
     return *this;
 }
 
 Query& Query::operator&=(const Query& other)
 {
-    set<uint> result;
+    set<Entity*> result;
 
     set_intersection(
-        entityIds.begin(), entityIds.end(),
-        other.entityIds.begin(), other.entityIds.end(),
+        entities.begin(), entities.end(),
+        other.entities.begin(), other.entities.end(),
         inserter(result, result.end())
     );
-    entityIds = move(result);
+    entities = move(result);
     return *this;
 }
 
 Query& Query::operator-=(const Query& other)
 {
-    set<uint> result;
+    set<Entity*> result;
 
     set_difference(
-        entityIds.begin(), entityIds.end(),
-        other.entityIds.begin(), other.entityIds.end(),
+        entities.begin(), entities.end(),
+        other.entities.begin(), other.entities.end(),
         inserter(result, result.end())
     );
-    entityIds = move(result);
+    entities = move(result);
     return *this;
 }
 
 Query& Query::operator~()
 {
-    set<uint> result;
-    set<uint> allEntities = world->getEntities();
+    set<Entity*> result;
+    Query all(world);
 
     set_difference(
-        allEntities.begin(), allEntities.end(),
-        entityIds.begin(), entityIds.end(),
+        all.entities.begin(), all.entities.end(),
+        entities.begin(), entities.end(),
         inserter(result, result.end())
     );
-    entityIds = move(result);
+    entities = move(result);
     return *this;
 }
