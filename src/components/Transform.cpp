@@ -5,11 +5,14 @@
 #include <sstream>
 #include <glm/gtx/string_cast.hpp>
 
-void Transform::setParent(Transform* newParent)
+void Transform::setParent(Transform* newParent, bool keepGlobal)
 {
     if(parent == newParent) {
         return;
     }
+
+    TransformData transform = getRelativeTransform();
+    if(keepGlobal) { transform = getGlobalTransform(); }
 
     if(parent) {
         parent = nullptr;
@@ -32,6 +35,12 @@ void Transform::setParent(Transform* newParent)
 
     // If we reach here, that means the parent is valid, so:
     parent = newParent;
+
+    if(keepGlobal) {
+        setGlobalTransform(transform, true);
+    } else {
+        setRelativeTransform(transform, true);
+    }
 }
 
 string to_string(const TransformData& data)
@@ -86,7 +95,8 @@ void Transform::setRelativeTransform(const TransformData& relativeTransform, boo
 {
     this->relativeTransform = relativeTransform;
     if(teleport) {
-        previousTransform = relativeTransform;
+        previousTransform[0] = relativeTransform;
+        previousTransform[1] = relativeTransform;
     }
 }
 

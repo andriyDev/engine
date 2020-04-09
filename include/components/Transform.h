@@ -57,10 +57,13 @@ public:
     // Sets the relative transform so that it matches globally.
     void setGlobalTransform(const TransformData& globalTransform, bool teleport=false);
 
-    // Replaces the current parent with the newParent (can be null to attach to world).
-    void setParent(Transform* newParent);
+    /*
+    Replaces the current parent with the newParent (can be null to attach to world).
+    If keepGlobal = true, then the global transform will not change after parent is set.
+    */
+    void setParent(Transform* newParent, bool keepGlobal);
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
-    TransformData previousTransform; // The transform data from the last frame.
+    TransformData previousTransform[2]; // The transform data from the last 2 frames.
     Transform* parent; // The parent of this transform.
 };
