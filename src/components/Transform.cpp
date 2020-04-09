@@ -82,6 +82,14 @@ vec3 TransformData::transformDirectionWithScale(const vec3& direction)
     return rotation * (scale * direction);
 }
 
+void Transform::setRelativeTransform(const TransformData& relativeTransform, bool teleport)
+{
+    this->relativeTransform = relativeTransform;
+    if(teleport) {
+        previousTransform = relativeTransform;
+    }
+}
+
 TransformData Transform::getGlobalTransform() const
 {
     TransformData currTransform;
@@ -95,11 +103,11 @@ TransformData Transform::getGlobalTransform() const
     return currTransform;
 }
 
-void Transform::setGlobalTransform(const TransformData& globalTransform)
+void Transform::setGlobalTransform(const TransformData& globalTransform, bool teleport)
 {
     TransformData parentGlobal;
     if(parent) {
         parentGlobal = parent->getGlobalTransform();
     }
-    relativeTransform = parentGlobal.inverse();
+    setRelativeTransform(parentGlobal.inverse() * globalTransform, teleport);
 }

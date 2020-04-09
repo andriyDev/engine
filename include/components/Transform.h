@@ -46,16 +46,21 @@ string to_string(const TransformData& data);
 class Transform : public Component
 {
 public:
-    // The transform data relative to this transform's parent.
-    TransformData relativeTransform;
-
+    // Gets the relative transform.
+    TransformData getRelativeTransform() const {
+        return relativeTransform;
+    }
+    // Sets the relative transform. teleport should be set to true if this set is due to a "sharp" move.
+    void setRelativeTransform(const TransformData& relativeTransform, bool teleport=false);
     // Gets the global transform of this component.
     TransformData getGlobalTransform() const;
     // Sets the relative transform so that it matches globally.
-    void setGlobalTransform(const TransformData& globalTransform);
+    void setGlobalTransform(const TransformData& globalTransform, bool teleport=false);
 
     // Replaces the current parent with the newParent (can be null to attach to world).
     void setParent(Transform* newParent);
 private:
+    TransformData relativeTransform; // The transform data relative to this transform's parent.
+    TransformData previousTransform; // The transform data from the last frame.
     Transform* parent; // The parent of this transform.
 };
