@@ -10,6 +10,8 @@ using namespace glm;
 
 #include "core/Component.h"
 
+#include "ComponentTypes.h"
+
 struct TransformData
 {
     vec3 translation;
@@ -46,6 +48,8 @@ string to_string(const TransformData& data);
 class Transform : public Component
 {
 public:
+    Transform() : Component(TRANSFORM_ID) {}
+
     // Gets the relative transform.
     TransformData getRelativeTransform() const {
         return relativeTransform;

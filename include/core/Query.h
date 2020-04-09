@@ -56,6 +56,13 @@ public:
     Returns a reference to this query, mutated.
     */
     Query& operator~();
+
+    set<Entity*>::iterator begin() const {
+        return entities.begin();
+    }
+    set<Entity*>::iterator end() const {
+        return entities.end();
+    }
 private:
     set<Entity*> entities; // The set of entities currently in the query
     World* world; // The world which the query is taking place for.
