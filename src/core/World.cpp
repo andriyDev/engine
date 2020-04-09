@@ -34,6 +34,8 @@ World* World::detach(Entity* entity)
 
 World* World::addSystem(System* system)
 {
+    assert(!system->world);
+    system->world = this;
     for(auto it = systems.begin(); it != systems.end(); it++) {
         if((*it)->priority <= system->priority) {
             systems.insert(it, system);

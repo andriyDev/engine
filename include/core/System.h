@@ -3,6 +3,8 @@
 
 #include "std.h"
 
+class World;
+
 class System
 {
 public:
@@ -21,4 +23,8 @@ public:
     delta is the phyics rate.
     */
     virtual void gameplayTick(float delta) {}
+private:
+    World* world = nullptr; // The world that this system manages.
+
+    friend class World;
 };
