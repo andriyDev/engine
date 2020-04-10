@@ -11,9 +11,14 @@ World::~World()
     }
 }
 
-Query World::query()
+Query<Entity*> World::queryEntities()
 {
-    return Query(this);
+    return Query<Entity*>(this);
+}
+
+Query<Component*> World::queryComponents()
+{
+    return Query<Component*>(this);
 }
 
 World* World::attach(Entity* entity)
