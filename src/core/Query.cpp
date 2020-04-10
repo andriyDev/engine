@@ -8,82 +8,37 @@
 #include <algorithm>
 #include <iterator>
 
-Query::Query(World* world)
+template<>
+Query<Entity*>::Query(World* world)
 {
-    entities = world->getEntities();
+    this->world = world;
+    items = world->getEntities();
 }
 
-Query& Query::filter(uint componentTypeId, inclusivity inverted)
+template<>
+Query<Component*>::Query(World* world)
 {
-    return filter([componentTypeId, inverted](Entity* e){
-        bool hasComponent = e->findComponentByType(componentTypeId) != nullptr;
-        return hasComponent != inverted;
-    });
-}
-
-Query& Query::filter(function<bool(Entity*)> predicate)
-{
-    set<Entity*> filtered;
-    for(Entity* entity : entities) {
-        if(predicate(entity)) {
-            filtered.insert(entity);
-        }
+    this->world = world;
+    for(Entity* entity : world->getEntities()) {
+        set<Component*> components = entity->getComponents();
+        items.insert(components.begin(), components.end());
     }
-    entities = move(filtered);
-    return *this;
 }
 
-set<uint> Query::toIdSet() const
+set<uint> toIdSet(const Query<Entity*>& query)
 {
-    set<uint> ids;
-    for(Entity* entity : entities) {
-        ids.insert(entity->getId());
+    set<uint> results;
+    for(Entity* entity : query) {
+        results.insert(entity->getId());
     }
-    return ids;
+    return results;
 }
 
-Query& Query::operator|=(const Query& other)
+set<uint> toIdSet(const Query<Component*>& query)
 {
-    entities.insert(other.entities.begin(), other.entities.end());
-    return *this;
-}
-
-Query& Query::operator&=(const Query& other)
-{
-    set<Entity*> result;
-
-    set_intersection(
-        entities.begin(), entities.end(),
-        other.entities.begin(), other.entities.end(),
-        inserter(result, result.end())
-    );
-    entities = move(result);
-    return *this;
-}
-
-Query& Query::operator-=(const Query& other)
-{
-    set<Entity*> result;
-
-    set_difference(
-        entities.begin(), entities.end(),
-        other.entities.begin(), other.entities.end(),
-        inserter(result, result.end())
-    );
-    entities = move(result);
-    return *this;
-}
-
-Query& Query::operator~()
-{
-    set<Entity*> result;
-    Query all(world);
-
-    set_difference(
-        all.entities.begin(), all.entities.end(),
-        entities.begin(), entities.end(),
-        inserter(result, result.end())
-    );
-    entities = move(result);
-    return *this;
+    set<uint> results;
+    for(Component* component : query) {
+        results.insert(component->getId());
+    }
+    return results;
 }
