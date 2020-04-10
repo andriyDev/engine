@@ -2,8 +2,8 @@
 #pragma once
 
 #include "std.h"
+#include "Query.h"
 
-class Query;
 class Entity;
 class System;
 
@@ -13,7 +13,9 @@ public:
     ~World();
 
     // Returns a query that can filter down entities in the world.
-    Query query();
+    Query<Entity*> queryEntities();
+    // Returns a query that can filter down components in the world.
+    Query<Component*> queryComponents();
 
     // Attaches the entity to this world. Fails if the entity is attached to another world.
     World* attach(Entity* entity);
