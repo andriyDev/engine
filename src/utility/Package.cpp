@@ -94,7 +94,7 @@ void* Package::getResource(string name)
 {
     auto it = resources.find(name);
     Resource res;
-    memcpy(&res, &it->second, sizeof(res));
+    memcpy(&res, &it->second, sizeof(Resource));
     if(res.obj) {
         return res.obj;
     }
@@ -184,5 +184,14 @@ void Package::savePackage()
         serializer.seek(file.offset, SER_START);
         write(serializer, res.offset);
         write(serializer, res.length);
+    }
+}
+
+void Package::freeResources()
+{
+    for(auto p : resources) {
+        if(p.second.obj) {
+            delete p.second.obj;
+        }
     }
 }

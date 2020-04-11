@@ -39,6 +39,8 @@ public:
     void addResource(string name, uint typeId, void* obj);
     // Writes the resources to the serializer (does not necessarily save it to disk).
     void savePackage();
+    // Frees up all loaded resources.
+    void freeResources();
 
     inline bool isWriting() const {
         return serializer.isWriting();
