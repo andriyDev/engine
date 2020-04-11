@@ -37,18 +37,18 @@ World* World::detach(Entity* entity)
     return this;
 }
 
-World* World::addSystem(System* system)
+System* World::addSystem(System* system)
 {
     assert(!system->world);
     system->world = this;
     for(auto it = systems.begin(); it != systems.end(); it++) {
         if((*it)->priority <= system->priority) {
             systems.insert(it, system);
-            return this;
+            return system;
         }
     }
     systems.push_back(system);
-    return this;
+    return system;
 }
 
 void World::frameTick(float delta, float tickPercent)
