@@ -42,3 +42,8 @@ set<uint> toIdSet(const Query<Component*>& query)
     }
     return results;
 }
+
+function<bool(Component*)> filterByTypeId(uint typeId)
+{
+    return [typeId](Component* C) { return C->getTypeId() == typeId; };
+}

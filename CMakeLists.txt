@@ -32,7 +32,8 @@ set(MAIN_SRC ${MAIN_SRC}
     src/core/World.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/components/Transform.cpp
-    src/components/MeshRenderer.cpp)
+    src/components/MeshRenderer.cpp
+    src/components/Camera.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/resources/Mesh.cpp)
 set(MAIN_SRC ${MAIN_SRC}

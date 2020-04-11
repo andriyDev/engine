@@ -71,7 +71,7 @@ public:
     */
     void setParent(Transform* newParent, bool keepGlobal);
 
-    static Transform* getComponentTransform(const Component const* comp);
+    static Transform* getComponentTransform(Component const* comp);
 
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.

@@ -7,18 +7,37 @@
 #include "core/Component.h"
 
 #include "components/Transform.h"
+#include "components/MeshRenderer.h"
+#include "components/Camera.h"
 
 #include "ComponentTypes.h"
 
 void RenderSystem::frameTick(float delta, float tickPercent)
 {
-    
+    Query<Camera*> cameras = getWorld()->queryComponents()
+        .filter(filterByTypeId(CAMERA_ID))
+        .cast<Camera*>();
+    Query<MeshRenderer*> meshes = getWorld()->queryComponents()
+        .filter(filterByTypeId(MESH_RENDERER_ID))
+        .cast<MeshRenderer*>();
+
+    float screenAspect = 1280.f / 720.f; // TODO
+
+    for(Camera* camera : cameras) {
+        mat4 vpMatrix = camera->getVPMatrix(screenAspect);
+
+        for(MeshRenderer* renderer : meshes) {
+            renderer->mesh->bind();
+            // TODO: Attach program.
+            renderer->mesh->render();
+        }
+    }
 }
 
 void RenderSystem::gameplayTick(float delta)
 {
     Query<Transform*> transforms = getWorld()->queryComponents()
-        .filter([](Component* C){ return C->getTypeId() == TRANSFORM_ID; })
+        .filter(filterByTypeId(TRANSFORM_ID))
         .cast<Transform*>();
     for(Transform* transform : transforms)
     {

@@ -123,6 +123,4 @@ private:
 set<uint> toIdSet(const Query<Entity*>& query);
 set<uint> toIdSet(const Query<Component*>& query);
 
-function<bool(Component*)> filterByTypeId(uint typeId) {
-    return [typeId](Component* C) { return C->getTypeId() == typeId; };
-}
+function<bool(Component*)> filterByTypeId(uint typeId);

@@ -138,7 +138,7 @@ void Transform::setGlobalTransform(const TransformData& globalTransform, bool te
     setRelativeTransform(parentGlobal.inverse() * globalTransform, teleport);
 }
 
-Transform* Transform::getComponentTransform(const Component const* comp)
+Transform* Transform::getComponentTransform(Component const* comp)
 {
     Entity* owner = Universe::get()->getEntity(comp->getOwnerId());
     return static_cast<Transform*>(owner->findComponentByType(TRANSFORM_ID));
