@@ -30,6 +30,29 @@ public:
     Component* addComponent(Component* component);
     // Assigns the world an id and stores it. Returns the world pointer.
     World* addWorld(World* world);
+
+    // Creates a basic entity with an id and stores it.
+    Entity* addEntity();
+    // Creates a basic world with an id and stores it.
+    World* addWorld();
+    // Creates an entity of the provided type with an id and stores it.
+    template<class T>
+    T* addEntity()
+    {
+        return static_cast<T*>(addEntity(new T()));
+    }
+    // Creates a component of the provided type with an id and stores it.
+    template<class T>
+    T* addComponent()
+    {
+        return static_cast<T*>(addComponent(new T()));
+    }
+    // Creates a world of the provided type with an id and stores it.
+    template<class T>
+    T* addWorld()
+    {
+        return static_cast<T*>(addWorld(new T()));
+    }
     
     // Removes and deletes the entity. Also removes attached components iff removeDependent = true
     void removeEntity(Entity* entity, bool removeDependent);

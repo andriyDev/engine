@@ -69,20 +69,20 @@ int main()
     Universe* U = Universe::init();
     U->gameplayRate = 1;
 
-    World* w = U->addWorld(new World());
-    w->addSystem(new TestSystem());
-    w->addSystem(new RenderSystem());
+    World* w = U->addWorld();
+    w->addSystem<TestSystem>();
+    w->addSystem<RenderSystem>(-10000);
 
-    w->attach(U->addEntity(new Entity()));
-    Entity* e = U->addEntity(new Entity());
+    w->attach(U->addEntity());
+    Entity* e = U->addEntity();
     w->attach(e);
-    MeshRenderer* m = static_cast<MeshRenderer*>(U->addComponent(new MeshRenderer()));
+    MeshRenderer* m = U->addComponent<MeshRenderer>();
     m->mesh = new RenderableMesh(buildMesh());
-    e->attach(U->addComponent(new Transform()))
+    e->attach(U->addComponent<Transform>())
      ->attach(m);
-    Entity* c = U->addEntity(new Entity());
+    Entity* c = U->addEntity();
     w->attach(c);
-    Camera* cam = static_cast<Camera*>(U->addComponent(new Camera()));
+    Camera* cam = U->addComponent<Camera>();
     c->attach(cam);
 
     float previousTime = (float)glfwGetTime();

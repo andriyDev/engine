@@ -24,6 +24,14 @@ public:
 
     // Adds the system in order of decreasing priority (if priority is equal, later additions will be first).
     World* addSystem(System* system);
+    // Creates the system as the provided type, and performs just as addSystem does.
+    template<class T>
+    World* addSystem(float priority = 0)
+    {
+        System* newSystem = new T();
+        newSystem->priority = priority;
+        return addSystem(newSystem);
+    }
 
     /*
     Ticks once per frame.

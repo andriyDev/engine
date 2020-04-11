@@ -76,6 +76,16 @@ World* Universe::addWorld(World* world)
     return world;
 }
 
+Entity* Universe::addEntity()
+{
+    return addEntity(new Entity());
+}
+
+World* Universe::addWorld()
+{
+    return addWorld(new World());
+}
+
 void Universe::removeEntity(Entity* entity, bool removeDependent)
 {
     assert(entity->id);
