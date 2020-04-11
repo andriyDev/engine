@@ -7,21 +7,52 @@
 #include <netinet/in.h>
 #endif
 
+Serializer::Serializer(istream* _src)
+    : src(_src), dst(nullptr)
+{ }
+
+Serializer::Serializer(ostream* _dst)
+    : dst(_dst), src(nullptr)
+{ }
+
 void Serializer::write_raw(char* buffer, int bytes)
 {
-    assert(mode == SER_WRITE);
-    dst.write(buffer, bytes);
+    assert(dst);
+    dst->write(buffer, bytes);
 }
 
 void Serializer::read_raw(char* buffer, int bytes)
 {
-    assert(mode == SER_READ);
-    src.read(buffer, bytes);
+    assert(src);
+    src->read(buffer, bytes);
 }
 
-void Serializer::seek(uint offset)
+void Serializer::seek(uint offset, uint relativeTo)
 {
+    assert(relativeTo < 3);
+    ios_base::seekdir base;
+    if(relativeTo == SER_START) {
+        base = ios_base::beg;
+    } else if(relativeTo == SER_END) {
+        base = ios_base::end;
+    } else {
+        base = ios_base::cur;
+    }
 
+    if(dst) {
+        dst->seekp(offset, base);
+    } else {
+        src->seekg(offset, base);
+    }
+}
+
+uint Serializer::pos()
+{
+    if(dst) {
+        return (uint)dst->tellp();
+    } else {
+        return (uint)src->tellg();
+    }
 }
 
 template<>
@@ -132,51 +163,4 @@ template<>
 void read(Serializer& pkg, uchar& data)
 {
     pkg.read_raw((char*)&data, sizeof(uchar));
-}
-
-template<typename lengthType>
-void write(Serializer& pkg, const string& data)
-{
-    lengthType lt = (lengthType)data.size();
-    write(pkg, lt);
-    pkg.write_raw(data.c_str(), lt);
-}
-
-template<typename lengthType>
-void read(Serializer& pkg, string& data)
-{
-    lengthType lt;
-    read(pkg, lt);
-    char* c = malloc(lt + 1);
-    c[lt] = 0;
-    pkg.read_raw(c, lt);
-    data = string(c);
-    free(c);
-}
-
-template<typename lengthType, typename T>
-void write_array(Serializer& pkg, T* data, lengthType len, bool omitLen)
-{
-    if(!omitLen) {
-        write(pkg, len);
-    }
-    for(lengthType i = 0; i < len; i++) {
-        write(pkg, data[i]);
-    }
-}
-
-template<typename lengthType, typename T>
-void read_array(Serializer& pkg, vector<T>& data, lengthType& len, bool omitLen)
-{
-    if(!omitLen) {
-        lengthType l;
-        read(pkg, l);
-        len = l;
-    }
-    data.clear();
-    for(lengthType i = 0; i < len; i++) {
-        T element;
-        read(pkg, element);
-        data.push_back(element);
-    }
 }

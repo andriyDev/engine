@@ -9,7 +9,9 @@ set(ASSIMP_LIB ${IRRXML_LIBRARY} ${ZLIB_LIBRARY} assimp::assimp)
 
 set(INCLUDE "")
 set(LIB ${ASSIMP_LIB})
-set(SRC src/main.cpp src/Serializer.cpp)
+set(SRC src/main.cpp
+    src/Serializer.cpp
+    src/Package.cpp)
 
 add_executable(model_converter ${SRC})
 

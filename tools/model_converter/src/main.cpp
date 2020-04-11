@@ -3,11 +3,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <vector>
-#include <string>
-#include <map>
 #include <iostream>
 #include <sstream>
+
+#include "std.h"
 
 #include "Serializer.h"
 
@@ -104,13 +103,6 @@ vector<pair<aiMesh*, string>> collectMeshes(int argc, char** argv, Assimp::Impor
     }
     return move(meshesToProcess);
 }
-
-struct Header
-{
-    char code[4];
-    char version[3];
-    char fileCount;
-};
 
 int main(int argc, char** argv)
 {
