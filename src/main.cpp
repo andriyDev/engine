@@ -7,8 +7,10 @@
 #include "core/Universe.h"
 #include "core/System.h"
 #include "core/World.h"
+#include "core/Entity.h"
 
 #include "components/Transform.h"
+#include "renderer/RenderSystem.h"
 
 class TestSystem : public System
 {
@@ -43,20 +45,19 @@ int main()
         return -1;
     }
 
-    TransformData t(vec3(10, 0, 0), quat(vec3(3.14f/2,0,0)));
-    TransformData t2(vec3(0, 23, 5), quat(vec3(3.14f/2,0,0)), vec3(1,2,3));
-    printf("%s\n%s\n%s\n%s\n%s\n",
-        to_string(t).c_str(),
-        to_string(t2).c_str(),
-        to_string(t2 * t).c_str(),
-        to_string(t * t2.inverse() * t2 * t.inverse()).c_str(),
-        to_string(t).c_str());
-
     Universe* U = Universe::init();
     U->gameplayRate = 1;
 
     World* w = U->addWorld(new World());
     w->addSystem(new TestSystem());
+    w->addSystem(new RenderSystem());
+
+    w->attach(U->addEntity(new Entity()));
+    Entity* e = U->addEntity(new Entity());
+    w->attach(e);
+    e->attach(U->addComponent(new Transform()))
+     ->attach(U->addComponent(new Transform()))
+     ->attach(U->addComponent(new Component(3)));
 
     float previousTime = (float)glfwGetTime();
 

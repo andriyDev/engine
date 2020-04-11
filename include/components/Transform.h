@@ -70,4 +70,6 @@ private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
     TransformData previousTransform[2]; // The transform data from the last 2 frames.
     Transform* parent; // The parent of this transform.
+
+    friend class RenderSystem;
 };
