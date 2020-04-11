@@ -5,11 +5,11 @@
 
 class Component
 {
-public:
+protected:
     Component(uint typeId) {
         this->typeId = typeId;
     }
-
+public:
     inline uint getId() const {
         return id;
     }

@@ -79,7 +79,6 @@ int main()
     MeshRenderer* m = static_cast<MeshRenderer*>(U->addComponent(new MeshRenderer()));
     m->mesh = new RenderableMesh(buildMesh());
     e->attach(U->addComponent(new Transform()))
-     ->attach(U->addComponent(new Component(ID_MAX)))
      ->attach(m);
     Entity* c = U->addEntity(new Entity());
     w->attach(c);
