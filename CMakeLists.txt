@@ -35,7 +35,8 @@ set(MAIN_SRC ${MAIN_SRC}
     src/components/MeshRenderer.cpp
     src/components/Camera.cpp)
 set(MAIN_SRC ${MAIN_SRC}
-    src/resources/Mesh.cpp)
+    src/resources/Mesh.cpp
+    src/resources/Shader.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/utility/Package.cpp
     src/utility/Serializer.cpp)
