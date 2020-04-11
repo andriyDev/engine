@@ -42,6 +42,7 @@ set(MAIN_SRC ${MAIN_SRC}
     src/utility/Serializer.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/renderer/RenderSystem.cpp
+    src/renderer/Material.cpp
     src/renderer/MaterialProgram.cpp
     src/renderer/RenderableMesh.cpp)
 

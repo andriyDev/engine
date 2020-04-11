@@ -14,8 +14,10 @@
 #include "components/Camera.h"
 #include "ComponentTypes.h"
 #include "renderer/RenderSystem.h"
+#include "renderer/Material.h"
 
 #include "resources/Mesh.h"
+#include "resources/Shader.h"
 
 class TestSystem : public System
 {
@@ -42,6 +44,28 @@ Mesh* buildMesh() {
     mesh->indexData[1] = 1;
     mesh->indexData[2] = 2;
     return mesh;
+}
+
+const char* basicVertShader =
+"#version 330 core\n\
+layout(location=0) in vec3 vert_position;\n\
+\n\
+void main(){\n\
+    gl_Position.xyz = vert_position;\n\
+    gl_Position.w = 1.0;\n\
+}";
+const char* basicFragShader =
+"#version 330 core\n\
+out vec3 color;\n\
+\n\
+void main(){\n\
+    color = vec3(1,0,0);\n\
+}";
+
+Shader* shaderFromString(string str) {
+    Shader* s = new Shader();
+    s->code = str;
+    return s;
 }
 
 int main()
@@ -78,6 +102,9 @@ int main()
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
     m->mesh = new RenderableMesh(buildMesh());
+    vector<Shader*> vert_comp = { shaderFromString(basicVertShader) };
+    vector<Shader*> frag_comp = { shaderFromString(basicFragShader) };
+    m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
     e->attach(U->addComponent<Transform>())
      ->attach(m);
     Entity* c = U->addEntity();

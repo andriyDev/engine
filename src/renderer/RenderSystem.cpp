@@ -27,8 +27,12 @@ void RenderSystem::frameTick(float delta, float tickPercent)
         mat4 vpMatrix = camera->getVPMatrix(screenAspect);
 
         for(MeshRenderer* renderer : meshes) {
+            // Don't render a mesh with no material.
+            if(!renderer->material) {
+                continue;
+            }
             renderer->mesh->bind();
-            // TODO: Attach program.
+            renderer->material->use(tickPercent, vpMatrix);
             renderer->mesh->render();
         }
     }

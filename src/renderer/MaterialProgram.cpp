@@ -20,7 +20,7 @@ void compileShader(GLuint shaderId, const vector<Shader*>& components)
         vector<char> errorMsg(infoLength + 1);
         glGetShaderInfoLog(shaderId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Shader Compilation):\n%s\n", &errorMsg[0]);
-        throw 1;
+        return;
     }
 }
 
@@ -52,7 +52,7 @@ MaterialProgram::MaterialProgram(
         vector<char> errorMsg(infoLength + 1);
         glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);
-        throw 1;
+        return;
     }
 
     glDetachShader(ProgramId, shaders[0]);
@@ -70,4 +70,9 @@ MaterialProgram::~MaterialProgram()
 void MaterialProgram::bind()
 {
     glUseProgram(ProgramId);
+}
+
+GLuint MaterialProgram::getUniformId(const string& uniformName)
+{
+    return glGetUniformLocation(ProgramId, uniformName.c_str());
 }

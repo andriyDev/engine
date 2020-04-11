@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/Component.h"
+#include "renderer/Material.h"
 #include "renderer/RenderableMesh.h"
 
 #include "ComponentTypes.h"
@@ -14,4 +15,5 @@ public:
     { }
 
     RenderableMesh* mesh = nullptr;
+    Material* material = nullptr;
 };

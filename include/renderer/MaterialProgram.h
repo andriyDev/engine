@@ -16,6 +16,8 @@ public:
     ~MaterialProgram();
 
     void bind();
+
+    GLuint getUniformId(const string& uniformName);
 private:
     GLuint ProgramId;
 };
