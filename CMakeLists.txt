@@ -32,11 +32,20 @@ set(MAIN_SRC ${MAIN_SRC}
     src/core/World.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/components/Transform.cpp)
+set(MAIN_SRC ${MAIN_SRC}
+    src/resources/Mesh.cpp)
+set(MAIN_SRC ${MAIN_SRC}
+    src/utility/Package.cpp
+    src/utility/Serializer.cpp)
 
 add_executable(engine ${MAIN_SRC})
 
 target_include_directories(engine PRIVATE ${MAIN_INCLUDE} include/)
 target_link_libraries(engine ${MAIN_LIB})
+
+if(WIN32)
+target_link_libraries(engine Ws2_32.lib)
+endif (WIN32)
 
 set(DEBUG_SHOW_CONSOLE ON CACHE BOOL "Specifies whether the console should be shown in debug mode.")
 

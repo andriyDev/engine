@@ -2,13 +2,17 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/cimport.h>
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 #include "std.h"
+#include "resources/Mesh.h"
 
-#include "Serializer.h"
+#include "utility/Serializer.h"
+#include "utility/Package.h"
 
 using namespace std;
 
@@ -57,14 +61,48 @@ void findMeshes(aiNode* node, const aiScene* scene, vector<string>& meshNames, v
     }
 }
 
-#define USAGE "Usage: model_converter <file1>:<srcMeshName1.1>[/<outMeshName1.1>][:<srcMeshName1.2>...] ... <out_file>\n"
+#define USAGE "Usage: model_converter <file1>,<srcMeshName1.1>[/<outMeshName1.1>][,<srcMeshName1.2>...] ... <out_file>\n"
 
-vector<pair<aiMesh*, string>> collectMeshes(int argc, char** argv, Assimp::Importer& importer)
+Mesh* convertMesh(aiMesh* srcMesh)
 {
-    vector<pair<aiMesh*, string>> meshesToProcess;
+    Mesh* mesh = new Mesh();
+    mesh->vertCount = srcMesh->mNumVertices;
+    mesh->vertData = (Mesh::Vertex*)malloc(mesh->vertCount * sizeof(Mesh::Vertex));
+
+    aiVector3D* p = srcMesh->mVertices;
+    aiVector3D* n = srcMesh->mNormals;
+    aiVector3D* t = srcMesh->mTangents;
+    aiVector3D* b = srcMesh->mBitangents;
+    aiVector3D* u = srcMesh->mTextureCoords[0];
+    aiColor4D* c = srcMesh->mColors[0];
+
+    for(uint i = 0; i < mesh->vertCount; i++) {
+        mesh->vertData[i].position  = vec3(p[i].x, p[i].y, p[i].z);
+        mesh->vertData[i].normal    = n ? vec3(n[i].x, n[i].y, n[i].z) : vec3(1,0,0);
+        mesh->vertData[i].tangent   = t ? vec3(t[i].x, t[i].y, t[i].z) : vec3(0,1,0);
+        mesh->vertData[i].bitangent = b ? vec3(b[i].x, b[i].y, b[i].z) : vec3(0,0,1);
+        mesh->vertData[i].texCoord  = u ? vec2(u[i].x, u[i].y) : vec2(0, 0);
+        mesh->vertData[i].colour    = c ? vec4(c[i].r, c[i].g, c[i].b, c[i].a) : vec4(1, 1, 1, 1);
+    }
+    mesh->indexCount = srcMesh->mNumFaces * 3;
+    mesh->indexData = new uint[mesh->indexCount];
+
+    for(uint i = 0; i < srcMesh->mNumFaces; i++) {
+        mesh->indexData[i * 3    ] = srcMesh->mFaces[i].mIndices[0];
+        mesh->indexData[i * 3 + 1] = srcMesh->mFaces[i].mIndices[1];
+        mesh->indexData[i * 3 + 2] = srcMesh->mFaces[i].mIndices[2];
+    }
+
+    // TODO: Extract the bone data if it exists.
+    return mesh;
+}
+
+vector<pair<Mesh*, string>> collectMeshes(int argc, char** argv, Assimp::Importer& importer)
+{
+    vector<pair<Mesh*, string>> meshesToProcess;
     for(int i = 1; i < argc - 1; i++) {
         string conversion(argv[i]);
-        vector<string> components = splitByDelimiter(conversion, ':');
+        vector<string> components = splitByDelimiter(conversion, ',');
 
         string fileName = components[0];
         map<string, string> inOutMeshNames;
@@ -73,7 +111,7 @@ vector<pair<aiMesh*, string>> collectMeshes(int argc, char** argv, Assimp::Impor
             vector<string> strPair = splitByDelimiter(components[j], '/');
             if(components.size() > 2) {
                 printf(USAGE);
-                return vector<pair<aiMesh*, string>>();
+                return vector<pair<Mesh*, string>>();
             }
             string inMesh = strPair[0];
             string outMesh = strPair.size() == 2 ? strPair[1] : inMesh;
@@ -82,7 +120,10 @@ vector<pair<aiMesh*, string>> collectMeshes(int argc, char** argv, Assimp::Impor
         }
 
         const aiScene* scene = importer.ReadFile(fileName,
-            aiProcess_Triangulate | aiProcess_FlipUVs);
+            aiProcess_Triangulate
+            | aiProcess_GenSmoothNormals
+            | aiProcess_CalcTangentSpace
+            | aiProcess_GenUVCoords);
         
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             cout << "Conversion error: " << importer.GetErrorString() << endl;
@@ -98,11 +139,17 @@ vector<pair<aiMesh*, string>> collectMeshes(int argc, char** argv, Assimp::Impor
             string name;
             auto it = inOutMeshNames.find(mesh->mName.C_Str());
             name = it == inOutMeshNames.end() ? storedName : it->second;
-            meshesToProcess.push_back(make_pair(mesh, name));
+            meshesToProcess.push_back(make_pair(convertMesh(mesh), name));
         }
+
+        importer.FreeScene();
     }
-    return move(meshesToProcess);
+    return meshesToProcess;
 }
+
+map<uint, pair<WriteFcn, ReadFcn>> parsers = {
+    {RESOURCE_MESH, make_pair(writeMesh, readMesh)}
+};
 
 int main(int argc, char** argv)
 {
@@ -112,12 +159,20 @@ int main(int argc, char** argv)
     }
 
     Assimp::Importer importer;
+    vector<pair<Mesh*, string>> meshesToProcess = collectMeshes(argc, argv, importer);
+    
     string outFileName = argv[argc - 1];
-    vector<pair<aiMesh*, string>> meshesToProcess = collectMeshes(argc, argv, importer);
+    ofstream file(outFileName);
+    Package pack(Serializer(&file), &parsers);
 
-    for(pair<aiMesh*, string> p : meshesToProcess) {
-
+    for(pair<Mesh*, string> p : meshesToProcess) {
+        pack.addResource(p.second, RESOURCE_MESH, p.first);
     }
+    pack.savePackage();
+    for(pair<Mesh*, string> p : meshesToProcess) {
+        delete p.first;
+    }
+    file.close();
 
     return 0;
 }

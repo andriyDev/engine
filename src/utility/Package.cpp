@@ -1,5 +1,5 @@
 
-#include "Package.h"
+#include "utility/Package.h"
 
 Package::Package(Serializer _serializer, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
     : serializer(_serializer), parsers(_parsers)
@@ -156,6 +156,7 @@ void Package::savePackage()
     Header header;
     header.code[0] = 'P'; header.code[1] = 'K'; header.code[2] = 'G';
     header.versionCode = "1.0";
+    write(serializer, header);
 
     vector<FileInfo> files;
     vector<Resource> resList;

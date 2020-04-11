@@ -76,6 +76,20 @@ void read_array(Serializer& pkg, T* data, lengthType len=0, bool omitLen = false
     }
 }
 
+template<typename lengthType, typename T>
+void read_array_alloc(Serializer& pkg, T*& data, lengthType& len, bool omitLen = false)
+{
+    if(!omitLen) {
+        read(pkg, len);
+    }
+    data = (T*)new uchar[len * sizeof(T)];
+    for(lengthType i = 0; i < len; i++) {
+        T element;
+        read(pkg, element);
+        data[i] = element;
+    }
+}
+
 template<typename lengthType>
 void write_string(Serializer& pkg, const string& data, bool omitLen=false)
 {
