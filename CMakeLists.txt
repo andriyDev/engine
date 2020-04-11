@@ -31,14 +31,16 @@ set(MAIN_SRC ${MAIN_SRC}
     src/core/Entity.cpp
     src/core/World.cpp)
 set(MAIN_SRC ${MAIN_SRC}
-    src/components/Transform.cpp)
+    src/components/Transform.cpp
+    src/components/MeshRenderer.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/resources/Mesh.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/utility/Package.cpp
     src/utility/Serializer.cpp)
 set(MAIN_SRC ${MAIN_SRC}
-    src/renderer/RenderSystem.cpp)
+    src/renderer/RenderSystem.cpp
+    src/renderer/RenderableMesh.cpp)
 
 add_executable(engine ${MAIN_SRC})
 

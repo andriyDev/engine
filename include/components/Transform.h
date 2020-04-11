@@ -37,6 +37,8 @@ struct TransformData
     // Applies rotation and scaling to the direction so it is relative to the transform's reference frame.
     vec3 transformDirectionWithScale(const vec3& direction);
 
+    TransformData lerp(TransformData& other, float alpha);
+
     TransformData& operator*=(const TransformData& rhs);
     friend TransformData& operator*(TransformData lhs, const TransformData& rhs) {
         return lhs *= rhs;

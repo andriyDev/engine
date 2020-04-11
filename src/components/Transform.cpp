@@ -91,6 +91,15 @@ vec3 TransformData::transformDirectionWithScale(const vec3& direction)
     return rotation * (scale * direction);
 }
 
+TransformData TransformData::lerp(TransformData& other, float alpha)
+{
+    TransformData result;
+    result.translation = (1 - alpha) * translation + alpha * other.translation;
+    result.rotation = slerp(rotation, other.rotation, alpha);
+    result.scale = (1 - alpha) * scale + alpha * other.scale;
+    return result;
+}
+
 void Transform::setRelativeTransform(const TransformData& relativeTransform, bool teleport)
 {
     this->relativeTransform = relativeTransform;
