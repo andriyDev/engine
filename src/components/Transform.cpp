@@ -1,9 +1,11 @@
 
 #include "components/Transform.h"
 #include "core/Entity.h"
+#include "core/Universe.h"
 
 #include <sstream>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 void Transform::setParent(Transform* newParent, bool keepGlobal)
 {
@@ -100,6 +102,11 @@ TransformData TransformData::lerp(TransformData& other, float alpha)
     return result;
 }
 
+mat4 TransformData::toMat4()
+{
+    return translate(mat4_cast(rotation) * glm::scale(mat4(), scale), translation);
+}
+
 void Transform::setRelativeTransform(const TransformData& relativeTransform, bool teleport)
 {
     this->relativeTransform = relativeTransform;
@@ -129,4 +136,10 @@ void Transform::setGlobalTransform(const TransformData& globalTransform, bool te
         parentGlobal = parent->getGlobalTransform();
     }
     setRelativeTransform(parentGlobal.inverse() * globalTransform, teleport);
+}
+
+Transform* Transform::getComponentTransform(const Component const* comp)
+{
+    Entity* owner = Universe::get()->getEntity(comp->getOwnerId());
+    return static_cast<Transform*>(owner->findComponentByType(TRANSFORM_ID));
 }

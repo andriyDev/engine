@@ -39,6 +39,8 @@ struct TransformData
 
     TransformData lerp(TransformData& other, float alpha);
 
+    mat4 toMat4();
+
     TransformData& operator*=(const TransformData& rhs);
     friend TransformData& operator*(TransformData lhs, const TransformData& rhs) {
         return lhs *= rhs;
@@ -68,6 +70,9 @@ public:
     If keepGlobal = true, then the global transform will not change after parent is set.
     */
     void setParent(Transform* newParent, bool keepGlobal);
+
+    static Transform* getComponentTransform(const Component const* comp);
+
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
     TransformData previousTransform[2]; // The transform data from the last 2 frames.
