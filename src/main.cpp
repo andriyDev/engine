@@ -26,7 +26,14 @@ public:
         //printf("Frame Tick!\n");
     }
     virtual void gameplayTick(float delta) override {
-        //printf("Gameplay Tick!\n");
+        Query<Transform*> mr = getWorld()->queryEntities().filter([](Entity* e) {
+            return e->findComponentByType(MESH_RENDERER_ID) && e->findComponentByType(TRANSFORM_ID);
+        }).map<Transform*>([](Entity* e){ return static_cast<Transform*>(e->findComponentByType(TRANSFORM_ID)); });
+        for(Transform* t : mr) {
+            TransformData td = t->getRelativeTransform();
+            td *= TransformData(vec3(0,0,0), angleAxis(radians(90.f) * delta, vec3(0,1,0)));
+            t->setRelativeTransform(td);
+        }
     }
 };
 
@@ -34,8 +41,8 @@ Mesh* buildMesh() {
     Mesh* mesh = new Mesh();
     mesh->vertCount = 3;
     mesh->vertData = new Mesh::Vertex[3];
-    mesh->vertData[0].position = vec3(-1,-1,0);
-    mesh->vertData[1].position = vec3(1,-1,0);
+    mesh->vertData[0].position = vec3(1,-1,0);
+    mesh->vertData[1].position = vec3(-1,-1,0);
     mesh->vertData[2].position = vec3(0,1,0);
 
     mesh->indexCount = 3;
@@ -90,8 +97,11 @@ int main()
         return -1;
     }
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
     Universe* U = Universe::init();
-    U->gameplayRate = 1;
+    U->gameplayRate = 30;
 
     World* w = U->addWorld();
     w->addSystem<TestSystem>();
@@ -109,7 +119,7 @@ int main()
     vec3 a(3,0,0);
     vec3 b(-3,0,0);
     meshTransform->setRelativeTransform(TransformData(a,
-        quatLookAt(normalize(b - a), vec3(1, 0, 0)),
+        quatLookAt(normalize(b - a), vec3(0, 1, 0)),
         vec3(1, 1, 1)), true);
     
     e->attach(meshTransform)
