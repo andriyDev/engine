@@ -5,7 +5,9 @@
 
 #include <sstream>
 #include <glm/gtx/string_cast.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+
+using namespace glm;
 
 void Transform::setParent(Transform* newParent, bool keepGlobal)
 {
@@ -43,6 +45,11 @@ void Transform::setParent(Transform* newParent, bool keepGlobal)
     } else {
         setRelativeTransform(transform, true);
     }
+}
+
+Transform* Transform::getParent() const
+{
+    return parent;
 }
 
 string to_string(const TransformData& data)
@@ -93,7 +100,7 @@ vec3 TransformData::transformDirectionWithScale(const vec3& direction)
     return rotation * (scale * direction);
 }
 
-TransformData TransformData::lerp(TransformData& other, float alpha)
+TransformData TransformData::lerp(TransformData other, float alpha) const
 {
     TransformData result;
     result.translation = (1 - alpha) * translation + alpha * other.translation;
@@ -104,7 +111,9 @@ TransformData TransformData::lerp(TransformData& other, float alpha)
 
 mat4 TransformData::toMat4()
 {
-    return translate(mat4_cast(rotation) * glm::scale(mat4(), scale), translation);
+    return translate(mat4(1.0f), translation)
+        * mat4_cast(rotation)
+        * glm::scale(mat4(1.0f), scale);
 }
 
 void Transform::setRelativeTransform(const TransformData& relativeTransform, bool teleport)
@@ -123,6 +132,19 @@ TransformData Transform::getGlobalTransform() const
 
     while(curr) {
         currTransform = curr->relativeTransform * currTransform;
+
+        curr = curr->parent;
+    }
+    return currTransform;
+}
+
+TransformData Transform::getGlobalTransform(float interpolation) const
+{
+    TransformData currTransform;
+    Transform const* curr = this;
+
+    while(curr) {
+        currTransform = curr->getRelativeTransform(interpolation) * currTransform;
 
         curr = curr->parent;
     }

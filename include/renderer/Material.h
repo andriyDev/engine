@@ -8,20 +8,44 @@
 #include "glm/glm.hpp"
 using namespace glm;
 
-class UniformSpecifier
+class UniformValue
 {
 public:
-    virtual void setUniforms(MaterialProgram* Program, float tickPercent, const mat4& VPMatrix) = 0;
+    UniformValue(string name, MaterialProgram* _program);
+
+    virtual void setValue() = 0;
+protected:
+    GLuint location;
+    MaterialProgram* program;
+};
+
+template<typename T>
+class Uniform : public UniformValue
+{
+public:
+    Uniform<T>(string name, MaterialProgram* _program) : UniformValue(name, _program) { }
+
+    T* getValue() {
+        return &value;
+    }
+    virtual void setValue() override;
+protected:
+    T value;
 };
 
 class Material
 {
 public:
-    UniformSpecifier* specifier;
-    
     Material(MaterialProgram* _program);
+    ~Material();
 
-    void use(float tickPercent, const mat4& VPMatrix);
+    void use();
+    void setMVP(mat4& modelMatrix, mat4& vpMatrix);
+
+    template<class U>
+    U* addUniform(string name);
 private:
     MaterialProgram* program;
+    Uniform<mat4> mvp;
+    map<string, UniformValue*> uniforms;
 };

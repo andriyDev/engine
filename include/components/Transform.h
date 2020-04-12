@@ -37,7 +37,7 @@ struct TransformData
     // Applies rotation and scaling to the direction so it is relative to the transform's reference frame.
     vec3 transformDirectionWithScale(const vec3& direction);
 
-    TransformData lerp(TransformData& other, float alpha);
+    TransformData lerp(TransformData other, float alpha) const;
 
     mat4 toMat4();
 
@@ -58,10 +58,16 @@ public:
     TransformData getRelativeTransform() const {
         return relativeTransform;
     }
+    // Gets the relative transform 
+    TransformData getRelativeTransform(float interpolation) const {
+        return previousTransform[0].lerp(previousTransform[1], interpolation);
+    }
     // Sets the relative transform. teleport should be set to true if this set is due to a "sharp" move.
     void setRelativeTransform(const TransformData& relativeTransform, bool teleport=false);
     // Gets the global transform of this component.
     TransformData getGlobalTransform() const;
+    // Gets the global transform of this component.
+    TransformData getGlobalTransform(float interpolation) const;
     // Sets the relative transform so that it matches globally.
     void setGlobalTransform(const TransformData& globalTransform, bool teleport=false);
 
@@ -71,12 +77,15 @@ public:
     */
     void setParent(Transform* newParent, bool keepGlobal);
 
+    // Gets the parent of this transform.
+    Transform* getParent() const;
+
     static Transform* getComponentTransform(Component const* comp);
 
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
     TransformData previousTransform[2]; // The transform data from the last 2 frames.
-    Transform* parent; // The parent of this transform.
+    Transform* parent = nullptr; // The parent of this transform.
 
     friend class RenderSystem;
 };

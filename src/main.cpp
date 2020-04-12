@@ -49,10 +49,10 @@ Mesh* buildMesh() {
 const char* basicVertShader =
 "#version 330 core\n\
 layout(location=0) in vec3 vert_position;\n\
+uniform mat4 mvp;\n\
 \n\
 void main(){\n\
-    gl_Position.xyz = vert_position;\n\
-    gl_Position.w = 1.0;\n\
+    gl_Position = mvp * vec4(vert_position, 1.0);\n\
 }";
 const char* basicFragShader =
 "#version 330 core\n\
@@ -105,12 +105,23 @@ int main()
     vector<Shader*> vert_comp = { shaderFromString(basicVertShader) };
     vector<Shader*> frag_comp = { shaderFromString(basicFragShader) };
     m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
-    e->attach(U->addComponent<Transform>())
+    Transform* meshTransform = U->addComponent<Transform>();
+    vec3 a(3,0,0);
+    vec3 b(-3,0,0);
+    meshTransform->setRelativeTransform(TransformData(a,
+        quatLookAt(normalize(b - a), vec3(1, 0, 0)),
+        vec3(1, 1, 1)), true);
+    
+    e->attach(meshTransform)
      ->attach(m);
+    Transform* camTransform = U->addComponent<Transform>();
     Entity* c = U->addEntity();
     w->attach(c);
     Camera* cam = U->addComponent<Camera>();
-    c->attach(cam);
+    c->attach(cam)
+        ->attach(camTransform);
+    camTransform->setRelativeTransform(TransformData(b,
+        quatLookAt(normalize(a - b), vec3(0, 1, 0))), true);
 
     float previousTime = (float)glfwGetTime();
 

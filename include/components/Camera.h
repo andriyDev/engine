@@ -23,7 +23,7 @@ public:
 
     mat4 getProjectionMatrix(float surfaceAspect) const;
 
-    mat4 getViewMatrix() const;
+    mat4 getViewMatrix(float interpolation) const;
 
-    mat4 getVPMatrix(float surfaceAspect) const;
+    mat4 getVPMatrix(float interpolation, float surfaceAspect) const;
 };
