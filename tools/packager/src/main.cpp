@@ -271,7 +271,7 @@ int main(int argc, char** argv)
     }
     
     string outFileName = argv[argc - 1];
-    ofstream file(outFileName);
+    ofstream file(outFileName, ios::binary);
     Package pack(Serializer(&file), &parsers);
 
     processInput(pack);
