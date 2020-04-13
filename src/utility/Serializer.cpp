@@ -7,6 +7,10 @@
 #include <netinet/in.h>
 #endif
 
+Serializer::Serializer()
+    : src(nullptr), dst(nullptr)
+{ }
+
 Serializer::Serializer(istream* _src)
     : src(_src), dst(nullptr)
 { }

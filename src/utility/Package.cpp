@@ -1,8 +1,14 @@
 
 #include "utility/Package.h"
 
+Package::Package()
+    : serializer(Serializer()), parsers(nullptr),
+    resources()
+{ }
+
 Package::Package(Serializer _serializer, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
-    : serializer(_serializer), parsers(_parsers)
+    : serializer(_serializer), parsers(_parsers),
+    resources()
 {
     assert(_parsers);
 }
@@ -23,6 +29,7 @@ template<>
 void read(Serializer& pkg, Header& data) {
     vector<char> code; uchar len = 3;
     read_array<uchar, char>(pkg, code, len, true);
+    data.code[0] = code[0]; data.code[1] = code[1]; data.code[2] = code[2];
     if(code[0] != 'P' || code[1] != 'K' || code[2] != 'G') {
         throw 1; // Not a pkg file!
     }
@@ -93,14 +100,26 @@ void* loadResource(Serializer& ser, Resource& res, map<uint, pair<WriteFcn, Read
 void* Package::getResource(string name)
 {
     auto it = resources.find(name);
-    Resource res;
-    memcpy(&res, &it->second, sizeof(Resource));
+    assert(it != resources.end());
+    Resource& res = it->second;
     if(res.obj) {
         return res.obj;
     }
     res.obj = loadResource(serializer, res, *parsers);
-    resources.insert(it, make_pair(res.name, res));
     return res.obj;
+}
+
+void* Package::releaseResource(string name)
+{
+    auto it = resources.find(name);
+    assert(it != resources.end());
+    Resource& res = it->second;
+    if(res.obj) {
+        void* result = res.obj;
+        res.obj = nullptr;
+        return result;
+    }
+    return loadResource(serializer, res, *parsers);
 }
 
 vector<string> Package::getResourcesByType(uint typeId) const
@@ -158,6 +177,7 @@ void Package::savePackage()
     header.versionCode = "1.0";
     write(serializer, header);
 
+    write<uchar>(serializer, (uchar)resources.size());
     vector<FileInfo> files;
     vector<Resource> resList;
     files.reserve(resources.size());
@@ -194,4 +214,44 @@ void Package::freeResources()
             delete p.second.obj;
         }
     }
+}
+
+PackageFile::PackageFile(string _fileName, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
+    : fileName(_fileName), parsers(_parsers)
+{ }
+
+void PackageFile::open()
+{
+    assert(!bIsOpen);
+    file.open(fileName, ios::binary);
+    if(!file.is_open()) {
+        fprintf(stderr, "File not found: %s\n", fileName.c_str());
+        throw 1;
+    }
+    pack = Package(Serializer(&file), parsers);
+    bIsOpen = true;
+
+    if(!init) {
+        pack.loadPackage();
+        resources = pack.resources;
+    } else {
+        pack.resources = resources;
+    }
+    init = true;
+}
+
+void* PackageFile::releaseResource(string name)
+{
+    assert(bIsOpen);
+    return pack.releaseResource(name);
+}
+
+void PackageFile::close()
+{
+    assert(bIsOpen);
+    file.close();
+    pack.freeResources(); // Just in case.
+    pack.resources.clear();
+    pack = Package();
+    bIsOpen = false;
 }

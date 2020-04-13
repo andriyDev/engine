@@ -19,6 +19,8 @@
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
 
+#include "utility/Package.h"
+
 class TestSystem : public System
 {
 public:
@@ -53,27 +55,10 @@ Mesh* buildMesh() {
     return mesh;
 }
 
-const char* basicVertShader =
-"#version 330 core\n\
-layout(location=0) in vec3 vert_position;\n\
-uniform mat4 mvp;\n\
-\n\
-void main(){\n\
-    gl_Position = mvp * vec4(vert_position, 1.0);\n\
-}";
-const char* basicFragShader =
-"#version 330 core\n\
-out vec3 color;\n\
-\n\
-void main(){\n\
-    color = vec3(1,0,0);\n\
-}";
-
-Shader* shaderFromString(string str) {
-    Shader* s = new Shader();
-    s->code = str;
-    return s;
-}
+map<uint, pair<WriteFcn, ReadFcn>> parsers = {
+    {RESOURCE_MESH, make_pair(writeMesh, readMesh)},
+    {RESOURCE_SHADER, make_pair(writeShader, readShader)}
+};
 
 int main()
 {
@@ -98,7 +83,11 @@ int main()
     }
 
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
+
+    PackageFile res("res.pkg", &parsers);
+    res.open();
 
     Universe* U = Universe::init();
     U->gameplayRate = 30;
@@ -111,15 +100,15 @@ int main()
     Entity* e = U->addEntity();
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
-    m->mesh = new RenderableMesh(buildMesh());
-    vector<Shader*> vert_comp = { shaderFromString(basicVertShader) };
-    vector<Shader*> frag_comp = { shaderFromString(basicFragShader) };
+    m->mesh = new RenderableMesh(res.releaseResource<Mesh>("Mesh"));
+    vector<Shader*> vert_comp = { res.releaseResource<Shader>("vertex_basic_shader") };
+    vector<Shader*> frag_comp = { res.releaseResource<Shader>("fragment_basic_shader") };
     m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
     Transform* meshTransform = U->addComponent<Transform>();
     vec3 a(3,0,0);
-    vec3 b(-3,0,0);
+    vec3 b(-10,0,0);
     meshTransform->setRelativeTransform(TransformData(a,
-        quatLookAt(normalize(b - a), vec3(0, 1, 0)),
+        quatLookAt(normalize(b - a), vec3(0, 0, 1)),
         vec3(1, 1, 1)), true);
     
     e->attach(meshTransform)
@@ -131,7 +120,9 @@ int main()
     c->attach(cam)
         ->attach(camTransform);
     camTransform->setRelativeTransform(TransformData(b,
-        quatLookAt(normalize(a - b), vec3(0, 1, 0))), true);
+        quatLookAt(normalize(a - b), vec3(0, 0, 1))), true);
+
+    res.close();
 
     float previousTime = (float)glfwGetTime();
 

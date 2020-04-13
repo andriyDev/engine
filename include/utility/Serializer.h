@@ -15,6 +15,7 @@
 class Serializer
 {
 public:
+    Serializer();
     Serializer(istream* _src);
     Serializer(ostream* _dst);
 
@@ -100,7 +101,6 @@ template<typename lengthType>
 void read_string(Serializer& pkg, string& data, int len=0, bool omitLen=false)
 {
     vector<char> raw_data;
-    raw_data.push_back(0);
     read_array<lengthType>(pkg, raw_data, len, omitLen);
     data = string(raw_data.begin(), raw_data.end());
 }
