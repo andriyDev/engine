@@ -33,7 +33,7 @@ public:
         }).map<Transform*>([](Entity* e){ return static_cast<Transform*>(e->findComponentByType(TRANSFORM_ID)); });
         for(Transform* t : mr) {
             TransformData td = t->getRelativeTransform();
-            td *= TransformData(vec3(0,0,0), angleAxis(radians(90.f) * delta, vec3(0,1,0)));
+            td = TransformData(vec3(0,0,0), angleAxis(radians(60.f) * delta, vec3(0,0,1))) * td;
             t->setRelativeTransform(td);
         }
     }
@@ -86,7 +86,7 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
 
-    PackageFile res("res.pkg", &parsers);
+    PackageFile res("res.pkg", (const uchar*)"REN", &parsers);
     res.open();
 
     Universe* U = Universe::init();
@@ -108,8 +108,8 @@ int main()
     vec3 a(3,0,0);
     vec3 b(-10,0,0);
     meshTransform->setRelativeTransform(TransformData(a,
-        quatLookAt(normalize(b - a), vec3(0, 0, 1)),
-        vec3(1, 1, 1)), true);
+        angleAxis(radians(90.f), vec3(0, 1, 0)),
+        vec3(0.6f, 0.6f, 0.6f)), true);
     
     e->attach(meshTransform)
      ->attach(m);
@@ -121,6 +121,7 @@ int main()
         ->attach(camTransform);
     camTransform->setRelativeTransform(TransformData(b,
         quatLookAt(normalize(a - b), vec3(0, 0, 1))), true);
+    camTransform->getGlobalTransform().transformDirection(vec3(1, 0, 0));
 
     res.close();
 

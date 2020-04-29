@@ -6,11 +6,13 @@ Package::Package()
     resources()
 { }
 
-Package::Package(Serializer _serializer, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
-    : serializer(_serializer), parsers(_parsers),
-    resources()
+Package::Package(Serializer _serializer, const uchar* _typeCode, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
+    : serializer(_serializer), parsers(_parsers), resources()
 {
     assert(_parsers);
+    typeCode[0] = _typeCode[0];
+    typeCode[1] = _typeCode[1];
+    typeCode[2] = _typeCode[2];
 }
 
 struct Header
@@ -34,6 +36,22 @@ void read(Serializer& pkg, Header& data) {
         throw 1; // Not a pkg file!
     }
     read_string<uchar>(pkg, data.versionCode);
+}
+
+struct V1_0_Header
+{
+    uchar typeCode[3];
+};
+
+template<>
+void write(Serializer& pkg, const V1_0_Header& data) {
+    write_array<uchar>(pkg, data.typeCode, 3, true);
+}
+template<>
+void read(Serializer& pkg, V1_0_Header& data) {
+    vector<char> code; uchar len = 3;
+    read_array<uchar, char>(pkg, code, len, true);
+    data.typeCode[0] = code[0]; data.typeCode[1] = code[1]; data.typeCode[2] = code[2];
 }
 
 struct FileInfo
@@ -69,6 +87,12 @@ void Package::loadPackage()
         fprintf(stderr, "Bad version\n");
         throw 1;
     }
+    V1_0_Header vheader;
+    read(serializer, vheader);
+
+    assert(vheader.typeCode[0] == typeCode[0]
+        && vheader.typeCode[1] == typeCode[1]
+        && vheader.typeCode[2] == typeCode[2]);
 
     vector<FileInfo> files;
     read_array<uchar>(serializer, files);
@@ -177,6 +201,10 @@ void Package::savePackage()
     header.versionCode = "1.0";
     write(serializer, header);
 
+    V1_0_Header vheader;
+    vheader.typeCode[0] = typeCode[0]; vheader.typeCode[1] = typeCode[1]; vheader.typeCode[2] = typeCode[2];
+    write(serializer, vheader);
+
     write<uchar>(serializer, (uchar)resources.size());
     vector<FileInfo> files;
     vector<Resource> resList;
@@ -216,9 +244,13 @@ void Package::freeResources()
     }
 }
 
-PackageFile::PackageFile(string _fileName, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
+PackageFile::PackageFile(string _fileName, const uchar* _typeCode, map<uint, pair<WriteFcn, ReadFcn>>* _parsers)
     : fileName(_fileName), parsers(_parsers)
-{ }
+{
+    typeCode[0] = _typeCode[0];
+    typeCode[1] = _typeCode[1];
+    typeCode[2] = _typeCode[2];
+}
 
 void PackageFile::open()
 {
@@ -228,7 +260,7 @@ void PackageFile::open()
         fprintf(stderr, "File not found: %s\n", fileName.c_str());
         throw 1;
     }
-    pack = Package(Serializer(&file), parsers);
+    pack = Package(Serializer(&file), typeCode, parsers);
     bIsOpen = true;
 
     if(!init) {

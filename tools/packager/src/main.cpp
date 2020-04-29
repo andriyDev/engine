@@ -62,7 +62,7 @@ void findMeshes(aiNode* node, const aiScene* scene, vector<string>& meshNames, v
     }
 }
 
-#define USAGE "Usage: model_converter <out_file>\n"
+#define USAGE "Usage: model_converter <out_file> <type_code>\n"
 
 Mesh* convertMesh(aiMesh* srcMesh)
 {
@@ -265,14 +265,14 @@ void processInput(Package& pkg)
 
 int main(int argc, char** argv)
 {
-    if(argc == 1) {
+    if(argc != 3 || strlen(argv[2]) != 3) {
         printf(USAGE);
         return -1;
     }
     
-    string outFileName = argv[argc - 1];
+    string outFileName = argv[1];
     ofstream file(outFileName, ios::binary);
-    Package pack(Serializer(&file), &parsers);
+    Package pack(Serializer(&file), (const uchar*)argv[2], &parsers);
 
     processInput(pack);
 

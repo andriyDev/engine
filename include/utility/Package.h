@@ -27,7 +27,7 @@ class Package
 {
 public:
     Package();
-    Package(Serializer _serializer, map<uint, pair<WriteFcn, ReadFcn>>* _parsers);
+    Package(Serializer _serializer, const uchar* _typeCode, map<uint, pair<WriteFcn, ReadFcn>>* _parsers);
 
     // Loads the basic package info. Does not load resources immediately.
     void loadPackage();
@@ -66,13 +66,15 @@ private:
     map<uint, pair<WriteFcn, ReadFcn>>* parsers; // Functions to read and write the specified type.
     map<string, Resource> resources; // The resources available.
 
+    uchar typeCode[3]; // The type code to expect from the stored data.
+
     friend class PackageFile;
 };
 
 class PackageFile
 {
 public:
-    PackageFile(string _fileName, map<uint, pair<WriteFcn, ReadFcn>>* _parsers);
+    PackageFile(string _fileName, const uchar* _typeCode, map<uint, pair<WriteFcn, ReadFcn>>* _parsers);
 
     void open();
 
@@ -92,6 +94,7 @@ private:
     ifstream file;
     Package pack;
     map<string, Resource> resources;
+    uchar typeCode[3];
     bool init = false;
     bool bIsOpen = false;
 
