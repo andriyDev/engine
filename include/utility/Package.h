@@ -84,6 +84,10 @@ public:
         return static_cast<T*>(releaseResource(name));
     }
 
+    bool hasResource(std::string name) {
+        return init && resources.find(name) != resources.end();
+    }
+
     void close();
 
     inline bool isOpen() const {
