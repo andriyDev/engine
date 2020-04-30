@@ -8,5 +8,5 @@ out vec3 normal;
 
 void main() {
     gl_Position = mvp * vec4(vert_position, 1.0);
-    normal = vert_normal;
+    normal = (mvp * vec4(vert_normal, 0.0)).xyz;
 }
