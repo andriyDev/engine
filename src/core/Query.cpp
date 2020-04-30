@@ -20,30 +20,30 @@ Query<Component*>::Query(World* world)
 {
     this->world = world;
     for(Entity* entity : world->getEntities()) {
-        set<Component*> components = entity->getComponents();
+        std::set<Component*> components = entity->getComponents();
         items.insert(components.begin(), components.end());
     }
 }
 
-set<uint> toIdSet(const Query<Entity*>& query)
+std::set<uint> toIdSet(const Query<Entity*>& query)
 {
-    set<uint> results;
+    std::set<uint> results;
     for(Entity* entity : query) {
         results.insert(entity->getId());
     }
     return results;
 }
 
-set<uint> toIdSet(const Query<Component*>& query)
+std::set<uint> toIdSet(const Query<Component*>& query)
 {
-    set<uint> results;
+    std::set<uint> results;
     for(Component* component : query) {
         results.insert(component->getId());
     }
     return results;
 }
 
-function<bool(Component*)> filterByTypeId(uint typeId)
+std::function<bool(Component*)> filterByTypeId(uint typeId)
 {
     return [typeId](Component* C) { return C->getTypeId() == typeId; };
 }

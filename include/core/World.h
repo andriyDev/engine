@@ -48,13 +48,13 @@ public:
     inline uint getId() const {
         return id;
     }
-    inline set<Entity*> getEntities() const {
+    inline std::set<Entity*> getEntities() const {
         return entities;
     }
 private:
     uint id;
-    set<Entity*> entities;
-    vector<System*> systems;
+    std::set<Entity*> entities;
+    std::vector<System*> systems;
 
     friend class Universe;
 };

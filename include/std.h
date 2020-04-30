@@ -6,8 +6,6 @@
 #include <set>
 #include <string>
 
-using namespace std;
-
 #ifdef NDEBUG
 #define assert(x)
 #define check(x) (x)

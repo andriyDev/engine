@@ -9,7 +9,7 @@
 class Shader
 {
 public:
-    string code;
+    std::string code;
 };
 
 template<>

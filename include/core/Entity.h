@@ -16,7 +16,7 @@ public:
     // Finds any component attached to this entity with the specified type.
     Component* findComponentByType(int typeId);
     // Finds all components attached to this entity with the specified type.
-    set<Component*> findComponentsByType(int typeId);
+    std::set<Component*> findComponentsByType(int typeId);
 
     inline uint getId() const {
         return id;
@@ -24,13 +24,13 @@ public:
     inline uint getWorldId() const {
         return worldId;
     }
-    inline set<Component*> getComponents() const {
+    inline std::set<Component*> getComponents() const {
         return components;
     }
 private:
     uint id = 0; // The id of the entity.
     uint worldId = 0; // The id of the world this entity is in.
-    set<Component*> components; // The components attached to this entity.
+    std::set<Component*> components; // The components attached to this entity.
 
     friend class Universe;
     friend class World;

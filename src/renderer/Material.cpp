@@ -1,7 +1,7 @@
 
 #include "renderer/Material.h"
 
-UniformValue::UniformValue(string name, MaterialProgram* _program)
+UniformValue::UniformValue(std::string name, MaterialProgram* _program)
 {
     program = _program;
     location = program->getUniformId(name);
@@ -20,31 +20,31 @@ void Uniform<int>::setValue()
 }
 
 template<>
-void Uniform<vec2>::setValue()
+void Uniform<glm::vec2>::setValue()
 {
     glUniform2f(location, value[0], value[1]);
 }
 
 template<>
-void Uniform<vec3>::setValue()
+void Uniform<glm::vec3>::setValue()
 {
     glUniform3f(location, value[0], value[1], value[2]);
 }
 
 template<>
-void Uniform<vec4>::setValue()
+void Uniform<glm::vec4>::setValue()
 {
     glUniform4f(location, value[0], value[1], value[2], value[3]);
 }
 
 template<>
-void Uniform<mat4>::setValue()
+void Uniform<glm::mat4>::setValue()
 {
     glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
 }
 
 Material::Material(MaterialProgram* _program)
-    : program(_program), mvp(Uniform<mat4>("mvp", _program))
+    : program(_program), mvp(Uniform<glm::mat4>("mvp", _program))
 { }
 
 Material::~Material()
@@ -62,16 +62,16 @@ void Material::use()
     }
 }
 
-void Material::setMVP(mat4& modelMatrix, mat4& vpMatrix)
+void Material::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
 {
     *mvp.getValue() = vpMatrix * modelMatrix;
     mvp.setValue();
 }
 
 template<class U>
-U* Material::addUniform(string name)
+U* Material::addUniform(std::string name)
 {
     U* u = new U(name, program);
-    uniforms.insert(make_pair<string, UniformValue*>(name, u));
+    uniforms.insert(std::make_pair<std::string, UniformValue*>(name, u));
     return u;
 }

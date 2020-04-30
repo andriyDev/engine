@@ -10,14 +10,14 @@
 class MaterialProgram
 {
 public:
-    MaterialProgram(const vector<Shader*>& vertexShaderComponents,
-        const vector<Shader*>& fragmentShaderComponents);
+    MaterialProgram(const std::vector<Shader*>& vertexShaderComponents,
+        const std::vector<Shader*>& fragmentShaderComponents);
         
     ~MaterialProgram();
 
     void bind();
 
-    GLuint getUniformId(const string& uniformName);
+    GLuint getUniformId(const std::string& uniformName);
 private:
     GLuint ProgramId;
 };

@@ -28,9 +28,9 @@ Component* Entity::findComponentByType(int typeId)
     return nullptr;
 }
 
-set<Component*> Entity::findComponentsByType(int typeId)
+std::set<Component*> Entity::findComponentsByType(int typeId)
 {
-    set<Component*> typedComponents;
+    std::set<Component*> typedComponents;
     for(Component* component : components) {
         if(component->getTypeId() == typeId) {
             typedComponents.insert(component);

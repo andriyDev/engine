@@ -28,12 +28,12 @@ public:
         //printf("Frame Tick!\n");
     }
     virtual void gameplayTick(float delta) override {
-        Query<Transform*> mr = getWorld()->queryEntities().filter([](Entity* e) {
+        Query<Transform*> mr = getWorld()->queryEntities().filter([&](Entity* e) {
             return e->findComponentByType(MESH_RENDERER_ID) && e->findComponentByType(TRANSFORM_ID);
         }).map<Transform*>([](Entity* e){ return static_cast<Transform*>(e->findComponentByType(TRANSFORM_ID)); });
         for(Transform* t : mr) {
             TransformData td = t->getRelativeTransform();
-            td = TransformData(vec3(0,0,0), angleAxis(radians(60.f) * delta, vec3(0,0,1))) * td;
+            td = TransformData(glm::vec3(0,0,0), glm::angleAxis(glm::radians(60.f) * delta, glm::vec3(0,0,1))) * td;
             t->setRelativeTransform(td);
         }
     }
@@ -43,9 +43,9 @@ Mesh* buildMesh() {
     Mesh* mesh = new Mesh();
     mesh->vertCount = 3;
     mesh->vertData = new Mesh::Vertex[3];
-    mesh->vertData[0].position = vec3(1,-1,0);
-    mesh->vertData[1].position = vec3(-1,-1,0);
-    mesh->vertData[2].position = vec3(0,1,0);
+    mesh->vertData[0].position = glm::vec3(1,-1,0);
+    mesh->vertData[1].position = glm::vec3(-1,-1,0);
+    mesh->vertData[2].position = glm::vec3(0,1,0);
 
     mesh->indexCount = 3;
     mesh->indexData = new uint[3];
@@ -55,9 +55,9 @@ Mesh* buildMesh() {
     return mesh;
 }
 
-map<uint, pair<WriteFcn, ReadFcn>> parsers = {
-    {RESOURCE_MESH, make_pair(writeMesh, readMesh)},
-    {RESOURCE_SHADER, make_pair(writeShader, readShader)}
+std::map<uint, std::pair<WriteFcn, ReadFcn>> parsers = {
+    {RESOURCE_MESH, std::make_pair(writeMesh, readMesh)},
+    {RESOURCE_SHADER, std::make_pair(writeShader, readShader)}
 };
 
 int main()
@@ -101,15 +101,15 @@ int main()
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
     m->mesh = new RenderableMesh(res.releaseResource<Mesh>("Mesh"));
-    vector<Shader*> vert_comp = { res.releaseResource<Shader>("vertex_basic_shader") };
-    vector<Shader*> frag_comp = { res.releaseResource<Shader>("fragment_basic_shader") };
+    std::vector<Shader*> vert_comp = { res.releaseResource<Shader>("vertex_basic_shader") };
+    std::vector<Shader*> frag_comp = { res.releaseResource<Shader>("fragment_basic_shader") };
     m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
     Transform* meshTransform = U->addComponent<Transform>();
-    vec3 a(3,0,0);
-    vec3 b(-10,0,0);
+    glm::vec3 a(3,0,0);
+    glm::vec3 b(-10,0,0);
     meshTransform->setRelativeTransform(TransformData(a,
-        angleAxis(radians(90.f), vec3(0, 1, 0)),
-        vec3(0.6f, 0.6f, 0.6f)), true);
+        glm::angleAxis(glm::radians(90.f), glm::vec3(0, 1, 0)),
+        glm::vec3(0.6f, 0.6f, 0.6f)), true);
     
     e->attach(meshTransform)
      ->attach(m);
@@ -120,8 +120,8 @@ int main()
     c->attach(cam)
         ->attach(camTransform);
     camTransform->setRelativeTransform(TransformData(b,
-        quatLookAt(normalize(a - b), vec3(0, 0, 1))), true);
-    camTransform->getGlobalTransform().transformDirection(vec3(1, 0, 0));
+        glm::quatLookAt(glm::normalize(a - b), glm::vec3(0, 0, 1))), true);
+    camTransform->getGlobalTransform().transformDirection(glm::vec3(1, 0, 0));
 
     res.close();
 

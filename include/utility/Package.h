@@ -12,7 +12,7 @@ struct Resource
 {
     void* obj;
     uint typeId;
-    string name;
+    std::string name;
 
     uint offset;
     uint length;
@@ -20,29 +20,29 @@ struct Resource
     Resource() {}
 };
 
-typedef function<void(Serializer&, void*)> WriteFcn;
-typedef function<void*(Serializer&)> ReadFcn;
+typedef std::function<void(Serializer&, void*)> WriteFcn;
+typedef std::function<void*(Serializer&)> ReadFcn;
 
 class Package
 {
 public:
     Package();
-    Package(Serializer _serializer, const uchar* _typeCode, map<uint, pair<WriteFcn, ReadFcn>>* _parsers);
+    Package(Serializer _serializer, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers);
 
     // Loads the basic package info. Does not load resources immediately.
     void loadPackage();
     // Either gets the specified resource, or loads it from the serializer.
-    void* getResource(string name);
+    void* getResource(std::string name);
     template<typename T>
-    T* getResource(string name) {
+    T* getResource(std::string name) {
         return static_cast<T*>(getResource(name));
     }
     // Lists all available resources (by name) of the specified type.
-    vector<string> getResourcesByType(uint typeId) const;
+    std::vector<std::string> getResourcesByType(uint typeId) const;
     // Lists all available resources with their name and type.
-    vector<pair<string, uint>> getAllResources() const;
+    std::vector<std::pair<std::string, uint>> getAllResources() const;
     // Adds the resource to the package to later be saved out.
-    void addResource(string name, uint typeId, void* obj);
+    void addResource(std::string name, uint typeId, void* obj);
     // Writes the resources to the serializer (does not necessarily save it to disk).
     void savePackage();
     // Frees up all loaded resources.
@@ -52,9 +52,9 @@ public:
     This resource then won't be deleted on freeResources.
     If the resource is already cached, will return and release that.
     */
-    void* releaseResource(string name);
+    void* releaseResource(std::string name);
     template<typename T>
-    T* releaseResource(string name) {
+    T* releaseResource(std::string name) {
         return static_cast<T*>(releaseResource(name));
     }
 
@@ -63,8 +63,8 @@ public:
     }
 private:
     Serializer serializer; // The serializer to read/write from.
-    map<uint, pair<WriteFcn, ReadFcn>>* parsers; // Functions to read and write the specified type.
-    map<string, Resource> resources; // The resources available.
+    std::map<uint, std::pair<WriteFcn, ReadFcn>>* parsers; // Functions to read and write the specified type.
+    std::map<std::string, Resource> resources; // The resources available.
 
     uchar typeCode[3]; // The type code to expect from the stored data.
 
@@ -74,13 +74,13 @@ private:
 class PackageFile
 {
 public:
-    PackageFile(string _fileName, const uchar* _typeCode, map<uint, pair<WriteFcn, ReadFcn>>* _parsers);
+    PackageFile(std::string _fileName, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers);
 
     void open();
 
-    void* releaseResource(string name);
+    void* releaseResource(std::string name);
     template<typename T>
-    T* releaseResource(string name) {
+    T* releaseResource(std::string name) {
         return static_cast<T*>(releaseResource(name));
     }
 
@@ -90,13 +90,13 @@ public:
         return bIsOpen;
     }
 private:
-    string fileName;
-    ifstream file;
+    std::string fileName;
+    std::ifstream file;
     Package pack;
-    map<string, Resource> resources;
+    std::map<std::string, Resource> resources;
     uchar typeCode[3];
     bool init = false;
     bool bIsOpen = false;
 
-    map<uint, pair<WriteFcn, ReadFcn>>* parsers;
+    std::map<uint, std::pair<WriteFcn, ReadFcn>>* parsers;
 };

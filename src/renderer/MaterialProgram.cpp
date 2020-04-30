@@ -1,12 +1,12 @@
 
 #include "renderer/MaterialProgram.h"
 
-void compileShader(GLuint shaderId, const vector<Shader*>& components)
+void compileShader(GLuint shaderId, const std::vector<Shader*>& components)
 {
     GLint Result = GL_FALSE;
     int infoLength;
 
-    vector<const char*> rawStrings;
+    std::vector<const char*> rawStrings;
     rawStrings.reserve(components.size());
     for(Shader* shaderComp : components) {
         rawStrings.push_back(check(shaderComp)->code.c_str());
@@ -17,7 +17,7 @@ void compileShader(GLuint shaderId, const vector<Shader*>& components)
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLength);
     if(infoLength > 0) {
-        vector<char> errorMsg(infoLength + 1);
+        std::vector<char> errorMsg(infoLength + 1);
         glGetShaderInfoLog(shaderId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Shader Compilation):\n%s\n", &errorMsg[0]);
         return;
@@ -25,8 +25,8 @@ void compileShader(GLuint shaderId, const vector<Shader*>& components)
 }
 
 MaterialProgram::MaterialProgram(
-    const vector<Shader*>& vertexShaderComponents,
-    const vector<Shader*>& fragmentShaderComponents)
+    const std::vector<Shader*>& vertexShaderComponents,
+    const std::vector<Shader*>& fragmentShaderComponents)
 {
     assert(!vertexShaderComponents.empty());
     assert(!fragmentShaderComponents.empty());
@@ -49,7 +49,7 @@ MaterialProgram::MaterialProgram(
     glGetShaderiv(ProgramId, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
     if(infoLength > 0) {
-        vector<char> errorMsg(infoLength + 1);
+        std::vector<char> errorMsg(infoLength + 1);
         glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);
         return;
@@ -72,7 +72,7 @@ void MaterialProgram::bind()
     glUseProgram(ProgramId);
 }
 
-GLuint MaterialProgram::getUniformId(const string& uniformName)
+GLuint MaterialProgram::getUniformId(const std::string& uniformName)
 {
     return glGetUniformLocation(ProgramId, uniformName.c_str());
 }

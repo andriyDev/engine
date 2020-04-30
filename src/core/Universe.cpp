@@ -43,7 +43,7 @@ uint generateUniqueId()
 }
 
 template<typename V>
-uint generateUnusedId(map<uint, V>& space)
+uint generateUnusedId(std::map<uint, V>& space)
 {
     uint id;
     do {
@@ -56,7 +56,7 @@ Entity* Universe::addEntity(Entity* entity)
 {
     uint id = generateUnusedId(entities);
     entity->id = id;
-    entities.insert(make_pair(id, entity));
+    entities.insert(std::make_pair(id, entity));
     return entity;
 }
 
@@ -64,7 +64,7 @@ Component* Universe::addComponent(Component* component)
 {
     uint id = generateUnusedId(components);
     component->id = id;
-    components.insert(make_pair(id, component));
+    components.insert(std::make_pair(id, component));
     return component;
 }
 
@@ -72,7 +72,7 @@ World* Universe::addWorld(World* world)
 {
     uint id = generateUnusedId(worlds);
     world->id = id;
-    worlds.insert(make_pair(id, world));
+    worlds.insert(std::make_pair(id, world));
     return world;
 }
 

@@ -77,9 +77,9 @@ public:
         return f != worlds.end() ? f->second : nullptr;
     }
 private:
-    map<uint, Entity*> entities; // The set of all entities mapped by their ids.
-    map<uint, Component*> components; // The set of all components mapped by their ids.
-    map<uint, World*> worlds; // The set of all worlds mapped by their ids.
+    std::map<uint, Entity*> entities; // The set of all entities mapped by their ids.
+    std::map<uint, Component*> components; // The set of all components mapped by their ids.
+    std::map<uint, World*> worlds; // The set of all worlds mapped by their ids.
 
     float totalTime = 0; // The total time ticked.
     float gameplayTime = 0; // The gameplay time that has been processed (including skipped time).

@@ -6,12 +6,11 @@
 #include "MaterialProgram.h"
 
 #include "glm/glm.hpp"
-using namespace glm;
 
 class UniformValue
 {
 public:
-    UniformValue(string name, MaterialProgram* _program);
+    UniformValue(std::string name, MaterialProgram* _program);
 
     virtual void setValue() = 0;
 protected:
@@ -23,7 +22,7 @@ template<typename T>
 class Uniform : public UniformValue
 {
 public:
-    Uniform<T>(string name, MaterialProgram* _program) : UniformValue(name, _program) { }
+    Uniform<T>(std::string name, MaterialProgram* _program) : UniformValue(name, _program) { }
 
     T* getValue() {
         return &value;
@@ -40,12 +39,12 @@ public:
     ~Material();
 
     void use();
-    void setMVP(mat4& modelMatrix, mat4& vpMatrix);
+    void setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix);
 
     template<class U>
-    U* addUniform(string name);
+    U* addUniform(std::string name);
 private:
     MaterialProgram* program;
-    Uniform<mat4> mvp;
-    map<string, UniformValue*> uniforms;
+    Uniform<glm::mat4> mvp;
+    std::map<std::string, UniformValue*> uniforms;
 };

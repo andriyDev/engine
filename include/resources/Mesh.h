@@ -7,8 +7,6 @@
 
 #include <glm/glm.hpp>
 
-using namespace glm;
-
 #define RESOURCE_MESH 1
 
 class Mesh
@@ -16,12 +14,12 @@ class Mesh
 public:
     struct Vertex
     {
-        vec3 position;
-        vec4 colour;
-        vec2 texCoord;
-        vec3 normal;
-        vec3 tangent;
-        vec3 bitangent;
+        glm::vec3 position;
+        glm::vec4 colour;
+        glm::vec2 texCoord;
+        glm::vec3 normal;
+        glm::vec3 tangent;
+        glm::vec3 bitangent;
     };
 
     Vertex* vertData;

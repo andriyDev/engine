@@ -24,7 +24,7 @@ void RenderSystem::frameTick(float delta, float tickPercent)
     float screenAspect = 1280.f / 720.f; // TODO
 
     for(Camera* camera : cameras) {
-        mat4 vpMatrix = camera->getVPMatrix(tickPercent, screenAspect);
+        glm::mat4 vpMatrix = camera->getVPMatrix(tickPercent, screenAspect);
 
         for(MeshRenderer* renderer : meshes) {
             // Don't render a mesh with no material.
@@ -34,7 +34,7 @@ void RenderSystem::frameTick(float delta, float tickPercent)
             renderer->mesh->bind();
             renderer->material->use();
             Transform* transform = Transform::getComponentTransform(renderer);
-            mat4 model = transform ? transform->getGlobalTransform(tickPercent).toMat4() : mat4(1.0);
+            glm::mat4 model = transform ? transform->getGlobalTransform(tickPercent).toMat4() : glm::mat4(1.0);
             renderer->material->setMVP(model, vpMatrix);
             renderer->mesh->render();
         }

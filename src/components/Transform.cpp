@@ -7,8 +7,6 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 
-using namespace glm;
-
 void Transform::setParent(Transform* newParent, bool keepGlobal)
 {
     if(parent == newParent) {
@@ -52,9 +50,9 @@ Transform* Transform::getParent() const
     return parent;
 }
 
-string to_string(const TransformData& data)
+std::string to_string(const TransformData& data)
 {
-    stringstream ss;
+    std::stringstream ss;
     ss << "T(";
     ss << to_string(data.translation);
     ss << "), R(";
@@ -76,7 +74,7 @@ TransformData& TransformData::operator*=(const TransformData& rhs)
 TransformData TransformData::inverse() {
     TransformData inv;
     inv.rotation = glm::inverse(rotation);
-    inv.scale = vec3(
+    inv.scale = glm::vec3(
         scale.x == 0 ? 0 : (1.0f / scale.x),
         scale.y == 0 ? 0 : (1.0f / scale.y),
         scale.z == 0 ? 0 : (1.0f / scale.z)
@@ -85,17 +83,17 @@ TransformData TransformData::inverse() {
     return inv;
 }
 
-vec3 TransformData::transformPoint(const vec3& point)
+glm::vec3 TransformData::transformPoint(const glm::vec3& point)
 {
     return rotation * (scale * point) + translation;
 }
 
-vec3 TransformData::transformDirection(const vec3& direction)
+glm::vec3 TransformData::transformDirection(const glm::vec3& direction)
 {
     return rotation * direction;
 }
 
-vec3 TransformData::transformDirectionWithScale(const vec3& direction)
+glm::vec3 TransformData::transformDirectionWithScale(const glm::vec3& direction)
 {
     return rotation * (scale * direction);
 }
@@ -109,11 +107,11 @@ TransformData TransformData::lerp(TransformData other, float alpha) const
     return result;
 }
 
-mat4 TransformData::toMat4()
+glm::mat4 TransformData::toMat4()
 {
-    return translate(mat4(1.0f), translation)
-        * mat4_cast(rotation)
-        * glm::scale(mat4(1.0f), scale);
+    return glm::translate(glm::mat4(1.0f), translation)
+        * glm::mat4_cast(rotation)
+        * glm::scale(glm::mat4(1.0f), scale);
 }
 
 void Transform::setRelativeTransform(const TransformData& relativeTransform, bool teleport)

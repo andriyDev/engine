@@ -8,8 +8,6 @@
 
 #include <glm/glm.hpp>
 
-using namespace glm;
-
 class Camera : public Component
 {
 public:
@@ -21,9 +19,9 @@ public:
     Camera() : Component(CAMERA_ID)
     {}
 
-    mat4 getProjectionMatrix(float surfaceAspect) const;
+    glm::mat4 getProjectionMatrix(float surfaceAspect) const;
 
-    mat4 getViewMatrix(float interpolation) const;
+    glm::mat4 getViewMatrix(float interpolation) const;
 
-    mat4 getVPMatrix(float interpolation, float surfaceAspect) const;
+    glm::mat4 getVPMatrix(float interpolation, float surfaceAspect) const;
 };

@@ -78,12 +78,12 @@ Mesh* convertMesh(aiMesh* srcMesh)
     aiColor4D* c = srcMesh->mColors[0];
 
     for(uint i = 0; i < mesh->vertCount; i++) {
-        mesh->vertData[i].position  = vec3(p[i].x, p[i].y, p[i].z);
-        mesh->vertData[i].normal    = n ? vec3(n[i].x, n[i].y, n[i].z) : vec3(1,0,0);
-        mesh->vertData[i].tangent   = t ? vec3(t[i].x, t[i].y, t[i].z) : vec3(0,1,0);
-        mesh->vertData[i].bitangent = b ? vec3(b[i].x, b[i].y, b[i].z) : vec3(0,0,1);
-        mesh->vertData[i].texCoord  = u ? vec2(u[i].x, u[i].y) : vec2(0, 0);
-        mesh->vertData[i].colour    = c ? vec4(c[i].r, c[i].g, c[i].b, c[i].a) : vec4(1, 1, 1, 1);
+        mesh->vertData[i].position  = glm::vec3(p[i].x, p[i].y, p[i].z);
+        mesh->vertData[i].normal    = n ? glm::vec3(n[i].x, n[i].y, n[i].z) : glm::vec3(1,0,0);
+        mesh->vertData[i].tangent   = t ? glm::vec3(t[i].x, t[i].y, t[i].z) : glm::vec3(0,1,0);
+        mesh->vertData[i].bitangent = b ? glm::vec3(b[i].x, b[i].y, b[i].z) : glm::vec3(0,0,1);
+        mesh->vertData[i].texCoord  = u ? glm::vec2(u[i].x, u[i].y) : glm::vec2(0, 0);
+        mesh->vertData[i].colour    = c ? glm::vec4(c[i].r, c[i].g, c[i].b, c[i].a) : glm::vec4(1, 1, 1, 1);
     }
     mesh->indexCount = srcMesh->mNumFaces * 3;
     mesh->indexData = new uint[mesh->indexCount];

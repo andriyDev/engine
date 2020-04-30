@@ -6,7 +6,6 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
-using namespace glm;
 
 #include "core/Component.h"
 
@@ -14,14 +13,14 @@ using namespace glm;
 
 struct TransformData
 {
-    vec3 translation;
-    quat rotation;
-    vec3 scale;
+    glm::vec3 translation;
+    glm::quat rotation;
+    glm::vec3 scale;
 
     TransformData(
-        vec3 _translation = vec3(0,0,0),
-        quat _rotation = quat(1,0,0,0),
-        vec3 _scale = vec3(1,1,1))
+        glm::vec3 _translation = glm::vec3(0,0,0),
+        glm::quat _rotation = glm::quat(1,0,0,0),
+        glm::vec3 _scale = glm::vec3(1,1,1))
         : translation(_translation),
         rotation(_rotation),
         scale(_scale)
@@ -31,15 +30,15 @@ struct TransformData
     TransformData inverse();
 
     // Applies translation, rotation and scaling to the point so it is relative to the transform's reference frame.
-    vec3 transformPoint(const vec3& point);
+    glm::vec3 transformPoint(const glm::vec3& point);
     // Applies rotation to the direction so it is relative to the transform's reference frame.
-    vec3 transformDirection(const vec3& direction);
+    glm::vec3 transformDirection(const glm::vec3& direction);
     // Applies rotation and scaling to the direction so it is relative to the transform's reference frame.
-    vec3 transformDirectionWithScale(const vec3& direction);
+    glm::vec3 transformDirectionWithScale(const glm::vec3& direction);
 
     TransformData lerp(TransformData other, float alpha) const;
 
-    mat4 toMat4();
+    glm::mat4 toMat4();
 
     TransformData& operator*=(const TransformData& rhs);
     friend TransformData& operator*(TransformData lhs, const TransformData& rhs) {
@@ -47,7 +46,7 @@ struct TransformData
     }
 };
 
-string to_string(const TransformData& data);
+std::string to_string(const TransformData& data);
 
 class Transform : public Component
 {
