@@ -97,7 +97,7 @@ void Package::loadPackage()
     std::vector<FileInfo> files;
     read_array<uchar>(serializer, files);
     for(FileInfo& file : files) {
-        Resource res;
+        Package::Resource res;
         res.obj = nullptr;
         res.name = file.name;
         res.typeId = file.type;
@@ -111,7 +111,7 @@ void Package::loadPackage()
     }
 }
 
-void* loadResource(Serializer& ser, Resource& res, std::map<uint, std::pair<WriteFcn, ReadFcn>>& parsers)
+void* loadResource(Serializer& ser, Package::Resource& res, std::map<uint, std::pair<WriteFcn, ReadFcn>>& parsers)
 {
     ser.seek(res.offset, SER_START);
 
@@ -125,7 +125,7 @@ std::pair<void*, uint> Package::getResource(std::string name)
 {
     auto it = resources.find(name);
     assert(it != resources.end());
-    Resource& res = it->second;
+    Package::Resource& res = it->second;
     if(res.obj) {
         return std::make_pair(res.obj, res.typeId);
     }
@@ -137,7 +137,7 @@ std::pair<void*, uint> Package::releaseResource(std::string name)
 {
     auto it = resources.find(name);
     assert(it != resources.end());
-    Resource& res = it->second;
+    Package::Resource& res = it->second;
     if(res.obj) {
         void* result = res.obj;
         res.obj = nullptr;
@@ -169,7 +169,7 @@ std::vector<std::pair<std::string, uint>> Package::getAllResources() const
 
 void Package::addResource(std::string name, uint typeId, void* obj)
 {
-    Resource res;
+    Package::Resource res;
     res.name = name;
     res.obj = obj;
     res.length = 0;
@@ -182,7 +182,7 @@ void Package::addResource(std::string name, uint typeId, void* obj)
     resources.insert(make_pair(name, res));
 }
 
-void saveResource(Serializer& ser, Resource& res, std::map<uint, std::pair<WriteFcn, ReadFcn>>& parsers)
+void saveResource(Serializer& ser, Package::Resource& res, std::map<uint, std::pair<WriteFcn, ReadFcn>>& parsers)
 {
     res.offset = ser.pos();
 

@@ -8,24 +8,24 @@
 
 #include "std.h"
 
-struct Resource
-{
-    void* obj;
-    uint typeId;
-    std::string name;
-
-    uint offset;
-    uint length;
-
-    Resource() {}
-};
-
 typedef std::function<void(Serializer&, void*)> WriteFcn;
 typedef std::function<void*(Serializer&)> ReadFcn;
 
 class Package
 {
 public:
+    struct Resource
+    {
+        void* obj;
+        uint typeId;
+        std::string name;
+
+        uint offset;
+        uint length;
+
+        Resource() {}
+    };
+
     Package();
     Package(Serializer _serializer, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers);
 
@@ -68,7 +68,7 @@ public:
 private:
     Serializer serializer; // The serializer to read/write from.
     std::map<uint, std::pair<WriteFcn, ReadFcn>>* parsers; // Functions to read and write the specified type.
-    std::map<std::string, Resource> resources; // The resources available.
+    std::map<std::string, Package::Resource> resources; // The resources available.
 
     uchar typeCode[3]; // The type code to expect from the stored data.
 
@@ -103,7 +103,7 @@ private:
     std::string fileName;
     std::ifstream file;
     Package pack;
-    std::map<std::string, Resource> resources;
+    std::map<std::string, Package::Resource> resources;
     uchar typeCode[3];
     bool init = false;
     bool bIsOpen = false;
