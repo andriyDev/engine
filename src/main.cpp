@@ -56,8 +56,8 @@ Mesh* buildMesh() {
 }
 
 std::map<uint, std::pair<WriteFcn, ReadFcn>> parsers = {
-    {RESOURCE_MESH, std::make_pair(writeMesh, readMesh)},
-    {RESOURCE_SHADER, std::make_pair(writeShader, readShader)}
+    {(uint)RenderResources::Mesh, std::make_pair(writeMesh, readMesh)},
+    {(uint)RenderResources::Shader, std::make_pair(writeShader, readShader)}
 };
 
 int main()
@@ -100,9 +100,13 @@ int main()
     Entity* e = U->addEntity();
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
-    m->mesh = new RenderableMesh(res.releaseResource<Mesh>("Mesh"));
-    std::vector<Shader*> vert_comp = { res.releaseResource<Shader>("vertex_basic_shader") };
-    std::vector<Shader*> frag_comp = { res.releaseResource<Shader>("fragment_basic_shader") };
+    m->mesh = new RenderableMesh(res.releaseResource<Mesh>("Mesh", (uint)RenderResources::Mesh));
+    std::vector<Shader*> vert_comp = {
+        res.releaseResource<Shader>("vertex_basic_shader", (uint)RenderResources::Shader)
+    };
+    std::vector<Shader*> frag_comp = {
+        res.releaseResource<Shader>("fragment_basic_shader", (uint)RenderResources::Shader)
+    };
     m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
     Transform* meshTransform = U->addComponent<Transform>();
     glm::vec3 a(3,0,0);

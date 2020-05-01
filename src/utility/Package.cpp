@@ -121,19 +121,19 @@ void* loadResource(Serializer& ser, Resource& res, std::map<uint, std::pair<Writ
     return res.obj;
 }
 
-void* Package::getResource(std::string name)
+std::pair<void*, uint> Package::getResource(std::string name)
 {
     auto it = resources.find(name);
     assert(it != resources.end());
     Resource& res = it->second;
     if(res.obj) {
-        return res.obj;
+        return std::make_pair(res.obj, res.typeId);
     }
     res.obj = loadResource(serializer, res, *parsers);
-    return res.obj;
+    return std::make_pair(res.obj, res.typeId);
 }
 
-void* Package::releaseResource(std::string name)
+std::pair<void*, uint> Package::releaseResource(std::string name)
 {
     auto it = resources.find(name);
     assert(it != resources.end());
@@ -141,9 +141,9 @@ void* Package::releaseResource(std::string name)
     if(res.obj) {
         void* result = res.obj;
         res.obj = nullptr;
-        return result;
+        return std::make_pair(result, res.typeId);
     }
-    return loadResource(serializer, res, *parsers);
+    return std::make_pair(loadResource(serializer, res, *parsers), res.typeId);
 }
 
 std::vector<std::string> Package::getResourcesByType(uint typeId) const
@@ -273,7 +273,7 @@ void PackageFile::open()
     init = true;
 }
 
-void* PackageFile::releaseResource(std::string name)
+std::pair<void*, uint> PackageFile::releaseResource(std::string name)
 {
     assert(bIsOpen);
     return pack.releaseResource(name);

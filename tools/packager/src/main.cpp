@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "std.h"
+#include "resources/RenderResources.h"
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
 
@@ -127,8 +128,8 @@ vector<pair<void*, string>> extractMeshes(const string& fileName,
 }
 
 map<uint, pair<WriteFcn, ReadFcn>> parsers = {
-    {RESOURCE_MESH, make_pair(writeMesh, readMesh)},
-    {RESOURCE_SHADER, make_pair(writeShader, readShader)}
+    {(uint)RenderResources::Mesh, make_pair(writeMesh, readMesh)},
+    {(uint)RenderResources::Shader, make_pair(writeShader, readShader)}
 };
 Assimp::Importer gImporter;
 
@@ -182,7 +183,7 @@ void processResourceCommand(vector<string> command, Package& pkg)
         }
         for(pair<void*, string> res : extractMeshes(fileName, meshNames, meshNameMap, gImporter))
         {
-            pkg.addResource(res.second, RESOURCE_MESH, res.first);
+            pkg.addResource(res.second, (uint)RenderResources::Mesh, res.first);
         }
     }
     else if(cmdType == "shader")
@@ -199,7 +200,7 @@ void processResourceCommand(vector<string> command, Package& pkg)
             delete shader;
             return;
         }
-        pkg.addResource(trim(command[2]), RESOURCE_SHADER, shader);
+        pkg.addResource(trim(command[2]), (uint)RenderResources::Shader, shader);
     }
     else
     {

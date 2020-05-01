@@ -31,11 +31,13 @@ public:
 
     // Loads the basic package info. Does not load resources immediately.
     void loadPackage();
-    // Either gets the specified resource, or loads it from the serializer.
-    void* getResource(std::string name);
+    // Either gets the specified resource, or loads it from the serializer. Also returns the type id of the resource.
+    std::pair<void*, uint> getResource(std::string name);
     template<typename T>
-    T* getResource(std::string name) {
-        return static_cast<T*>(getResource(name));
+    T* getResource(std::string name, uint typeId) {
+        std::pair<void*, uint> resource = getResource(name);
+        assert(resource.second == typeId);
+        return static_cast<T*>(resources.first);
     }
     // Lists all available resources (by name) of the specified type.
     std::vector<std::string> getResourcesByType(uint typeId) const;
@@ -52,10 +54,12 @@ public:
     This resource then won't be deleted on freeResources.
     If the resource is already cached, will return and release that.
     */
-    void* releaseResource(std::string name);
+    std::pair<void*, uint> releaseResource(std::string name);
     template<typename T>
-    T* releaseResource(std::string name) {
-        return static_cast<T*>(releaseResource(name));
+    T* releaseResource(std::string name, uint typeId) {
+        std::pair<void*, uint> resource = releaseResource(name);
+        assert(resource.second == typeId);
+        return static_cast<T*>(resource.first);
     }
 
     inline bool isWriting() const {
@@ -78,10 +82,12 @@ public:
 
     void open();
 
-    void* releaseResource(std::string name);
+    std::pair<void*, uint> releaseResource(std::string name);
     template<typename T>
-    T* releaseResource(std::string name) {
-        return static_cast<T*>(releaseResource(name));
+    T* releaseResource(std::string name, uint typeId) {
+        std::pair<void*, uint> resource = releaseResource(name);
+        assert(resource.second == typeId);
+        return static_cast<T*>(resource.first);
     }
 
     bool hasResource(std::string name) {

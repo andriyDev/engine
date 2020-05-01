@@ -3,8 +3,7 @@
 
 #include "std.h"
 #include "utility/Serializer.h"
-
-#define RESOURCE_SHADER 2
+#include "RenderResources.h"
 
 class Shader
 {

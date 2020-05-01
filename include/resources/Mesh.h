@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-#define RESOURCE_MESH 1
+#include "RenderResources.h"
 
 class Mesh
 {
