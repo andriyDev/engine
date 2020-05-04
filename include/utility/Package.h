@@ -79,6 +79,7 @@ class PackageFile
 {
 public:
     PackageFile(std::string _fileName, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers);
+    ~PackageFile();
 
     void open();
 

@@ -253,6 +253,13 @@ PackageFile::PackageFile(std::string _fileName, const uchar* _typeCode,
     typeCode[2] = _typeCode[2];
 }
 
+PackageFile::~PackageFile()
+{
+    if(bIsOpen) {
+        close();
+    }
+}
+
 void PackageFile::open()
 {
     assert(!bIsOpen);
