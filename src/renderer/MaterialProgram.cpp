@@ -15,9 +15,14 @@ void MaterialProgram::bind()
     }
 }
 
-GLuint MaterialProgram::getUniformId(const std::string& uniformName)
+GLuint MaterialProgram::getUniformId(const std::string& uniformName) const
 {
     return state == Success ? glGetUniformLocation(ProgramId, uniformName.c_str()) : 0;
+}
+
+GLuint MaterialProgram::getProgramId() const
+{
+    return ProgramId;
 }
 
 std::shared_ptr<Resource> MaterialProgramBuilder::construct()
@@ -68,12 +73,12 @@ void MaterialProgramBuilder::startBuild()
     std::vector<std::shared_ptr<Shader>> vertexShaderComponents;
     std::vector<std::shared_ptr<Shader>> fragmentShaderComponents;
     for(std::string shaderName : vertexComponents) {
-        if(auto ptr = getDependency<Shader>(shaderName)) {
+        if(auto ptr = getDependency<Shader>(shaderName, (uint)RenderResources::Shader)) {
             vertexShaderComponents.push_back(ptr);
         }
     }
     for(std::string shaderName : fragmentComponents) {
-        if(auto ptr = getDependency<Shader>(shaderName)) {
+        if(auto ptr = getDependency<Shader>(shaderName, (uint)RenderResources::Shader)) {
             fragmentShaderComponents.push_back(ptr);
         }
     }

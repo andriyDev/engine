@@ -39,9 +39,9 @@ protected:
     void addDependency(std::string dependencyName);
 
     template<typename T>
-    std::shared_ptr<T> getDependency(std::string dependencyName) const {
+    std::shared_ptr<T> getDependency(std::string dependencyName, uint verifyType) const {
         auto it = dependencies.find(dependencyName);
-        if(it == dependencies.end() || !it->second || it->second->state != Resource::Success) {
+        if(it == dependencies.end() || !it->second || it->second->state != Resource::Success || it->second->getResourceType() != verifyType) {
             return nullptr;
         }
         return std::static_pointer_cast<T>(it->second);

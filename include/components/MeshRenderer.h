@@ -15,5 +15,5 @@ public:
     { }
 
     std::shared_ptr<RenderableMesh> mesh = nullptr;
-    Material* material = nullptr;
+    std::shared_ptr<Material> material = nullptr;
 };

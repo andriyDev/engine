@@ -16,7 +16,8 @@ public:
 
     void bind();
 
-    GLuint getUniformId(const std::string& uniformName);
+    GLuint getUniformId(const std::string& uniformName) const;
+    GLuint getProgramId() const;
 private:
     GLuint ProgramId;
 

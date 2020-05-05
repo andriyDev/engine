@@ -7,44 +7,56 @@
 
 #include "glm/glm.hpp"
 
-class UniformValue
+class Material : public Resource
 {
 public:
-    UniformValue(std::string name, MaterialProgram* _program);
-
-    virtual void setValue() = 0;
-protected:
-    GLuint location;
-    MaterialProgram* program;
-};
-
-template<typename T>
-class Uniform : public UniformValue
-{
-public:
-    Uniform<T>(std::string name, MaterialProgram* _program) : UniformValue(name, _program) { }
-
-    T* getValue() {
-        return &value;
-    }
-    virtual void setValue() override;
-protected:
-    T value;
-};
-
-class Material
-{
-public:
-    Material(MaterialProgram* _program);
+    Material() : Resource((uint)RenderResources::Material) {}
     ~Material();
 
     void use();
     void setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix);
 
-    template<class U>
-    U* addUniform(std::string name);
+    void setBoolProperty(const std::string& name, bool value);
+    void setIntProperty(const std::string& name, int value);
+    void setFloatProperty(const std::string& name, float value);
+    void setVec2Property(const std::string& name, const glm::vec2& value);
+    void setVec3Property(const std::string& name, const glm::vec3& value);
+    void setVec4Property(const std::string& name, const glm::vec4& value);
+    void setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
 private:
-    MaterialProgram* program;
-    Uniform<glm::mat4> mvp;
-    std::map<std::string, UniformValue*> uniforms;
+    std::shared_ptr<MaterialProgram> program;
+    std::map<std::string, std::pair<GLenum, GLuint>> uniforms;
+    GLuint uboLocation;
+    GLuint ubo;
+    GLuint mvpLocation;
+
+    friend class MaterialBuilder;
+};
+
+class MaterialBuilder : public ResourceBuilder
+{
+public:
+    std::string materialProgram;
+
+    MaterialBuilder() : ResourceBuilder((uint)RenderResources::Material) {}
+
+    void setBoolProperty(const std::string& name, bool value);
+    void setIntProperty(const std::string& name, int value);
+    void setFloatProperty(const std::string& name, float value);
+    void setVec2Property(const std::string& name, const glm::vec2& value);
+    void setVec3Property(const std::string& name, const glm::vec3& value);
+    void setVec4Property(const std::string& name, const glm::vec4& value);
+
+    virtual std::shared_ptr<Resource> construct() override;
+
+    virtual void init() override;
+
+    virtual void startBuild() override;
+private:
+    std::map<std::string, bool> boolProps;
+    std::map<std::string, int> intProps;
+    std::map<std::string, float> floatProps;
+    std::map<std::string, glm::vec2> vec2Props;
+    std::map<std::string, glm::vec3> vec3Props;
+    std::map<std::string, glm::vec4> vec4Props;
 };

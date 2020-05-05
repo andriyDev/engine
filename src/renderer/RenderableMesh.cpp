@@ -40,7 +40,7 @@ void RenderableMeshBuilder::init()
 void RenderableMeshBuilder::startBuild()
 {
     std::shared_ptr<RenderableMesh> outMesh = getResource<RenderableMesh>();
-    std::shared_ptr<Mesh> mesh = getDependency<Mesh>(sourceMesh);
+    std::shared_ptr<Mesh> mesh = getDependency<Mesh>(sourceMesh, (uint)RenderResources::Mesh);
     if(!mesh) {
         throw "Bad Mesh!";
     }

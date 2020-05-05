@@ -28,8 +28,17 @@
 class TestSystem : public System
 {
 public:
+    std::shared_ptr<Material> A;
+    std::shared_ptr<Material> B;
+    float time = 0.f;
+
     virtual void frameTick(float delta, float tickPercen) override {
-        //printf("Frame Tick!\n");
+        time += delta;
+        Query<MeshRenderer*> mrs = getWorld()->queryComponents().filter(filterByTypeId(MESH_RENDERER_ID)).cast<MeshRenderer*>();
+        for(MeshRenderer* mr : mrs) {
+            std::cout << (fmod(time, 2.f) < 1.f ? "A" : "B") << std::endl;
+            mr->material = fmod(time, 2.f) < 1.f ? A : B;
+        }
     }
     virtual void gameplayTick(float delta) override {
         Query<Transform*> mr = getWorld()->queryEntities().filter([&](Entity* e) {
@@ -94,12 +103,34 @@ int main()
     res->open();
 
     ResourceLoader loader;
-    loader.addResource("Mesh", std::make_shared<FileResourceBuilder<Mesh>>(
-        (uint)RenderResources::Mesh, res, "Mesh", (uint)FileRenderResources::Mesh)
-    );
-    auto rmb = std::make_shared<RenderableMeshBuilder>();
-    rmb->sourceMesh = "Mesh";
-    loader.addResource("RenderMesh", rmb);
+    {
+        loader.addResource("Mesh", std::make_shared<FileResourceBuilder<Mesh>>(
+            (uint)RenderResources::Mesh, res, "Mesh", (uint)FileRenderResources::Mesh
+        ));
+        auto rmb = std::make_shared<RenderableMeshBuilder>();
+        rmb->sourceMesh = "Mesh";
+        loader.addResource("RenderMesh", rmb);
+
+        loader.addResource("VShader", std::make_shared<FileResourceBuilder<Shader>>(
+            (uint)RenderResources::Shader, res, "vertex_basic_shader", (uint)FileRenderResources::Shader
+        ));
+        loader.addResource("FShader", std::make_shared<FileResourceBuilder<Shader>>(
+            (uint)RenderResources::Shader, res, "fragment_basic_shader", (uint)FileRenderResources::Shader
+        ));
+        auto mpb = std::make_shared<MaterialProgramBuilder>();
+        mpb->vertexComponents.push_back("VShader");
+        mpb->fragmentComponents.push_back("FShader");
+        loader.addResource("Program", mpb);
+
+        auto mb1 = std::make_shared<MaterialBuilder>();
+        mb1->materialProgram = "Program";
+        loader.addResource("Material1", mb1);
+        mb1->setVec3Property("albedo", glm::vec3(0.361f, 0.620f, 0.322f));
+        auto mb2 = std::make_shared<MaterialBuilder>();
+        mb2->materialProgram = "Program";
+        loader.addResource("Material2", mb2);
+        mb2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
+    }
 
     loader.initLoad();
     loader.beginLoad();
@@ -108,7 +139,9 @@ int main()
     U->gameplayRate = 30;
 
     World* w = U->addWorld();
-    w->addSystem<TestSystem>();
+    TestSystem* TS = w->addSystem<TestSystem>();
+    TS->A = loader.getResource<Material>("Material1", (uint)RenderResources::Material);
+    TS->B = loader.getResource<Material>("Material2", (uint)RenderResources::Material);
     w->addSystem<RenderSystem>(-10000);
 
     w->attach(U->addEntity());
@@ -116,13 +149,7 @@ int main()
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
     m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
-    std::vector<Shader*> vert_comp = {
-        res->releaseResource<Shader>("vertex_basic_shader", (uint)FileRenderResources::Shader)
-    };
-    std::vector<Shader*> frag_comp = {
-        res->releaseResource<Shader>("fragment_basic_shader", (uint)FileRenderResources::Shader)
-    };
-    m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
+    m->material = loader.getResource<Material>("Material2", (uint)RenderResources::Material);
     Transform* meshTransform = U->addComponent<Transform>();
     glm::vec3 a(3,0,0);
     glm::vec3 b(-10,0,0);
