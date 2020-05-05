@@ -25,6 +25,8 @@
 
 #include "utility/Package.h"
 
+#include "Window.h"
+
 class TestSystem : public System
 {
 public:
@@ -74,20 +76,12 @@ std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
 
 int main()
 {
-    GLFWwindow* window;
-    if(!glfwInit())
-        return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    Window window;
+    window.setSize(1280, 720);
+    window.setTitle("Title");
+    window.build();
 
-    window = glfwCreateWindow(1280, 720, "Title", NULL, NULL);
-    if(!window) {
-        glfwTerminate();
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
+    window.bindContext();
 
     glewExperimental = true;
     if(glewInit() != GLEW_OK) {
@@ -134,7 +128,8 @@ int main()
     TestSystem* TS = w->addSystem<TestSystem>();
     TS->A = m1;
     TS->B = m2;
-    w->addSystem<RenderSystem>(-10000);
+    RenderSystem* RS = w->addSystem<RenderSystem>(-10000);
+    RS->targetWindow = &window;
 
     w->attach(U->addEntity());
     Entity* e = U->addEntity();
@@ -172,11 +167,14 @@ int main()
 
         loader.poll();
 
+        if(delta > 0) {
+            std::cout << "FPS: " << (1.0f / delta) << std::endl;
+        }
+
         U->tick(delta);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    } while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
+        window.poll();
+    } while(glfwGetKey(window.getWindow(), GLFW_KEY_ESCAPE) != GLFW_PRESS && !window.wantsClose());
 
     Universe::cleanUp();
 
