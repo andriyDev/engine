@@ -14,6 +14,7 @@ public:
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
     void removeFunction(uint fcnId) { fcns.erase(fcns.find(fcnId)); }
+    void clearFunctions() { fcns.clear(); }
     void dispatch() {
         for(auto p : fcns) { p.second.second(p.second.first); }
     }
@@ -31,6 +32,7 @@ public:
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
     void removeFunction(uint fcnId) { fcns.erase(fcns.find(fcnId)); }
+    void clearFunctions() { fcns.clear(); }
     void dispatch(T params) {
         for(auto p : fcns) { p.second.second(p.second.first, params); }
     }
