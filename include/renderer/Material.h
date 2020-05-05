@@ -11,6 +11,7 @@ class Material
 {
 public:
     Material(std::shared_ptr<MaterialProgram> _program);
+    Material(std::shared_ptr<Material> original);
     ~Material();
 
     void use();
@@ -41,6 +42,8 @@ private:
             glm::vec4 data_vec4;
         };
     };
+
+    Material(std::shared_ptr<MaterialProgram> _program, const std::map<std::string, PropInfo>& defaultProps);
 
     std::map<std::string, PropInfo> queuedProps;
 
