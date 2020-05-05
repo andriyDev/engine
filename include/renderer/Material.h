@@ -25,10 +25,7 @@ public:
     void setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
 private:
     std::shared_ptr<MaterialProgram> program;
-    std::map<std::string, std::pair<GLenum, GLuint>> uniforms;
-    GLuint uboLocation;
-    GLuint ubo;
-    GLuint mvpLocation;
+    GLuint ubo = 0;
 
     friend class MaterialBuilder;
 };

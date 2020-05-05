@@ -6,6 +6,7 @@
 
 #define GLEW_STATIC
 #include "GL/glew.h"
+#include <glm/glm.hpp>
 
 class MaterialProgram : public Resource
 {
@@ -15,13 +16,25 @@ public:
     ~MaterialProgram();
 
     void bind();
+    void useUBO(GLuint ubo);
+
+    void setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix);
+
+    GLuint createUBO();
 
     GLuint getUniformId(const std::string& uniformName) const;
     GLuint getProgramId() const;
+    const std::map<std::string, std::pair<GLenum, GLuint>>& getUniformInfo() const;
 private:
     GLuint ProgramId;
 
+    std::map<std::string, std::pair<GLenum, GLuint>> uniforms;
+    GLuint uboSize;
+    GLuint uboLocation;
+    GLuint mvpLocation;
+
     friend class MaterialProgramBuilder;
+    friend class Material;
 };
 
 class MaterialProgramBuilder : public ResourceBuilder

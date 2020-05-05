@@ -36,7 +36,6 @@ public:
         time += delta;
         Query<MeshRenderer*> mrs = getWorld()->queryComponents().filter(filterByTypeId(MESH_RENDERER_ID)).cast<MeshRenderer*>();
         for(MeshRenderer* mr : mrs) {
-            std::cout << (fmod(time, 2.f) < 1.f ? "A" : "B") << std::endl;
             mr->material = fmod(time, 2.f) < 1.f ? A : B;
         }
     }
