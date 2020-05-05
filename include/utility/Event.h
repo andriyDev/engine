@@ -11,6 +11,7 @@ public:
     typedef std::function<void(void*)> EventFcn;
     uint addFunction(EventFcn f, void* data) {
         uint fcnId = rand(); // TODO: Better random id gen.
+        if(fcnId == 0) { fcnId = 1; }
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
     void removeFunction(uint fcnId) { fcns.erase(fcns.find(fcnId)); }
@@ -29,6 +30,7 @@ public:
     typedef std::function<void(void*, T)> EventFcn;
     uint addFunction(EventFcn f, void* data) {
         uint fcnId = rand(); // TODO: Better random id gen.
+        if(fcnId == 0) { fcnId = 1; }
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
     void removeFunction(uint fcnId) { fcns.erase(fcns.find(fcnId)); }
