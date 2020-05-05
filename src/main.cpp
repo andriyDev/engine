@@ -45,7 +45,7 @@ public:
         }).map<Transform*>([](Entity* e){ return static_cast<Transform*>(e->findComponentByType(TRANSFORM_ID)); });
         for(Transform* t : mr) {
             TransformData td = t->getRelativeTransform();
-            td = TransformData(glm::vec3(0,0,0), glm::angleAxis(glm::radians(60.f) * delta, glm::vec3(0,0,1))) * td;
+            td.rotation = glm::angleAxis(glm::radians(60.f) * delta, glm::vec3(0, 0, 1)) * td.rotation;
             t->setRelativeTransform(td);
         }
     }
