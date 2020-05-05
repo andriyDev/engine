@@ -174,8 +174,6 @@ int main()
         float delta = newTime - previousTime;
         previousTime = newTime;
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         loader.poll();
 
         U->tick(delta);

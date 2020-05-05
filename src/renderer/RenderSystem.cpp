@@ -14,6 +14,8 @@
 
 void RenderSystem::frameTick(float delta, float tickPercent)
 {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     Query<Camera*> cameras = getWorld()->queryComponents()
         .filter(filterByTypeId(CAMERA_ID))
         .cast<Camera*>();
