@@ -12,14 +12,15 @@ void Material::use()
 {
     if(state == Success) {
         program->bind();
-        glBindBufferBase(GL_UNIFORM_BUFFER, uboLocation, ubo);
+        program->useUBO(ubo);
     }
 }
 
 void Material::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
 {
-    glm::mat4 mvp = vpMatrix * modelMatrix;
-    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &mvp[0][0]);
+    if(state == Success) {
+        program->setMVP(modelMatrix, vpMatrix);
+    }
 }
 
 void Material::setBoolProperty(const std::string& name, bool value)
@@ -54,6 +55,10 @@ void Material::setVec4Property(const std::string& name, const glm::vec4& value)
 
 void Material::setProperty(const std::string& name, const void* data, uint size, GLenum matchType)
 {
+    if(state != Success) {
+        return;
+    }
+    const auto& uniforms = program->getUniformInfo();
     auto it = uniforms.find(name);
     if(it == uniforms.end() || matchType != 0 && it->second.first != matchType) {
         throw "Bad uniform! Either uniform not found or it does not match the desired type!";
@@ -110,50 +115,9 @@ void MaterialBuilder::startBuild()
     assert(program);
     target->program = program;
 
-    uint propsId = glGetUniformBlockIndex(program->getProgramId(), "MaterialProps");
-    if(propsId == GL_INVALID_INDEX) {
-        target->state = Resource::Failure;
-        return;
-    }
-    target->uboLocation = 0;
+    target->ubo = program->createUBO();
 
-    glUniformBlockBinding(program->getProgramId(), propsId, 0);
-
-    int propCount;
-    glGetActiveUniformBlockiv(program->getProgramId(), propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &propCount);
-
-    int* propIndices = new int[propCount];
-    glGetActiveUniformBlockiv(program->getProgramId(), propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, propIndices);
-    
-    int* propTypes = new int[propCount];
-    int* propOffsets = new int[propCount];
-    
-    glGetActiveUniformsiv(program->getProgramId(), propCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
-    glGetActiveUniformsiv(program->getProgramId(), propCount, (uint*)propIndices, GL_UNIFORM_OFFSET, propOffsets);
-
-    char buffer[256];
-    for(int i = 0; i < propCount; i++) {
-        glGetActiveUniformName(program->getProgramId(), propIndices[i], 256, 0, buffer);
-
-        std::string uniformName = buffer;
-        GLenum uniformType = propTypes[i];
-        GLuint uniformOffset = propOffsets[i];
-
-        target->uniforms.insert(std::make_pair(uniformName, std::make_pair(uniformType, uniformOffset)));
-    }
-    delete[] propIndices;
-    delete[] propTypes;
-    delete[] propOffsets;
-    
-    int propsSize;
-    glGetActiveUniformBlockiv(program->getProgramId(), propsId, GL_UNIFORM_BLOCK_DATA_SIZE, &propsSize);
-
-    target->mvpLocation = program->getUniformId("mvp");
-
-    glGenBuffers(1, &target->ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, target->ubo);
-    glBufferData(GL_UNIFORM_BUFFER, propsSize, (void*)0, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, target->ubo);
+    target->state = Resource::Success;
 
     for(auto p : boolProps) {
         target->setBoolProperty(p.first, p.second);
@@ -173,6 +137,4 @@ void MaterialBuilder::startBuild()
     for(auto p : vec4Props) {
         target->setVec4Property(p.first, p.second);
     }
-
-    target->state = Resource::Success;
 }
