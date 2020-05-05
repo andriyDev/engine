@@ -7,10 +7,10 @@
 
 #include "glm/glm.hpp"
 
-class Material : public Resource
+class Material
 {
 public:
-    Material() : Resource((uint)RenderResources::Material) {}
+    Material(std::shared_ptr<MaterialProgram> _program);
     ~Material();
 
     void use();
@@ -25,35 +25,24 @@ public:
     void setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
 private:
     std::shared_ptr<MaterialProgram> program;
+    bool usable = false;
+    uint programLoadEvent = 0;
     GLuint ubo = 0;
 
-    friend class MaterialBuilder;
-};
+    struct PropInfo {
+        GLenum matchType;
+        uint dataSize;
+        union {
+            bool data_bool;
+            int data_int;
+            float data_float;
+            glm::vec2 data_vec2;
+            glm::vec3 data_vec3;
+            glm::vec4 data_vec4;
+        };
+    };
 
-class MaterialBuilder : public ResourceBuilder
-{
-public:
-    std::string materialProgram;
+    std::map<std::string, PropInfo> queuedProps;
 
-    MaterialBuilder() : ResourceBuilder((uint)RenderResources::Material) {}
-
-    void setBoolProperty(const std::string& name, bool value);
-    void setIntProperty(const std::string& name, int value);
-    void setFloatProperty(const std::string& name, float value);
-    void setVec2Property(const std::string& name, const glm::vec2& value);
-    void setVec3Property(const std::string& name, const glm::vec3& value);
-    void setVec4Property(const std::string& name, const glm::vec4& value);
-
-    virtual std::shared_ptr<Resource> construct() override;
-
-    virtual void init() override;
-
-    virtual void startBuild() override;
-private:
-    std::map<std::string, bool> boolProps;
-    std::map<std::string, int> intProps;
-    std::map<std::string, float> floatProps;
-    std::map<std::string, glm::vec2> vec2Props;
-    std::map<std::string, glm::vec3> vec3Props;
-    std::map<std::string, glm::vec4> vec4Props;
+    static void build(void* materialRaw, Resource::ResourceLoadDoneParams params);
 };

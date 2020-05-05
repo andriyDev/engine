@@ -120,27 +120,25 @@ int main()
         mpb->vertexComponents.push_back("VShader");
         mpb->fragmentComponents.push_back("FShader");
         loader.addResource("Program", mpb);
-
-        auto mb1 = std::make_shared<MaterialBuilder>();
-        mb1->materialProgram = "Program";
-        loader.addResource("Material1", mb1);
-        mb1->setVec3Property("albedo", glm::vec3(0.361f, 0.620f, 0.322f));
-        auto mb2 = std::make_shared<MaterialBuilder>();
-        mb2->materialProgram = "Program";
-        loader.addResource("Material2", mb2);
-        mb2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
     }
 
     loader.initLoad();
     loader.beginLoad();
+
+    std::shared_ptr<Material> m1 = std::make_shared<Material>(
+        loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
+    m1->setVec3Property("albedo", glm::vec3(0.361f, 0.620f, 0.322f));
+    std::shared_ptr<Material> m2 = std::make_shared<Material>(
+        loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
+    m2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
 
     Universe* U = Universe::init();
     U->gameplayRate = 30;
 
     World* w = U->addWorld();
     TestSystem* TS = w->addSystem<TestSystem>();
-    TS->A = loader.getResource<Material>("Material1", (uint)RenderResources::Material);
-    TS->B = loader.getResource<Material>("Material2", (uint)RenderResources::Material);
+    TS->A = m1;
+    TS->B = m2;
     w->addSystem<RenderSystem>(-10000);
 
     w->attach(U->addEntity());
@@ -148,7 +146,7 @@ int main()
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
     m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
-    m->material = loader.getResource<Material>("Material2", (uint)RenderResources::Material);
+    m->material = nullptr;
     Transform* meshTransform = U->addComponent<Transform>();
     glm::vec3 a(3,0,0);
     glm::vec3 b(-10,0,0);
