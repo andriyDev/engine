@@ -54,6 +54,10 @@ System* World::addSystem(System* system)
 void World::frameTick(float delta, float tickPercent)
 {
     for(System* system : systems) {
+        if(!system->initialized) {
+            system->initialized = true;
+            system->init();
+        }
         system->frameTick(delta, tickPercent);
     }
 }
@@ -61,6 +65,10 @@ void World::frameTick(float delta, float tickPercent)
 void World::gameplayTick(float delta)
 {
     for(System* system : systems) {
+        if(!system->initialized) {
+            system->initialized = true;
+            system->init();
+        }
         system->gameplayTick(delta);
     }
 }

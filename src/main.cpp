@@ -94,10 +94,6 @@ int main()
         return -1;
     }
 
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glCullFace(GL_BACK);
-
     std::shared_ptr<PackageFile> res = std::make_shared<PackageFile>("res.pkg", (const uchar*)"REN", &parsers);
     res->open();
 
