@@ -49,6 +49,7 @@ void RenderSystem::frameTick(float delta, float tickPercent)
             renderer->mesh->render();
         }
     }
+    targetWindow->swapBuffers();
 }
 
 void RenderSystem::gameplayTick(float delta)
