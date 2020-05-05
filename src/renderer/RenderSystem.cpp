@@ -29,8 +29,9 @@ void RenderSystem::frameTick(float delta, float tickPercent)
         glm::mat4 vpMatrix = camera->getVPMatrix(tickPercent, screenAspect);
 
         for(MeshRenderer* renderer : meshes) {
-            // Don't render a mesh with no material.
-            if(!renderer->material) {
+            // Don't render a mesh where the mesh or material are in a bad state.
+            if(!renderer->mesh || !renderer->material
+                || renderer->mesh->state != Resource::Success || !renderer->material->isUsable()) {
                 continue;
             }
             renderer->mesh->bind();

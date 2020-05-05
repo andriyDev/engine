@@ -24,6 +24,8 @@ public:
     void setVec3Property(const std::string& name, const glm::vec3& value);
     void setVec4Property(const std::string& name, const glm::vec4& value);
     void setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
+
+    inline bool isUsable() const { return usable; }
 private:
     std::shared_ptr<MaterialProgram> program;
     bool usable = false;
