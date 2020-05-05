@@ -127,9 +127,9 @@ vector<pair<void*, string>> extractMeshes(const string& fileName,
     return resources;
 }
 
-map<uint, pair<WriteFcn, ReadFcn>> parsers = {
-    {(uint)RenderResources::Mesh, make_pair(writeMesh, readMesh)},
-    {(uint)RenderResources::Shader, make_pair(writeShader, readShader)}
+map<uint, tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
+    {(uint)FileRenderResources::Mesh, make_tuple(writeMesh, readMesh, readIntoMesh)},
+    {(uint)FileRenderResources::Shader, make_tuple(writeShader, readShader, readIntoShader)}
 };
 Assimp::Importer gImporter;
 
@@ -183,7 +183,7 @@ void processResourceCommand(vector<string> command, Package& pkg)
         }
         for(pair<void*, string> res : extractMeshes(fileName, meshNames, meshNameMap, gImporter))
         {
-            pkg.addResource(res.second, (uint)RenderResources::Mesh, res.first);
+            pkg.addResource(res.second, (uint)FileRenderResources::Mesh, res.first);
         }
     }
     else if(cmdType == "shader")
@@ -200,7 +200,7 @@ void processResourceCommand(vector<string> command, Package& pkg)
             delete shader;
             return;
         }
-        pkg.addResource(trim(command[2]), (uint)RenderResources::Shader, shader);
+        pkg.addResource(trim(command[2]), (uint)FileRenderResources::Shader, shader);
     }
     else
     {

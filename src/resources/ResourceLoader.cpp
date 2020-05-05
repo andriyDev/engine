@@ -63,17 +63,6 @@ std::vector<std::string> ResourceLoader::getResourceNames() const
     return names;
 }
 
-template<typename T>
-std::shared_ptr<T> ResourceLoader::getResource(const std::string& name, uint verificationTypeId) const
-{
-    auto it = resources.find(name);
-    if(it == resources.end() || !it->second) {
-        return nullptr;
-    }
-    assert(it->second->getResourceType() == verificationTypeId);
-    return static_pointer_cast<T>(it->second);
-}
-
 void ResourceLoader::initLoad()
 {
     // Construct and init each resource.
@@ -91,7 +80,7 @@ void ResourceLoader::initLoad()
     for(auto res_pair : pendingResources) {
         std::map<std::string, std::shared_ptr<Resource>>& resourceDependencies = res_pair.second->dependencies;
         // Go through each dependency of the resource.
-        for(auto dep_pair : resourceDependencies) {
+        for(auto& dep_pair : resourceDependencies) {
             // No reason to try to resolve a resource
             if(dep_pair.second) {
                 continue;
@@ -127,7 +116,10 @@ void ResourceLoader::beginLoad()
     for(const std::shared_ptr<ResourceBuilder>& resource : allResources) {
         resource->resource->state = Resource::Queued;
         for(auto dep_pair : resource->dependencies) {
-            children.insert(dep_pair.second->builder.lock().get());
+            std::shared_ptr<ResourceBuilder> ptr;
+            if(ptr = dep_pair.second->builder.lock()) {
+                children.insert(ptr.get());
+            }
         }
     }
 

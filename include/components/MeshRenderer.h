@@ -14,6 +14,6 @@ public:
         : Component(MESH_RENDERER_ID)
     { }
 
-    RenderableMesh* mesh = nullptr;
+    std::shared_ptr<RenderableMesh> mesh = nullptr;
     Material* material = nullptr;
 };

@@ -31,12 +31,26 @@ private:
 class ResourceBuilder
 {
 public:
-    float priority; // The priority of this resource. This can only be changed before the ResourceLoader begins loading.
+    float priority = 1.f; // The priority of this resource. This can only be changed before the ResourceLoader begins loading.
 
     inline Resource::State getState() const { return resource ? resource->state : Resource::NotInitialized; }
 protected:
     /* Adds the dependency to the set of resources required to build this resource. */
     void addDependency(std::string dependencyName);
+
+    template<typename T>
+    std::shared_ptr<T> getDependency(std::string dependencyName) const {
+        auto it = dependencies.find(dependencyName);
+        if(it == dependencies.end() || !it->second || it->second->state != Resource::Success) {
+            return nullptr;
+        }
+        return std::static_pointer_cast<T>(it->second);
+    }
+    
+    template<typename T>
+    std::shared_ptr<T> getResource() const {
+        return std::static_pointer_cast<T>(resource);
+    }
 
     /* Creates a resource pointer and returns it. */
     virtual std::shared_ptr<Resource> construct() = 0;
@@ -89,7 +103,14 @@ public:
     std::vector<std::string> getResourceNames() const;
 
     template<typename T>
-    std::shared_ptr<T> getResource(const std::string& name, uint verificationTypeId) const;
+    std::shared_ptr<T> getResource(const std::string& name, uint verificationTypeId) const {
+        auto it = resources.find(name);
+        if(it == resources.end() || !it->second) {
+            return nullptr;
+        }
+        assert(it->second->getResourceType() == verificationTypeId);
+        return std::static_pointer_cast<T>(it->second);
+    }
 
     /*
     Initializes the loading process. Constructs resources, inits builders, and resolves dependency pointers.

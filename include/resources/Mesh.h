@@ -4,12 +4,13 @@
 #include "std.h"
 
 #include "utility/Serializer.h"
+#include "ResourceLoader.h"
 
 #include <glm/glm.hpp>
 
 #include "RenderResources.h"
 
-class Mesh
+class Mesh : public Resource
 {
 public:
     struct Vertex
@@ -27,6 +28,7 @@ public:
     uint vertCount;
     uint indexCount;
 
+    Mesh();
     ~Mesh();
 
     void clearData();
@@ -41,3 +43,5 @@ void read(Serializer& ser, Mesh& mesh);
 void writeMesh(Serializer& ser, void* meshRaw);
 
 void* readMesh(Serializer& ser);
+
+void readIntoMesh(Serializer& ser, void* meshRaw);

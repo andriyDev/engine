@@ -1,19 +1,61 @@
 
 #include "renderer/RenderableMesh.h"
 
-RenderableMesh::RenderableMesh(Mesh* mesh)
+RenderableMesh::RenderableMesh()
+    : Resource((uint)RenderResources::RenderableMesh)
+{}
+
+RenderableMesh::~RenderableMesh()
 {
-    bufferCount = 2;
-    indexCount = mesh->indexCount;
+    if(state == Resource::Success) {
+        glDeleteBuffers(bufferCount, buffers);
+        glDeleteVertexArrays(1, &vao);
+    }
+}
 
-    glGenVertexArrays(1, &vao);
-    bind();
-    glGenBuffers(bufferCount, buffers);
+void RenderableMesh::bind()
+{
+    if(state == Resource::Success) {
+        glBindVertexArray(vao);
+    }
+}
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[0]);
+void RenderableMesh::render()
+{
+    if(state == Resource::Success) {
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
+    }
+}
+
+std::shared_ptr<Resource> RenderableMeshBuilder::construct()
+{
+    return std::make_shared<RenderableMesh>();
+}
+
+void RenderableMeshBuilder::init()
+{
+    addDependency(sourceMesh);
+}
+
+void RenderableMeshBuilder::startBuild()
+{
+    std::shared_ptr<RenderableMesh> outMesh = getResource<RenderableMesh>();
+    std::shared_ptr<Mesh> mesh = getDependency<Mesh>(sourceMesh);
+    if(!mesh) {
+        throw "Bad Mesh!";
+    }
+
+    outMesh->bufferCount = 2;
+    outMesh->indexCount = mesh->indexCount;
+
+    glGenVertexArrays(1, &outMesh->vao);
+    glBindVertexArray(outMesh->vao);
+    glGenBuffers(outMesh->bufferCount, outMesh->buffers);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, outMesh->buffers[0]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->indexCount * sizeof(uint), mesh->indexData, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, outMesh->buffers[1]);
     glBufferData(GL_ARRAY_BUFFER, mesh->vertCount * sizeof(Mesh::Vertex), mesh->vertData, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0); // Position
@@ -28,20 +70,6 @@ RenderableMesh::RenderableMesh(Mesh* mesh)
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)offsetof(Mesh::Vertex, tangent));
     glEnableVertexAttribArray(5); // Bitangent
     glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)offsetof(Mesh::Vertex, bitangent));
-}
 
-RenderableMesh::~RenderableMesh()
-{
-    glDeleteBuffers(bufferCount, buffers);
-    glDeleteVertexArrays(1, &vao);
-}
-
-void RenderableMesh::bind()
-{
-    glBindVertexArray(vao);
-}
-
-void RenderableMesh::render()
-{
-    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
+    outMesh->state = Resource::Success;
 }

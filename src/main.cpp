@@ -9,6 +9,10 @@
 #include "core/World.h"
 #include "core/Entity.h"
 
+#include "std.h"
+
+#include "resources/ResourceLoader.h"
+#include "resources/FileResourceBuilder.h"
 #include "components/Transform.h"
 #include "components/MeshRenderer.h"
 #include "components/Camera.h"
@@ -55,9 +59,9 @@ Mesh* buildMesh() {
     return mesh;
 }
 
-std::map<uint, std::pair<WriteFcn, ReadFcn>> parsers = {
-    {(uint)RenderResources::Mesh, std::make_pair(writeMesh, readMesh)},
-    {(uint)RenderResources::Shader, std::make_pair(writeShader, readShader)}
+std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
+    {(uint)FileRenderResources::Mesh, std::make_tuple(writeMesh, readMesh, readIntoMesh)},
+    {(uint)FileRenderResources::Shader, std::make_tuple(writeShader, readShader, readIntoShader)}
 };
 
 int main()
@@ -86,8 +90,19 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
 
-    PackageFile res("res.pkg", (const uchar*)"REN", &parsers);
-    res.open();
+    std::shared_ptr<PackageFile> res = std::make_shared<PackageFile>("res.pkg", (const uchar*)"REN", &parsers);
+    res->open();
+
+    ResourceLoader loader;
+    loader.addResource("Mesh", std::make_shared<FileResourceBuilder<Mesh>>(
+        (uint)RenderResources::Mesh, res, "Mesh", (uint)FileRenderResources::Mesh)
+    );
+    auto rmb = std::make_shared<RenderableMeshBuilder>();
+    rmb->sourceMesh = "Mesh";
+    loader.addResource("RenderMesh", rmb);
+
+    loader.initLoad();
+    loader.beginLoad();
 
     Universe* U = Universe::init();
     U->gameplayRate = 30;
@@ -100,12 +115,12 @@ int main()
     Entity* e = U->addEntity();
     w->attach(e);
     MeshRenderer* m = U->addComponent<MeshRenderer>();
-    m->mesh = new RenderableMesh(res.releaseResource<Mesh>("Mesh", (uint)RenderResources::Mesh));
+    m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
     std::vector<Shader*> vert_comp = {
-        res.releaseResource<Shader>("vertex_basic_shader", (uint)RenderResources::Shader)
+        res->releaseResource<Shader>("vertex_basic_shader", (uint)FileRenderResources::Shader)
     };
     std::vector<Shader*> frag_comp = {
-        res.releaseResource<Shader>("fragment_basic_shader", (uint)RenderResources::Shader)
+        res->releaseResource<Shader>("fragment_basic_shader", (uint)FileRenderResources::Shader)
     };
     m->material = new Material(new MaterialProgram(vert_comp, frag_comp));
     Transform* meshTransform = U->addComponent<Transform>();
@@ -127,7 +142,7 @@ int main()
         glm::quatLookAt(glm::normalize(a - b), glm::vec3(0, 0, 1))), true);
     camTransform->getGlobalTransform().transformDirection(glm::vec3(1, 0, 0));
 
-    res.close();
+    res->close();
 
     float previousTime = (float)glfwGetTime();
 
@@ -137,6 +152,8 @@ int main()
         previousTime = newTime;
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        loader.poll();
 
         U->tick(delta);
 

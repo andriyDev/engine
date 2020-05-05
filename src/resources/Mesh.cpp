@@ -1,6 +1,10 @@
 
 #include "resources/Mesh.h"
 
+Mesh::Mesh()
+    : Resource((uint)RenderResources::Mesh)
+{}
+
 Mesh::~Mesh()
 {
     clearData();
@@ -51,4 +55,10 @@ void* readMesh(Serializer& ser)
     Mesh* mesh = new Mesh();
     read(ser, *mesh);
     return mesh;
+}
+
+void readIntoMesh(Serializer& ser, void* meshRaw)
+{
+    Mesh* mesh = static_cast<Mesh*>(meshRaw);
+    read(ser, *mesh);
 }
