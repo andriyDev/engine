@@ -6,7 +6,7 @@ Package::Package()
     resources()
 { }
 
-Package::Package(Serializer _serializer, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers)
+Package::Package(Serializer _serializer, const uchar* _typeCode, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* _parsers)
     : serializer(_serializer), parsers(_parsers), resources()
 {
     assert(_parsers);
@@ -111,14 +111,24 @@ void Package::loadPackage()
     }
 }
 
-void* loadResource(Serializer& ser, Package::Resource& res, std::map<uint, std::pair<WriteFcn, ReadFcn>>& parsers)
+void* loadResource(Serializer& ser, Package::Resource& res, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>& parsers)
 {
     ser.seek(res.offset, SER_START);
 
     auto it = parsers.find(res.typeId);
-    res.obj = it->second.second(ser);
+    res.obj = std::get<1>(it->second)(ser);
 
     return res.obj;
+}
+
+void loadResourceIntoPtr(Serializer& ser, void* data, Package::Resource& res, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>& parsers)
+{
+    ser.seek(res.offset, SER_START);
+
+    auto it = parsers.find(res.typeId);
+    ReadIntoFcn rfcn = std::get<2>(it->second);
+    assert(rfcn);
+    rfcn(ser, data);
 }
 
 std::pair<void*, uint> Package::getResource(std::string name)
@@ -144,6 +154,15 @@ std::pair<void*, uint> Package::releaseResource(std::string name)
         return std::make_pair(result, res.typeId);
     }
     return std::make_pair(loadResource(serializer, res, *parsers), res.typeId);
+}
+
+void Package::loadIntoResource(std::string name, void* resource, uint typeId)
+{
+    auto it = resources.find(name);
+    assert(it != resources.end());
+    Package::Resource& res = it->second;
+    assert(res.typeId == typeId);
+    loadResourceIntoPtr(serializer, resource, res, *parsers);
 }
 
 std::vector<std::string> Package::getResourcesByType(uint typeId) const
@@ -182,12 +201,12 @@ void Package::addResource(std::string name, uint typeId, void* obj)
     resources.insert(make_pair(name, res));
 }
 
-void saveResource(Serializer& ser, Package::Resource& res, std::map<uint, std::pair<WriteFcn, ReadFcn>>& parsers)
+void saveResource(Serializer& ser, Package::Resource& res, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>& parsers)
 {
     res.offset = ser.pos();
 
     auto it = parsers.find(res.typeId);
-    it->second.first(ser, res.obj);
+    std::get<0>(it->second)(ser, res.obj);
 
     res.length = ser.pos() - res.offset;
 }
@@ -245,7 +264,7 @@ void Package::freeResources()
 }
 
 PackageFile::PackageFile(std::string _fileName, const uchar* _typeCode,
-    std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers)
+    std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* _parsers)
     : fileName(_fileName), parsers(_parsers)
 {
     typeCode[0] = _typeCode[0];
@@ -278,6 +297,12 @@ void PackageFile::open()
         pack.resources = resources;
     }
     init = true;
+}
+
+void PackageFile::loadIntoResource(std::string name, void* resource, uint typeId)
+{
+    assert(bIsOpen);
+    return pack.loadIntoResource(name, resource, typeId);
 }
 
 std::pair<void*, uint> PackageFile::releaseResource(std::string name)

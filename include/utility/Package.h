@@ -10,6 +10,7 @@
 
 typedef std::function<void(Serializer&, void*)> WriteFcn;
 typedef std::function<void*(Serializer&)> ReadFcn;
+typedef std::function<void(Serializer&, void*)> ReadIntoFcn;
 
 class Package
 {
@@ -27,7 +28,7 @@ public:
     };
 
     Package();
-    Package(Serializer _serializer, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers);
+    Package(Serializer _serializer, const uchar* _typeCode, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* _parsers);
 
     // Loads the basic package info. Does not load resources immediately.
     void loadPackage();
@@ -62,12 +63,14 @@ public:
         return static_cast<T*>(resource.first);
     }
 
+    void loadIntoResource(std::string name, void* resource, uint typeId);
+
     inline bool isWriting() const {
         return serializer.isWriting();
     }
 private:
     Serializer serializer; // The serializer to read/write from.
-    std::map<uint, std::pair<WriteFcn, ReadFcn>>* parsers; // Functions to read and write the specified type.
+    std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* parsers; // Functions to read and write the specified type.
     std::map<std::string, Package::Resource> resources; // The resources available.
 
     uchar typeCode[3]; // The type code to expect from the stored data.
@@ -78,10 +81,12 @@ private:
 class PackageFile
 {
 public:
-    PackageFile(std::string _fileName, const uchar* _typeCode, std::map<uint, std::pair<WriteFcn, ReadFcn>>* _parsers);
+    PackageFile(std::string _fileName, const uchar* _typeCode, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* _parsers);
     ~PackageFile();
 
     void open();
+
+    void loadIntoResource(std::string name, void* resource, uint typeId);
 
     std::pair<void*, uint> releaseResource(std::string name);
     template<typename T>
@@ -109,5 +114,5 @@ private:
     bool init = false;
     bool bIsOpen = false;
 
-    std::map<uint, std::pair<WriteFcn, ReadFcn>>* parsers;
+    std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* parsers;
 };
