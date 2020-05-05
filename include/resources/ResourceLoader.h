@@ -3,8 +3,9 @@
 
 #include "std.h"
 #include "utility/Package.h"
+#include "utility/Event.h"
 
-class Resource
+class Resource : std::enable_shared_from_this<Resource>
 {
 public:
     enum State {
@@ -19,6 +20,10 @@ public:
     std::weak_ptr<class ResourceBuilder> builder;
     std::string resourceName;
 
+    struct ResourceLoadDoneParams { std::shared_ptr<Resource> resource; };
+    uint triggerOnLoad(ParamEvent<ResourceLoadDoneParams>::EventFcn fcn, void* data);
+    void removeTriggerOnLoad(uint fcnId);
+
     inline uint getResourceType() const { return resourceTypeId; }
 
     inline bool isUsable() const { return state == Success; }
@@ -26,6 +31,9 @@ protected:
     Resource(uint _typeId) { resourceTypeId = _typeId; }
 private:
     uint resourceTypeId;
+    ParamEvent<ResourceLoadDoneParams> resourceLoadDone;
+
+    friend class ResourceLoader;
 };
 
 class ResourceBuilder

@@ -3,6 +3,21 @@
 
 #include <algorithm>
 
+uint Resource::triggerOnLoad(ParamEvent<ResourceLoadDoneParams>::EventFcn fcn, void* data)
+{
+    if(state == Success || state == Failure) {
+        fcn(data, {shared_from_this()});
+        return 0;
+    } else {
+        return resourceLoadDone.addFunction(fcn, data);
+    }
+}
+
+void Resource::removeTriggerOnLoad(uint fcnId)
+{
+    resourceLoadDone.removeFunction(fcnId);
+}
+
 ResourceBuilder::ResourceBuilder(uint constructedType) {
     typeId = constructedType;
 }
@@ -175,6 +190,8 @@ void ResourceLoader::poll() {
     if(currentLoadTarget) {
         if(currentLoadTarget->resource->state == Resource::Success
             || currentLoadTarget->resource->state == Resource::Failure) {
+            currentLoadTarget->resource->resourceLoadDone.dispatch({currentLoadTarget->resource});
+            currentLoadTarget->resource->resourceLoadDone.clearFunctions();
             currentLoadTarget = nullptr;
         }
     }
