@@ -128,8 +128,7 @@ int main()
     std::shared_ptr<Material> m1 = std::make_shared<Material>(
         loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
     m1->setVec3Property("albedo", glm::vec3(0.361f, 0.620f, 0.322f));
-    std::shared_ptr<Material> m2 = std::make_shared<Material>(
-        loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
+    std::shared_ptr<Material> m2 = std::make_shared<Material>(m1);
     m2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
 
     Universe* U = Universe::init();
