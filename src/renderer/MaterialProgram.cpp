@@ -1,14 +1,48 @@
 
 #include "renderer/MaterialProgram.h"
 
-void compileShader(GLuint shaderId, const std::vector<Shader*>& components)
+MaterialProgram::~MaterialProgram()
+{
+    if(state == Success) {
+        glDeleteProgram(ProgramId);
+    }
+}
+
+void MaterialProgram::bind()
+{
+    if(state == Success) {
+        glUseProgram(ProgramId);
+    }
+}
+
+GLuint MaterialProgram::getUniformId(const std::string& uniformName)
+{
+    return state == Success ? glGetUniformLocation(ProgramId, uniformName.c_str()) : 0;
+}
+
+std::shared_ptr<Resource> MaterialProgramBuilder::construct()
+{
+    return std::make_shared<MaterialProgram>();
+}
+
+void MaterialProgramBuilder::init()
+{
+    for(std::string component : vertexComponents) {
+        addDependency(component);
+    }
+    for(std::string component : fragmentComponents) {
+        addDependency(component);
+    }
+}
+
+void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& components)
 {
     GLint Result = GL_FALSE;
     int infoLength;
 
     std::vector<const char*> rawStrings;
     rawStrings.reserve(components.size());
-    for(Shader* shaderComp : components) {
+    for(std::shared_ptr<Shader> shaderComp : components) {
         rawStrings.push_back(check(shaderComp)->code.c_str());
     }
     glShaderSource(shaderId, (GLsizei)rawStrings.size(), &rawStrings[0], NULL);
@@ -24,10 +58,26 @@ void compileShader(GLuint shaderId, const std::vector<Shader*>& components)
     }
 }
 
-MaterialProgram::MaterialProgram(
-    const std::vector<Shader*>& vertexShaderComponents,
-    const std::vector<Shader*>& fragmentShaderComponents)
+void MaterialProgramBuilder::startBuild()
 {
+    std::shared_ptr<MaterialProgram> target = getResource<MaterialProgram>();
+
+    assert(!vertexComponents.empty());
+    assert(!fragmentComponents.empty());
+
+    std::vector<std::shared_ptr<Shader>> vertexShaderComponents;
+    std::vector<std::shared_ptr<Shader>> fragmentShaderComponents;
+    for(std::string shaderName : vertexComponents) {
+        if(auto ptr = getDependency<Shader>(shaderName)) {
+            vertexShaderComponents.push_back(ptr);
+        }
+    }
+    for(std::string shaderName : fragmentComponents) {
+        if(auto ptr = getDependency<Shader>(shaderName)) {
+            fragmentShaderComponents.push_back(ptr);
+        }
+    }
+
     assert(!vertexShaderComponents.empty());
     assert(!fragmentShaderComponents.empty());
 
@@ -38,41 +88,28 @@ MaterialProgram::MaterialProgram(
     compileShader(shaders[0], vertexShaderComponents);
     compileShader(shaders[1], fragmentShaderComponents);
 
-    ProgramId = glCreateProgram();
-    glAttachShader(ProgramId, shaders[0]);
-    glAttachShader(ProgramId, shaders[1]);
-    glLinkProgram(ProgramId);
+    target->ProgramId = glCreateProgram();
+    glAttachShader(target->ProgramId, shaders[0]);
+    glAttachShader(target->ProgramId, shaders[1]);
+    glLinkProgram(target->ProgramId);
 
     GLint Result = GL_FALSE;
     int infoLength;
 
-    glGetShaderiv(ProgramId, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
+    glGetShaderiv(target->ProgramId, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(target->ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
     if(infoLength > 0) {
         std::vector<char> errorMsg(infoLength + 1);
-        glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
+        glGetProgramInfoLog(target->ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);
         return;
     }
 
-    glDetachShader(ProgramId, shaders[0]);
-    glDetachShader(ProgramId, shaders[1]);
+    glDetachShader(target->ProgramId, shaders[0]);
+    glDetachShader(target->ProgramId, shaders[1]);
     
     glDeleteShader(shaders[0]);
     glDeleteShader(shaders[1]);
-}
 
-MaterialProgram::~MaterialProgram()
-{
-    glDeleteProgram(ProgramId);
-}
-
-void MaterialProgram::bind()
-{
-    glUseProgram(ProgramId);
-}
-
-GLuint MaterialProgram::getUniformId(const std::string& uniformName)
-{
-    return glGetUniformLocation(ProgramId, uniformName.c_str());
+    target->state = Resource::Success;
 }

@@ -7,11 +7,10 @@
 #define GLEW_STATIC
 #include "GL/glew.h"
 
-class MaterialProgram
+class MaterialProgram : public Resource
 {
 public:
-    MaterialProgram(const std::vector<Shader*>& vertexShaderComponents,
-        const std::vector<Shader*>& fragmentShaderComponents);
+    MaterialProgram() : Resource((uint)RenderResources::MaterialProgram) {}
         
     ~MaterialProgram();
 
@@ -20,4 +19,21 @@ public:
     GLuint getUniformId(const std::string& uniformName);
 private:
     GLuint ProgramId;
+
+    friend class MaterialProgramBuilder;
+};
+
+class MaterialProgramBuilder : public ResourceBuilder
+{
+public:
+    MaterialProgramBuilder() : ResourceBuilder((uint)RenderResources::MaterialProgram) {}
+
+    std::vector<std::string> vertexComponents;
+    std::vector<std::string> fragmentComponents;
+
+    virtual std::shared_ptr<Resource> construct() override;
+
+    virtual void init() override;
+    
+    virtual void startBuild() override;
 };
