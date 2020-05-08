@@ -82,6 +82,14 @@ public:
     /* Removes the event handler to the window. */
     void removeEventHandler(WindowEventHandler* eventHandler);
 
+    /*
+    If lock is true, locks the cursor to the window.
+    Otherwise, if hidden is true, the cursor is not locked, but will be hidden when over the screen.
+    Otherwise, the cursor is normal.
+    If window is not built, nothing happens.
+    */
+    void setCursor(bool lock, bool hidden);
+
     /* TODO: Remove this! */
     GLFWwindow* getWindow() const { return window; };
 private:

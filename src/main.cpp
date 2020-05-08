@@ -26,48 +26,86 @@
 #include "utility/Package.h"
 
 #include "Window.h"
+#include "InputSystem.h"
+
+#include <glm/gtx/string_cast.hpp>
+
+namespace glm
+{
+    vec3 toAxisRotator(quat q) {
+        vec3 f = q * vec3(0, 0, -1);
+        float pitch = (float)asin(f.y);
+        f.y = 0;
+        f = normalize(f);
+        float yaw = atan2f(-f.x, -f.z);
+        return vec3(yaw, pitch, 0) * 180.f / 3.14159f;
+        /*
+        return eulerAngles(q) * 180.f / 3.14159f;
+        vec3 f = q * vec3(0, 0, 1);
+        vec3 fp = vec3(f.x, 0, f.z);
+        float pitch = (float)asin(f.y);
+        fp = normalize(fp);
+        float yaw = atan2f(fp.x, fp.z);
+        q = angleAxis(pitch, vec3(-1, 0, 0)) * angleAxis(yaw, vec3(0, -1, 0)) * q;
+        float roll = angle(q);
+        return eulerAngles(q);//vec3(yaw, pitch, 0) * 180.f / 3.14159f;*/
+    }
+
+    quat fromAxisRotator(vec3 v) {
+        
+        v *= 3.14159 / 180.f;
+        return angleAxis(v.x, vec3(0, 1, 0))
+            * angleAxis(v.y, vec3(1, 0, 0))
+            * angleAxis(v.z, vec3(0, 0, -1));
+    }
+};
+
+inline float clamp(float a, float m, float M) {
+    if(a < m) { a = m; }
+    if(a > M) { a = M; }
+    return a;
+}
 
 class TestSystem : public System
 {
 public:
+    InputSystem* IS = nullptr;
+    bool* running = nullptr;
     std::shared_ptr<Material> A;
     std::shared_ptr<Material> B;
     float time = 0.f;
 
-    virtual void frameTick(float delta, float tickPercen) override {
+    virtual void frameTick(float delta, float tickPercent) override {
         time += delta;
         Query<MeshRenderer*> mrs = getWorld()->queryComponents().filter(filterByTypeId(MESH_RENDERER_ID)).cast<MeshRenderer*>();
         for(MeshRenderer* mr : mrs) {
             mr->material = fmod(time, 2.f) < 1.f ? A : B;
         }
+
+        if(IS) {
+            if(IS->isActionDown(0, "escape")) {
+                *running = false;
+            }
+        }
     }
     virtual void gameplayTick(float delta) override {
-        Query<Transform*> mr = getWorld()->queryEntities().filter([&](Entity* e) {
-            return e->findComponentByType(MESH_RENDERER_ID) && e->findComponentByType(TRANSFORM_ID);
-        }).map<Transform*>([](Entity* e){ return static_cast<Transform*>(e->findComponentByType(TRANSFORM_ID)); });
-        for(Transform* t : mr) {
-            TransformData td = t->getRelativeTransform();
-            td.rotation = glm::angleAxis(glm::radians(60.f) * delta, glm::vec3(0, 0, 1)) * td.rotation;
-            t->setRelativeTransform(td);
+        Query<Camera*> c = getWorld()->queryComponents().filter(filterByTypeId(CAMERA_ID)).cast<Camera*>();
+        for(Camera* cam : c) {
+            Transform* transform = Transform::getComponentTransform(cam);
+            TransformData td = transform->getRelativeTransform();
+            //std::cout << glm::to_string(td.rotation * glm::vec3(0,0,1)) << std::endl;
+            td.translation += (td.rotation * glm::vec3(0,0,-1)) * IS->getActionValue(0, "forward") * delta * 30.f;
+            td.translation += (td.rotation * glm::vec3(-1,0,0)) * IS->getActionValue(0, "left") * delta * 30.f;
+            td.translation += (td.rotation * glm::vec3(0,1,0)) * IS->getActionValue(0, "up") * delta * 30.f;
+            glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
+            std::cout << glm::to_string(eulerRot) << std::endl;
+            eulerRot.x -= IS->getActionValue(0, "lookYaw") * 0.1f;
+            eulerRot.y = clamp(eulerRot.y - IS->getActionValue(0, "lookPitch") * 0.1f, -89.f, 89.f);
+            td.rotation = glm::fromAxisRotator(eulerRot);
+            transform->setRelativeTransform(td);
         }
     }
 };
-
-Mesh* buildMesh() {
-    Mesh* mesh = new Mesh();
-    mesh->vertCount = 3;
-    mesh->vertData = new Mesh::Vertex[3];
-    mesh->vertData[0].position = glm::vec3(1,-1,0);
-    mesh->vertData[1].position = glm::vec3(-1,-1,0);
-    mesh->vertData[2].position = glm::vec3(0,1,0);
-
-    mesh->indexCount = 3;
-    mesh->indexData = new uint[3];
-    mesh->indexData[0] = 0;
-    mesh->indexData[1] = 1;
-    mesh->indexData[2] = 2;
-    return mesh;
-}
 
 std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
     {(uint)FileRenderResources::Mesh, std::make_tuple(writeMesh, readMesh, readIntoMesh)},
@@ -125,11 +163,36 @@ int main()
     U->gameplayRate = 30;
 
     World* w = U->addWorld();
+    RenderSystem* RS = w->addSystem<RenderSystem>(-10000);
+    RS->targetWindow = &window;
+    InputSystem* IS = w->addSystem<InputSystem>();
+    IS->setTargetWindow(&window);
+    IS->setControlSetCount(1);
+    IS->createAction(0, "escape");
+    IS->addActionKeyBind(0, "escape", GLFW_KEY_ESCAPE, false, false, false);
+    IS->createAction(0, "lookYaw");
+    IS->addActionSpecialMouseBind(0, "lookYaw", MOUSE_X_POS, 1.0f);
+    IS->addActionSpecialMouseBind(0, "lookYaw", MOUSE_X_NEG, -1.0f);
+    IS->createAction(0, "lookPitch");
+    IS->addActionSpecialMouseBind(0, "lookPitch", MOUSE_Y_POS, 1.0f);
+    IS->addActionSpecialMouseBind(0, "lookPitch", MOUSE_Y_NEG, -1.0f);
+    IS->createAction(0, "forward");
+    IS->addActionKeyBind(0, "forward", 'W', false, false, false);
+    IS->addActionKeyBind(0, "forward", 'S', false, false, false, -1.0f);
+    IS->createAction(0, "left");
+    IS->addActionKeyBind(0, "left", 'A', false, false, false);
+    IS->addActionKeyBind(0, "left", 'D', false, false, false, -1.0f);
+    IS->createAction(0, "up");
+    IS->addActionKeyBind(0, "up", ' ', false, false, false);
+    IS->addActionKeyBind(0, "up", GLFW_KEY_LEFT_SHIFT, false, false, false, -1.0f);
+    IS->setCursor(true, true);
+
+    bool running = true;
     TestSystem* TS = w->addSystem<TestSystem>();
     TS->A = m1;
     TS->B = m2;
-    RenderSystem* RS = w->addSystem<RenderSystem>(-10000);
-    RS->targetWindow = &window;
+    TS->IS = IS;
+    TS->running = &running;
 
     w->attach(U->addEntity());
     Entity* e = U->addEntity();
@@ -138,10 +201,10 @@ int main()
     m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
     m->material = nullptr;
     Transform* meshTransform = U->addComponent<Transform>();
-    glm::vec3 a(3,0,0);
-    glm::vec3 b(-10,0,0);
+    glm::vec3 a(0,0,-10);
+    glm::vec3 b(0,0,0);
     meshTransform->setRelativeTransform(TransformData(a,
-        glm::angleAxis(glm::radians(90.f), glm::vec3(0, 1, 0)),
+        glm::angleAxis(glm::radians(-90.f), glm::vec3(1, 0, 0)),
         glm::vec3(0.6f, 0.6f, 0.6f)), true);
     
     e->attach(meshTransform)
@@ -152,29 +215,28 @@ int main()
     Camera* cam = U->addComponent<Camera>();
     c->attach(cam)
         ->attach(camTransform);
-    camTransform->setRelativeTransform(TransformData(b,
-        glm::quatLookAt(glm::normalize(a - b), glm::vec3(0, 0, 1))), true);
-    camTransform->getGlobalTransform().transformDirection(glm::vec3(1, 0, 0));
+    camTransform->setRelativeTransform(TransformData(b), true);
 
     res->close();
 
     float previousTime = (float)glfwGetTime();
+    float fpsTime = 0;
 
     do {
         float newTime = (float)glfwGetTime();
         float delta = newTime - previousTime;
+        fpsTime += delta;
         previousTime = newTime;
 
         loader.poll();
 
-        if(delta > 0) {
+        if(fpsTime >= 1) {
+            fpsTime -= 1;
             std::cout << "FPS: " << (1.0f / delta) << std::endl;
         }
 
         U->tick(delta);
-
-        window.poll();
-    } while(glfwGetKey(window.getWindow(), GLFW_KEY_ESCAPE) != GLFW_PRESS && !window.wantsClose());
+    } while(running && !window.wantsClose());
 
     Universe::cleanUp();
 

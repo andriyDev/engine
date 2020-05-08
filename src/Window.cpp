@@ -1,6 +1,8 @@
 
 #include "Window.h"
 
+#include <iostream>
+
 Window::~Window()
 {
     if(window) {
@@ -99,8 +101,17 @@ void Window::build()
     if(!window) {
         throw "Failed to construct window.";
     }
+    if (glfwRawMouseMotionSupported())
+    glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
     glfwSetWindowUserPointer(window, this);
     glfwSetWindowSizeCallback(window, Window::window_resized);
+    glfwSetKeyCallback(window, Window::key_event);
+    glfwSetCharCallback(window, Window::char_typed);
+    glfwSetMouseButtonCallback(window, Window::mouse_btn_event);
+    glfwSetCursorPosCallback(window, Window::mouse_move);
+    glfwSetCursorEnterCallback(window, Window::mouse_enter);
+    glfwSetScrollCallback(window, Window::mouse_scroll);
 }
 
 void Window::destroy()
@@ -176,7 +187,7 @@ void Window::bindContext()
 {
     if(window) {
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(0);
+        glfwSwapInterval(1);
     }
 }
 
@@ -212,4 +223,18 @@ void Window::removeEventHandler(WindowEventHandler* eventHandler)
 {
     assert(eventHandler);
     eventHandlers.erase(std::find(eventHandlers.begin(), eventHandlers.end(), eventHandler));
+}
+
+void Window::setCursor(bool lock, bool hidden)
+{
+    if(!window) {
+        return;
+    }
+    if(lock) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    } else if (hidden) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+    } else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 }
