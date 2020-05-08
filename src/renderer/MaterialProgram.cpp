@@ -27,6 +27,7 @@ void MaterialProgram::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
     if(state == Success) {
         glm::mat4 mvp = vpMatrix * modelMatrix;
         glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &mvp[0][0]);
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
     }
 }
 
@@ -192,4 +193,5 @@ void MaterialProgramBuilder::startBuild()
     target->state = Resource::Success;
 
     target->mvpLocation = target->getUniformId("mvp");
+    target->modelMatrixLocation = target->getUniformId("modelMatrix");
 }

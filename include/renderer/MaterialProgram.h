@@ -32,6 +32,7 @@ private:
     GLuint uboSize;
     GLuint uboLocation;
     GLuint mvpLocation;
+    GLuint modelMatrixLocation;
 
     friend class MaterialProgramBuilder;
     friend class Material;
