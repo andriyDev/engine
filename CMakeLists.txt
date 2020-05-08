@@ -25,7 +25,8 @@ set(MAIN_INCLUDE ${OPENGL_INCLUDE} ${GLM_INCLUDE} ${GLEW_INCLUDE} ${GLFW_INCLUDE
 set(MAIN_LIB ${OPENGL_LIB} ${GLM_LIB} ${GLEW_LIB} ${GLFW_LIB})
 
 set(MAIN_SRC src/main.cpp
-    src/Window.cpp)
+    src/Window.cpp
+    src/InputSystem.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/core/Query.cpp
     src/core/Universe.cpp
