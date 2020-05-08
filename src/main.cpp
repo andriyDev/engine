@@ -83,7 +83,7 @@ public:
         }
 
         if(IS) {
-            if(IS->isActionDown(0, "escape")) {
+            if(IS->isActionDown(0, "escape", false)) {
                 *running = false;
             }
         }
@@ -94,13 +94,13 @@ public:
             Transform* transform = Transform::getComponentTransform(cam);
             TransformData td = transform->getRelativeTransform();
             //std::cout << glm::to_string(td.rotation * glm::vec3(0,0,1)) << std::endl;
-            td.translation += (td.rotation * glm::vec3(0,0,-1)) * IS->getActionValue(0, "forward") * delta * 30.f;
-            td.translation += (td.rotation * glm::vec3(-1,0,0)) * IS->getActionValue(0, "left") * delta * 30.f;
-            td.translation += (td.rotation * glm::vec3(0,1,0)) * IS->getActionValue(0, "up") * delta * 30.f;
+            td.translation += (td.rotation * glm::vec3(0,0,-1)) * IS->getActionValue(0, "forward", true) * delta * 30.f;
+            td.translation += (td.rotation * glm::vec3(-1,0,0)) * IS->getActionValue(0, "left", true) * delta * 30.f;
+            td.translation += (td.rotation * glm::vec3(0,1,0)) * IS->getActionValue(0, "up", true) * delta * 30.f;
             glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
             std::cout << glm::to_string(eulerRot) << std::endl;
-            eulerRot.x -= IS->getActionValue(0, "lookYaw") * 0.1f;
-            eulerRot.y = clamp(eulerRot.y - IS->getActionValue(0, "lookPitch") * 0.1f, -89.f, 89.f);
+            eulerRot.x -= IS->getActionValue(0, "lookYaw", true) * 0.2f;
+            eulerRot.y = clamp(eulerRot.y - IS->getActionValue(0, "lookPitch", true) * 0.2f, -89.f, 89.f);
             td.rotation = glm::fromAxisRotator(eulerRot);
             transform->setRelativeTransform(td);
         }

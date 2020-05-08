@@ -20,6 +20,7 @@ class InputSystem : public System, public WindowEventHandler
 {
 public:
     virtual void frameTick(float delta, float tickPercent) override;
+    virtual void gameplayTick(float delta) override;
 
     virtual void keyPressed(int key, int scancode, int mods) override;
     virtual void keyReleased(int key, int scancode, int mods) override;
@@ -40,10 +41,10 @@ public:
     void addActionSpecialMouseBind(uint controlSet, const std::string& actionName,
         int specialMouseId, float weight = 1);
 
-    float getActionValue(uint controlSet, const std::string& actionName, bool consume=true);
-    bool isActionPressed(uint controlSet, const std::string& actionName);
-    bool isActionReleased(uint controlSet, const std::string& actionName);
-    bool isActionDown(uint controlSet, const std::string& actionName);
+    float getActionValue(uint controlSet, const std::string& actionName, bool useGameplayTick);
+    bool isActionPressed(uint controlSet, const std::string& actionName, bool useGameplayTick);
+    bool isActionReleased(uint controlSet, const std::string& actionName, bool useGameplayTick);
+    bool isActionDown(uint controlSet, const std::string& actionName, bool useGameplayTick);
 
     void setCursor(bool lock, bool hidden);
 
@@ -68,10 +69,10 @@ private:
     private:
         struct Action
         {
-            float getValue(InputSystem& IS, bool consume = true) const;
-            bool isPressed(const InputSystem& IS) const;
-            bool isReleased(const InputSystem& IS) const;
-            bool isDown(const InputSystem& IS) const;
+            float getValue(InputSystem& IS, bool isGameplayTick) const;
+            bool isPressed(const InputSystem& IS, bool isGameplayTick) const;
+            bool isReleased(const InputSystem& IS, bool isGameplayTick) const;
+            bool isDown(const InputSystem& IS, bool isGameplayTick) const;
 
             /* The controls for this action stored as (weight, key, modifiers). */
             std::vector<std::tuple<float, uint, int>> controls;
@@ -82,10 +83,11 @@ private:
         friend class InputSystem;
     };
 
-    bool areModsDown(int mods) const;
+    bool areModsDown(int mods, bool isGameplayTick) const;
 
     bool mouseOnWindow = false;
-    KeyState keys[GLFW_KEY_LAST + 1];
+    KeyState keys_gameplay[GLFW_KEY_LAST + 1];
+    KeyState keys_frame[GLFW_KEY_LAST + 1];
     uint lastCharTyped = 0;
     glm::vec2 mousePosition;
     glm::vec2 mouseDelta;

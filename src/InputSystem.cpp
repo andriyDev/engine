@@ -3,18 +3,39 @@
 
 #define MOUSE_BTNS 1
 
+const uint SPECIAL_KEYS[9] = {
+    SCROLL_X_NEG, SCROLL_X_POS, SCROLL_Y_NEG, SCROLL_Y_POS,
+    MOUSE_X_NEG, MOUSE_X_POS, MOUSE_Y_NEG, MOUSE_Y_POS,
+    0
+};
+
 void InputSystem::frameTick(float delta, float tickPercent)
 {
     for(int i = 0; i <= GLFW_KEY_LAST; i++) {
-        keys[i].pressed = false;
-        keys[i].released = false;
-        keys[i].repeated = false;
+        keys_frame[i].pressed = false;
+        keys_frame[i].released = false;
+        keys_frame[i].repeated = false;
+    }
+    for(int i = 0; SPECIAL_KEYS[i]; i++) {
+        keys_frame[SPECIAL_KEYS[i]].value = 0;
     }
     lastCharTyped = 0;
     mouseDelta = {0, 0};
     scrollDelta = {0, 0};
     if(targetWindow) {
         targetWindow->poll();
+    }
+}
+
+void InputSystem::gameplayTick(float delta)
+{
+    for(int i = 0; i <= GLFW_KEY_LAST; i++) {
+        keys_gameplay[i].pressed = false;
+        keys_gameplay[i].released = false;
+        keys_gameplay[i].repeated = false;
+    }
+    for(int i = 0; SPECIAL_KEYS[i]; i++) {
+        keys_gameplay[SPECIAL_KEYS[i]].value = 0;
     }
 }
 
@@ -51,8 +72,10 @@ void InputSystem::keyPressed(int key, int scancode, int mods)
     if(key == GLFW_KEY_UNKNOWN) {
         return;
     }
-    keys[key].pressed = true;
-    keys[key].value = 1;
+    keys_frame[key].pressed = true;
+    keys_frame[key].value = 1;
+    keys_gameplay[key].pressed = true;
+    keys_gameplay[key].value = 1;
 }
 
 void InputSystem::keyReleased(int key, int scancode, int mods)
@@ -60,8 +83,10 @@ void InputSystem::keyReleased(int key, int scancode, int mods)
     if(key == GLFW_KEY_UNKNOWN) {
         return;
     }
-    keys[key].released = true;
-    keys[key].value = 0;
+    keys_frame[key].released = true;
+    keys_frame[key].value = 0;
+    keys_gameplay[key].released = true;
+    keys_gameplay[key].value = 0;
 }
 
 void InputSystem::keyRepeated(int key, int scancode, int mods)
@@ -69,7 +94,8 @@ void InputSystem::keyRepeated(int key, int scancode, int mods)
     if(key == GLFW_KEY_UNKNOWN) {
         return;
     }
-    keys[key].repeated = true;
+    keys_frame[key].repeated = true;
+    keys_gameplay[key].repeated = true;
 }
 
 void InputSystem::charTyped(uint character)
@@ -79,14 +105,18 @@ void InputSystem::charTyped(uint character)
 
 void InputSystem::mousePressed(int button, int mods)
 {
-    keys[button + MOUSE_BTNS].pressed = true;
-    keys[button + MOUSE_BTNS].value = 1;
+    keys_frame[button + MOUSE_BTNS].pressed = true;
+    keys_frame[button + MOUSE_BTNS].value = 1;
+    keys_gameplay[button + MOUSE_BTNS].pressed = true;
+    keys_gameplay[button + MOUSE_BTNS].value = 1;
 }
 
 void InputSystem::mouseReleased(int button, int mods)
 {
-    keys[button + MOUSE_BTNS].released = true;
-    keys[button + MOUSE_BTNS].value = 0;
+    keys_frame[button + MOUSE_BTNS].released = true;
+    keys_frame[button + MOUSE_BTNS].value = 0;
+    keys_gameplay[button + MOUSE_BTNS].released = true;
+    keys_gameplay[button + MOUSE_BTNS].value = 0;
 }
 
 void InputSystem::mouseMoved(double x, double y)
@@ -95,19 +125,27 @@ void InputSystem::mouseMoved(double x, double y)
     mousePosition = {x, y};
 
     if(mouseDelta.x >= 0) {
-        keys[MOUSE_X_POS].value = mouseDelta.x;
-        keys[MOUSE_X_NEG].value = 0;
+        keys_frame[MOUSE_X_POS].value = mouseDelta.x;
+        keys_frame[MOUSE_X_NEG].value = 0;
+        keys_gameplay[MOUSE_X_POS].value = mouseDelta.x;
+        keys_gameplay[MOUSE_X_NEG].value = 0;
     } else {
-        keys[MOUSE_X_NEG].value = -mouseDelta.x;
-        keys[MOUSE_X_POS].value = 0;
+        keys_frame[MOUSE_X_NEG].value = -mouseDelta.x;
+        keys_frame[MOUSE_X_POS].value = 0;
+        keys_gameplay[MOUSE_X_NEG].value = -mouseDelta.x;
+        keys_gameplay[MOUSE_X_POS].value = 0;
     }
 
     if(mouseDelta.y >= 0) {
-        keys[MOUSE_Y_POS].value = mouseDelta.y;
-        keys[MOUSE_Y_NEG].value = 0;
+        keys_frame[MOUSE_Y_POS].value = mouseDelta.y;
+        keys_frame[MOUSE_Y_NEG].value = 0;
+        keys_gameplay[MOUSE_Y_POS].value = mouseDelta.y;
+        keys_gameplay[MOUSE_Y_NEG].value = 0;
     } else {
-        keys[MOUSE_Y_NEG].value = -mouseDelta.y;
-        keys[MOUSE_Y_POS].value = 0;
+        keys_frame[MOUSE_Y_NEG].value = -mouseDelta.y;
+        keys_frame[MOUSE_Y_POS].value = 0;
+        keys_gameplay[MOUSE_Y_NEG].value = -mouseDelta.y;
+        keys_gameplay[MOUSE_Y_POS].value = 0;
     }
 }
 
@@ -126,19 +164,27 @@ void InputSystem::mouseScroll(double xScroll, double yScroll)
     scrollDelta = {xScroll, yScroll};
     
     if(scrollDelta.x >= 0) {
-        keys[SCROLL_X_POS].value = scrollDelta.x;
-        keys[SCROLL_X_NEG].value = 0;
+        keys_frame[SCROLL_X_POS].value = scrollDelta.x;
+        keys_frame[SCROLL_X_NEG].value = 0;
+        keys_gameplay[SCROLL_X_POS].value = scrollDelta.x;
+        keys_gameplay[SCROLL_X_NEG].value = 0;
     } else {
-        keys[SCROLL_X_NEG].value = -scrollDelta.x;
-        keys[SCROLL_X_POS].value = 0;
+        keys_frame[SCROLL_X_NEG].value = -scrollDelta.x;
+        keys_frame[SCROLL_X_POS].value = 0;
+        keys_gameplay[SCROLL_X_NEG].value = -scrollDelta.x;
+        keys_gameplay[SCROLL_X_POS].value = 0;
     }
 
     if(scrollDelta.y >= 0) {
-        keys[SCROLL_Y_POS].value = scrollDelta.y;
-        keys[SCROLL_Y_NEG].value = 0;
+        keys_frame[SCROLL_Y_POS].value = scrollDelta.y;
+        keys_frame[SCROLL_Y_NEG].value = 0;
+        keys_gameplay[SCROLL_Y_POS].value = scrollDelta.y;
+        keys_gameplay[SCROLL_Y_NEG].value = 0;
     } else {
-        keys[SCROLL_Y_NEG].value = -scrollDelta.y;
-        keys[SCROLL_Y_POS].value = 0;
+        keys_frame[SCROLL_Y_NEG].value = -scrollDelta.y;
+        keys_frame[SCROLL_Y_POS].value = 0;
+        keys_gameplay[SCROLL_Y_NEG].value = -scrollDelta.y;
+        keys_gameplay[SCROLL_Y_POS].value = 0;
     }
 }
 
@@ -177,44 +223,44 @@ void InputSystem::addActionSpecialMouseBind(uint controlSet, const std::string& 
 }
     
 
-float InputSystem::getActionValue(uint controlSet, const std::string& actionName, bool consume)
+float InputSystem::getActionValue(uint controlSet, const std::string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
     if(it == controlSets[controlSet].actions.end()) {
         return 0;
     }
-    return it->second.getValue(*this, consume);
+    return it->second.getValue(*this, isGameplayTick);
 }
 
-bool InputSystem::isActionPressed(uint controlSet, const std::string& actionName)
+bool InputSystem::isActionPressed(uint controlSet, const std::string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
     if(it == controlSets[controlSet].actions.end()) {
         return 0;
     }
-    return it->second.isPressed(*this);
+    return it->second.isPressed(*this, isGameplayTick);
 }
 
-bool InputSystem::isActionReleased(uint controlSet, const std::string& actionName)
+bool InputSystem::isActionReleased(uint controlSet, const std::string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
     if(it == controlSets[controlSet].actions.end()) {
         return 0;
     }
-    return it->second.isReleased(*this);
+    return it->second.isReleased(*this, isGameplayTick);
 }
 
-bool InputSystem::isActionDown(uint controlSet, const std::string& actionName)
+bool InputSystem::isActionDown(uint controlSet, const std::string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
     if(it == controlSets[controlSet].actions.end()) {
         return 0;
     }
-    return it->second.isDown(*this);
+    return it->second.isDown(*this, isGameplayTick);
 }
 
 
@@ -236,65 +282,53 @@ void InputSystem::setTargetWindow(Window* _target)
     }
 }
 
-float InputSystem::ControlSet::Action::getValue(InputSystem& IS, bool consume) const
+float InputSystem::ControlSet::Action::getValue(InputSystem& IS, bool isGameplayTick) const
 {
     float value = 0;
     for(auto control : controls) {
-        //std::cout << (char)std::get<1>(control) << " " << IS.keys[std::get<1>(control)].value << std::endl;
-        value += std::get<0>(control) * IS.keys[std::get<1>(control)].value
-            * (IS.areModsDown(std::get<2>(control)) ? 1 : 0);
-        if(consume) {
-            uint key = std::get<1>(control);
-            if(key == SCROLL_X_POS || key == SCROLL_X_NEG) {
-                IS.keys[std::get<1>(control)].value = 0;
-                IS.scrollDelta.x = 0;
-            } else if(key == SCROLL_Y_POS || key == SCROLL_Y_NEG) {
-                IS.keys[std::get<1>(control)].value = 0;
-                IS.scrollDelta.y = 0;
-            } else if(key == MOUSE_X_POS || key == MOUSE_X_NEG) {
-                IS.keys[std::get<1>(control)].value = 0;
-                IS.mouseDelta.x = 0;
-            } else if(key == MOUSE_Y_POS || key == MOUSE_Y_NEG) {
-                IS.keys[std::get<1>(control)].value = 0;
-                IS.mouseDelta.y = 0;
-            }
-        }
+        value += std::get<0>(control)
+            * (isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].value
+            * (IS.areModsDown(std::get<2>(control), isGameplayTick) ? 1 : 0);
     }
     return value;
 }
 
-bool InputSystem::ControlSet::Action::isPressed(const InputSystem& IS) const
+bool InputSystem::ControlSet::Action::isPressed(const InputSystem& IS, bool isGameplayTick) const
 {
     for(auto control : controls) {
-        if(IS.keys[std::get<1>(control)].pressed && IS.areModsDown(std::get<2>(control))) {
+        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].pressed
+            && IS.areModsDown(std::get<2>(control), isGameplayTick)) {
             return true;
         }
     }
     return false;
 }
 
-bool InputSystem::ControlSet::Action::isReleased(const InputSystem& IS) const
+bool InputSystem::ControlSet::Action::isReleased(const InputSystem& IS, bool isGameplayTick) const
 {
     for(auto control : controls) {
-        if(IS.keys[std::get<1>(control)].released && IS.areModsDown(std::get<2>(control))) {
+        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].released
+            && IS.areModsDown(std::get<2>(control), isGameplayTick)) {
             return true;
         }
     }
     return false;
 }
 
-bool InputSystem::ControlSet::Action::isDown(const InputSystem& IS) const
+bool InputSystem::ControlSet::Action::isDown(const InputSystem& IS, bool isGameplayTick) const
 {
     for(auto control : controls) {
-        if(IS.keys[std::get<1>(control)].value > 0 && IS.areModsDown(std::get<2>(control))) {
+        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].value > 0
+            && IS.areModsDown(std::get<2>(control), isGameplayTick)) {
             return true;
         }
     }
     return false;
 }
 
-bool InputSystem::areModsDown(int mods) const
+bool InputSystem::areModsDown(int mods, bool isGameplayTick) const
 {
+    const KeyState* keys = (isGameplayTick ? keys_gameplay : keys_frame);
     if(mods & GLFW_MOD_SHIFT) {
         if(keys[GLFW_KEY_LEFT_SHIFT].value == 0 && keys[GLFW_KEY_RIGHT_SHIFT].value == 0) {
             return false;
