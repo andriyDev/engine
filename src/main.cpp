@@ -22,6 +22,7 @@
 
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
+#include "resources/Texture.h"
 
 #include "utility/Package.h"
 
@@ -109,7 +110,8 @@ public:
 
 std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
     {(uint)FileRenderResources::Mesh, std::make_tuple(writeMesh, readMesh, readIntoMesh)},
-    {(uint)FileRenderResources::Shader, std::make_tuple(writeShader, readShader, readIntoShader)}
+    {(uint)FileRenderResources::Shader, std::make_tuple(writeShader, readShader, readIntoShader)},
+    {(uint)FileRenderResources::Texture, std::make_tuple(writeTexture, readTexture, readIntoTexture)}
 };
 
 int main()
@@ -131,19 +133,13 @@ int main()
 
     ResourceLoader loader;
     {
-        loader.addResource("Mesh", std::make_shared<FileResourceBuilder<Mesh>>(
-            (uint)RenderResources::Mesh, res, "Mesh", (uint)FileRenderResources::Mesh
-        ));
+        loader.addResource("Mesh", std::make_shared<MeshBuilder>("Mesh", res));
         auto rmb = std::make_shared<RenderableMeshBuilder>();
         rmb->sourceMesh = "Mesh";
         loader.addResource("RenderMesh", rmb);
 
-        loader.addResource("VShader", std::make_shared<FileResourceBuilder<Shader>>(
-            (uint)RenderResources::Shader, res, "vertex_basic_shader", (uint)FileRenderResources::Shader
-        ));
-        loader.addResource("FShader", std::make_shared<FileResourceBuilder<Shader>>(
-            (uint)RenderResources::Shader, res, "fragment_basic_shader", (uint)FileRenderResources::Shader
-        ));
+        loader.addResource("VShader", std::make_shared<ShaderBuilder>("vertex_basic_shader", res));
+        loader.addResource("FShader", std::make_shared<ShaderBuilder>("fragment_basic_shader", res));
         auto mpb = std::make_shared<MaterialProgramBuilder>();
         mpb->vertexComponents.push_back("VShader");
         mpb->fragmentComponents.push_back("FShader");

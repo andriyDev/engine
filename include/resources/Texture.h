@@ -3,8 +3,10 @@
 
 #include "std.h"
 
-#include "resources/ResourceLoader.h"
+#include "ResourceLoader.h"
+#include "FileResourceBuilder.h"
 #include "utility/Serializer.h"
+#include "RenderResources.h"
 
 #include "Colour.h"
 
@@ -38,6 +40,14 @@ private:
         Colour3* rgb_8;
         Colour4* rgba_8;
     } data;
+};
+
+class TextureBuilder : public FileResourceBuilder<Texture>
+{
+public:
+    TextureBuilder(std::string resourceName, std::shared_ptr<PackageFile> resourcePackage)
+    : FileResourceBuilder((uint)RenderResources::Texture, resourcePackage, resourceName,
+        (uint)FileRenderResources::Texture) {}
 };
 
 template<>
