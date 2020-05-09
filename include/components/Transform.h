@@ -74,17 +74,17 @@ public:
     Replaces the current parent with the newParent (can be null to attach to world).
     If keepGlobal = true, then the global transform will not change after parent is set.
     */
-    void setParent(Transform* newParent, bool keepGlobal);
+    void setParent(std::shared_ptr<Transform> newParent, bool keepGlobal);
 
     // Gets the parent of this transform.
-    Transform* getParent() const;
+    std::shared_ptr<Transform> getParent() const;
 
-    static Transform* getComponentTransform(Component const* comp);
+    static std::shared_ptr<Transform> getComponentTransform(std::shared_ptr<const Component> comp);
 
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
     TransformData previousTransform[2]; // The transform data from the last 2 frames.
-    Transform* parent = nullptr; // The parent of this transform.
+    std::weak_ptr<Transform> parent; // The parent of this transform.
 
     friend class RenderSystem;
 };

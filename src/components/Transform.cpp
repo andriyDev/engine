@@ -7,17 +7,18 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 
-void Transform::setParent(Transform* newParent, bool keepGlobal)
+void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
 {
-    if(parent == newParent) {
+    std::shared_ptr<Transform> parentPtr = parent.lock();
+    if(parentPtr == newParent) {
         return;
     }
 
     TransformData transform = getRelativeTransform();
     if(keepGlobal) { transform = getGlobalTransform(); }
 
-    if(parent) {
-        parent = nullptr;
+    if(parentPtr) {
+        parent = std::weak_ptr<Transform>();
     }
 
     // We already handled this when parent was valid.
@@ -25,14 +26,14 @@ void Transform::setParent(Transform* newParent, bool keepGlobal)
         return;
     }
 
-    Transform* curr = newParent;
+    std::shared_ptr<Transform> curr = newParent;
     while(curr) {
-        if(curr == this) {
+        if(curr.get() == this) {
             // If the ancestor is equal to this, the ancestry creates a cycle - invalid.
             return;
         }
         // Climb to the next ancestor.
-        curr = curr->parent;
+        curr = curr->parent.lock();
     }
 
     // If we reach here, that means the parent is valid, so:
@@ -45,9 +46,9 @@ void Transform::setParent(Transform* newParent, bool keepGlobal)
     }
 }
 
-Transform* Transform::getParent() const
+std::shared_ptr<Transform> Transform::getParent() const
 {
-    return parent;
+    return parent.lock();
 }
 
 std::string to_string(const TransformData& data)
@@ -125,26 +126,26 @@ void Transform::setRelativeTransform(const TransformData& relativeTransform, boo
 
 TransformData Transform::getGlobalTransform() const
 {
-    TransformData currTransform;
-    Transform* curr = const_cast<Transform*>(this);
+    TransformData currTransform = relativeTransform;
+    std::shared_ptr<Transform> curr = parent.lock();
 
     while(curr) {
         currTransform = curr->relativeTransform * currTransform;
 
-        curr = curr->parent;
+        curr = curr->parent.lock();
     }
     return currTransform;
 }
 
 TransformData Transform::getGlobalTransform(float interpolation) const
 {
-    TransformData currTransform;
-    Transform const* curr = this;
+    TransformData currTransform = getRelativeTransform(interpolation);
+    std::shared_ptr<Transform> curr = parent.lock();
 
     while(curr) {
         currTransform = curr->getRelativeTransform(interpolation) * currTransform;
 
-        curr = curr->parent;
+        curr = curr->parent.lock();
     }
     return currTransform;
 }
@@ -152,14 +153,15 @@ TransformData Transform::getGlobalTransform(float interpolation) const
 void Transform::setGlobalTransform(const TransformData& globalTransform, bool teleport)
 {
     TransformData parentGlobal;
-    if(parent) {
-        parentGlobal = parent->getGlobalTransform();
+    std::shared_ptr<Transform> par = parent.lock();
+    if(par) {
+        parentGlobal = par->getGlobalTransform();
     }
     setRelativeTransform(parentGlobal.inverse() * globalTransform, teleport);
 }
 
-Transform* Transform::getComponentTransform(Component const* comp)
+std::shared_ptr<Transform> Transform::getComponentTransform(std::shared_ptr<const Component> comp)
 {
-    Entity* owner = Universe::get()->getEntity(comp->getOwnerId());
-    return static_cast<Transform*>(owner->findComponentByType(TRANSFORM_ID));
+    std::shared_ptr<Entity> owner = comp->getOwner();
+    return std::static_pointer_cast<Transform>(owner->findComponentByType(TRANSFORM_ID));
 }

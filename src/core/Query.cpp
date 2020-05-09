@@ -8,42 +8,7 @@
 #include <algorithm>
 #include <iterator>
 
-template<>
-Query<Entity*>::Query(World* world)
+std::function<bool(std::shared_ptr<Component>)> filterByTypeId(uint typeId)
 {
-    this->world = world;
-    items = world->getEntities();
-}
-
-template<>
-Query<Component*>::Query(World* world)
-{
-    this->world = world;
-    for(Entity* entity : world->getEntities()) {
-        std::set<Component*> components = entity->getComponents();
-        items.insert(components.begin(), components.end());
-    }
-}
-
-std::set<uint> toIdSet(const Query<Entity*>& query)
-{
-    std::set<uint> results;
-    for(Entity* entity : query) {
-        results.insert(entity->getId());
-    }
-    return results;
-}
-
-std::set<uint> toIdSet(const Query<Component*>& query)
-{
-    std::set<uint> results;
-    for(Component* component : query) {
-        results.insert(component->getId());
-    }
-    return results;
-}
-
-std::function<bool(Component*)> filterByTypeId(uint typeId)
-{
-    return [typeId](Component* C) { return C->getTypeId() == typeId; };
+    return [typeId](std::shared_ptr<Component> C) { return C->getTypeId() == typeId; };
 }

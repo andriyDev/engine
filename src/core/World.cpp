@@ -4,56 +4,48 @@
 #include "core/Entity.h"
 #include "core/System.h"
 
-World::~World()
+Query<std::shared_ptr<Entity>> World::queryEntities()
 {
-    for(System* system : systems) {
-        delete system;
+    return Query<std::shared_ptr<Entity>>(entities);
+}
+
+Query<std::shared_ptr<Component>> World::queryComponents()
+{
+    std::set<std::shared_ptr<Component>> s;
+    for(std::shared_ptr<Entity> e : entities) {
+        s.insert(e->components.begin(), e->components.end());
     }
+    return Query<std::shared_ptr<Component>>(s);
 }
 
-Query<Entity*> World::queryEntities()
+std::shared_ptr<Entity> World::addEntity()
 {
-    return Query<Entity*>(this);
+    std::shared_ptr<Entity> ptr = std::make_shared<Entity>();
+    addEntity(ptr);
+    return ptr;
 }
 
-Query<Component*> World::queryComponents()
+void World::addEntity(std::shared_ptr<Entity> entity)
 {
-    return Query<Component*>(this);
-}
-
-World* World::attach(Entity* entity)
-{
-    assert(!entity->worldId);
     entities.insert(entity);
-    entity->worldId = id;
-    return this;
+    entity->world = shared_from_this();
 }
 
-World* World::detach(Entity* entity)
+void World::addSystem(std::shared_ptr<System> system)
 {
-    assert(entity->worldId == id);
-    entities.erase(entity);
-    entity->worldId = 0;
-    return this;
-}
-
-System* World::addSystem(System* system)
-{
-    assert(!system->world);
-    system->world = this;
+    system->world = shared_from_this();
     for(auto it = systems.begin(); it != systems.end(); it++) {
         if((*it)->priority <= system->priority) {
             systems.insert(it, system);
-            return system;
+            return;
         }
     }
     systems.push_back(system);
-    return system;
 }
 
 void World::frameTick(float delta, float tickPercent)
 {
-    for(System* system : systems) {
+    for(std::shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();
@@ -64,7 +56,7 @@ void World::frameTick(float delta, float tickPercent)
 
 void World::gameplayTick(float delta)
 {
-    for(System* system : systems) {
+    for(std::shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();

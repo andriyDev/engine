@@ -3,34 +3,39 @@
 
 #include "std.h"
 
+class World;
 class Component;
 
-class Entity
+class Entity : public std::enable_shared_from_this<Entity>
 {
 public:
-    // Attaches the provided component to this entity. Fails is the component is attached to another entity.
-    Entity* attach(Component* component);
-    // Detaches the provided component from this entity. Fails if the component was not attached.
-    Entity* detach(Component* component);
+    /*
+    Transfers ownership of the component to this entity.
+    Do not store shared_ptrs to the component afterwards.
+    */
+    void addComponent(std::shared_ptr<Component> component);
+    template<typename T>
+    std::shared_ptr<T> addComponent()
+    {
+        std::shared_ptr<T> t = std::make_shared<T>();
+        addComponent(t);
+        return t;
+    }
 
     // Finds any component attached to this entity with the specified type.
-    Component* findComponentByType(int typeId);
+    std::shared_ptr<Component> findComponentByType(int typeId);
     // Finds all components attached to this entity with the specified type.
-    std::set<Component*> findComponentsByType(int typeId);
+    std::set<std::shared_ptr<Component>> findComponentsByType(int typeId);
 
-    inline uint getId() const {
-        return id;
+    inline std::shared_ptr<World> getWorld() const {
+        return world.lock();
     }
-    inline uint getWorldId() const {
-        return worldId;
-    }
-    inline std::set<Component*> getComponents() const {
+    inline std::set<std::shared_ptr<Component>> getComponents() const {
         return components;
     }
 private:
-    uint id = 0; // The id of the entity.
-    uint worldId = 0; // The id of the world this entity is in.
-    std::set<Component*> components; // The components attached to this entity.
+    std::weak_ptr<World> world; // The world this entity is in.
+    std::set<std::shared_ptr<Component>> components; // The components attached to this entity.
 
     friend class Universe;
     friend class World;
