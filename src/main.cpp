@@ -19,9 +19,11 @@
 #include "ComponentTypes.h"
 #include "renderer/RenderSystem.h"
 #include "renderer/Material.h"
+#include "renderer/RenderableTexture.h"
 
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
+#include "resources/Texture.h"
 
 #include "utility/Package.h"
 
@@ -98,7 +100,6 @@ public:
             td.translation += (td.rotation * glm::vec3(-1,0,0)) * IS->getActionValue(0, "left", true) * delta * 30.f;
             td.translation += (td.rotation * glm::vec3(0,1,0)) * IS->getActionValue(0, "up", true) * delta * 30.f;
             glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
-            std::cout << glm::to_string(eulerRot) << std::endl;
             eulerRot.x -= IS->getActionValue(0, "lookYaw", true) * 0.2f;
             eulerRot.y = clamp(eulerRot.y - IS->getActionValue(0, "lookPitch", true) * 0.2f, -89.f, 89.f);
             td.rotation = glm::fromAxisRotator(eulerRot);
@@ -109,7 +110,8 @@ public:
 
 std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
     {(uint)FileRenderResources::Mesh, std::make_tuple(writeMesh, readMesh, readIntoMesh)},
-    {(uint)FileRenderResources::Shader, std::make_tuple(writeShader, readShader, readIntoShader)}
+    {(uint)FileRenderResources::Shader, std::make_tuple(writeShader, readShader, readIntoShader)},
+    {(uint)FileRenderResources::Texture, std::make_tuple(writeTexture, readTexture, readIntoTexture)}
 };
 
 int main()
@@ -131,19 +133,20 @@ int main()
 
     ResourceLoader loader;
     {
-        loader.addResource("Mesh", std::make_shared<FileResourceBuilder<Mesh>>(
-            (uint)RenderResources::Mesh, res, "Mesh", (uint)FileRenderResources::Mesh
-        ));
+        loader.addResource("Mesh", std::make_shared<MeshBuilder>("Mesh", res));
         auto rmb = std::make_shared<RenderableMeshBuilder>();
         rmb->sourceMesh = "Mesh";
         loader.addResource("RenderMesh", rmb);
 
-        loader.addResource("VShader", std::make_shared<FileResourceBuilder<Shader>>(
-            (uint)RenderResources::Shader, res, "vertex_basic_shader", (uint)FileRenderResources::Shader
-        ));
-        loader.addResource("FShader", std::make_shared<FileResourceBuilder<Shader>>(
-            (uint)RenderResources::Shader, res, "fragment_basic_shader", (uint)FileRenderResources::Shader
-        ));
+        loader.addResource("Texture", std::make_shared<TextureBuilder>("EarthTexture", res));
+        auto rtb = std::make_shared<RenderableTextureBuilder>();
+        rtb->sourceTexture = "Texture";
+        rtb->wrapU = RenderableTextureBuilder::Clamp;
+        rtb->wrapV = RenderableTextureBuilder::Clamp;
+        loader.addResource("RenderTexture", rtb);
+
+        loader.addResource("VShader", std::make_shared<ShaderBuilder>("vertex_basic_shader", res));
+        loader.addResource("FShader", std::make_shared<ShaderBuilder>("fragment_basic_shader", res));
         auto mpb = std::make_shared<MaterialProgramBuilder>();
         mpb->vertexComponents.push_back("VShader");
         mpb->fragmentComponents.push_back("FShader");
@@ -155,9 +158,13 @@ int main()
 
     std::shared_ptr<Material> m1 = std::make_shared<Material>(
         loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
-    m1->setVec3Property("albedo", glm::vec3(0.361f, 0.620f, 0.322f));
+    m1->setVec3Property("albedo", glm::vec3(1, 1, 1));
+    m1->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
+        (uint)RenderResources::RenderableTexture));
     std::shared_ptr<Material> m2 = std::make_shared<Material>(m1);
     m2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
+    m2->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
+        (uint)RenderResources::RenderableTexture));
 
     Universe* U = Universe::init();
     U->gameplayRate = 30;

@@ -5,6 +5,7 @@
 
 #include "utility/Serializer.h"
 #include "ResourceLoader.h"
+#include "FileResourceBuilder.h"
 
 #include <glm/glm.hpp>
 
@@ -32,6 +33,14 @@ public:
     ~Mesh();
 
     void clearData();
+};
+
+class MeshBuilder : public FileResourceBuilder<Mesh>
+{
+public:
+    MeshBuilder(std::string resourceName, std::shared_ptr<PackageFile> resourcePackage)
+    : FileResourceBuilder((uint)RenderResources::Mesh, resourcePackage, resourceName, (uint)FileRenderResources::Mesh)
+    {}
 };
 
 template<>

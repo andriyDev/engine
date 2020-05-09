@@ -9,11 +9,14 @@ enum class RenderResources : uint
     RenderableMesh,
     Shader,
     MaterialProgram,
-    Material
+    Material,
+    Texture,
+    RenderableTexture
 };
 
 enum class FileRenderResources : uint
 {
     Mesh,
-    Shader
+    Shader,
+    Texture
 };

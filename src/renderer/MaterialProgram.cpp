@@ -97,6 +97,8 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
     }
 }
 
+#define MAX_UNIFORM_NAME_LEN 256
+
 void MaterialProgramBuilder::startBuild()
 {
     std::shared_ptr<MaterialProgram> target = getResource<MaterialProgram>();
@@ -150,6 +152,33 @@ void MaterialProgramBuilder::startBuild()
     glDeleteShader(shaders[0]);
     glDeleteShader(shaders[1]);
 
+    int uniformCount;
+    glGetProgramiv(target->ProgramId, GL_ACTIVE_UNIFORMS, &uniformCount);
+
+    int* propIndices = new int[uniformCount];
+    int* propTypes = new int[uniformCount];
+    for(int i = 0; i < uniformCount; i++) {
+        propIndices[i] = i;
+    }
+    glGetActiveUniformsiv(target->ProgramId, uniformCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
+
+    int textures = 0;
+    char buffer[MAX_UNIFORM_NAME_LEN];
+    for(int i = 0; i < uniformCount; i++) {
+        glGetActiveUniformName(target->ProgramId, i, MAX_UNIFORM_NAME_LEN, 0, buffer);
+
+        std::string uniformName = buffer;
+        if(propTypes[i] != GL_SAMPLER_2D) {
+            continue;
+        }
+        GLuint loc = glGetUniformLocation(target->ProgramId, uniformName.c_str());
+        glUniform1i(loc, textures);
+        target->textureIdMap.insert(std::make_pair(uniformName, textures));
+        textures++;
+    }
+    delete[] propIndices;
+    delete[] propTypes;
+
     uint propsId = glGetUniformBlockIndex(target->ProgramId, "MaterialProps");
     if(propsId == GL_INVALID_INDEX) {
         glDeleteProgram(target->ProgramId);
@@ -163,18 +192,17 @@ void MaterialProgramBuilder::startBuild()
     int propCount;
     glGetActiveUniformBlockiv(target->ProgramId, propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &propCount);
 
-    int* propIndices = new int[propCount];
+    propIndices = new int[propCount];
     glGetActiveUniformBlockiv(target->ProgramId, propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, propIndices);
     
-    int* propTypes = new int[propCount];
+    propTypes = new int[propCount];
     int* propOffsets = new int[propCount];
     
     glGetActiveUniformsiv(target->ProgramId, propCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
     glGetActiveUniformsiv(target->ProgramId, propCount, (uint*)propIndices, GL_UNIFORM_OFFSET, propOffsets);
 
-    char buffer[256];
     for(int i = 0; i < propCount; i++) {
-        glGetActiveUniformName(target->ProgramId, propIndices[i], 256, 0, buffer);
+        glGetActiveUniformName(target->ProgramId, propIndices[i], MAX_UNIFORM_NAME_LEN, 0, buffer);
 
         std::string uniformName = buffer;
         GLenum uniformType = propTypes[i];
@@ -182,6 +210,7 @@ void MaterialProgramBuilder::startBuild()
 
         target->uniforms.insert(std::make_pair(uniformName, std::make_pair(uniformType, uniformOffset)));
     }
+
     delete[] propIndices;
     delete[] propTypes;
     delete[] propOffsets;

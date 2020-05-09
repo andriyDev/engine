@@ -29,6 +29,7 @@ private:
     GLuint ProgramId;
 
     std::map<std::string, std::pair<GLenum, GLuint>> uniforms;
+    std::map<std::string, GLuint> textureIdMap;
     GLuint uboSize;
     GLuint uboLocation;
     GLuint mvpLocation;

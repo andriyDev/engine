@@ -30,6 +30,9 @@ void Material::build(void* materialRaw, Resource::ResourceLoadDoneParams params)
     for(auto props : material->queuedProps) {
         material->setProperty(props.first, &props.second.data_float, props.second.dataSize, props.second.matchType);
     }
+    for(auto tex : material->queuedTextures) {
+        material->setTexture(tex.first, tex.second);
+    }
 }
 
 Material::~Material()
@@ -49,6 +52,23 @@ void Material::use()
     if(usable) {
         program->bind();
         program->useUBO(ubo);
+        for(auto tex : textures) {
+            tex.second->bind(tex.first);
+        }
+    }
+}
+
+void Material::setTexture(const std::string& textureName, const std::shared_ptr<RenderableTexture>& texture)
+{
+    if(usable) {
+        auto it = program->textureIdMap.find(textureName);
+        if(it == program->textureIdMap.end()) {
+            throw "Bad texture name!";
+        }
+        GLuint id = it->second;
+        textures.insert_or_assign(id, texture);
+    } else {
+        queuedTextures.insert_or_assign(textureName, texture);
     }
 }
 
