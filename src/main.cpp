@@ -98,7 +98,10 @@ public:
             .filter(filterByTypeId(CAMERA_ID))
             .cast_ptr<Camera>();
         for(std::shared_ptr<Camera> cam : c) {
-            std::shared_ptr<Transform> transform = Transform::getComponentTransform(cam);
+            std::shared_ptr<Transform> transform = cam->getTransform();
+            if(!transform) {
+                continue;
+            }
             TransformData td = transform->getRelativeTransform();
             //std::cout << glm::to_string(td.rotation * glm::vec3(0,0,1)) << std::endl;
             td.translation += (td.rotation * glm::vec3(0,0,-1)) * ISptr->getActionValue(0, "forward", true) * delta * 30.f;
@@ -213,6 +216,7 @@ int main()
         m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
         m->material = nullptr;
         std::shared_ptr<Transform> meshTransform = e->addComponent<Transform>();
+        m->transform = meshTransform;
         glm::vec3 a(0,0,-10);
         glm::vec3 b(0,0,0);
         meshTransform->setRelativeTransform(TransformData(a,
@@ -222,6 +226,7 @@ int main()
         std::shared_ptr<Entity> c = w->addEntity();
         std::shared_ptr<Transform> camTransform = c->addComponent<Transform>();
         std::shared_ptr<Camera> cam = c->addComponent<Camera>();
+        cam->transform = camTransform;
         camTransform->setRelativeTransform(TransformData(b), true);
 
         res->close();

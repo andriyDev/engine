@@ -1,18 +1,16 @@
 
 #pragma once
 
-#include "core/Component.h"
+#include "components/Transform.h"
 #include "renderer/Material.h"
 #include "renderer/RenderableMesh.h"
 
 #include "ComponentTypes.h"
 
-class MeshRenderer : public Component
+class MeshRenderer : public Transformable
 {
 public:
-    MeshRenderer()
-        : Component(MESH_RENDERER_ID)
-    { }
+    MeshRenderer() : Transformable(MESH_RENDERER_ID) { }
 
     std::shared_ptr<RenderableMesh> mesh = nullptr;
     std::shared_ptr<Material> material = nullptr;

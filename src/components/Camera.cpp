@@ -13,9 +13,13 @@ glm::mat4 Camera::getProjectionMatrix(float surfaceAspect) const
 
 glm::mat4 Camera::getViewMatrix(float interpolation) const
 {
-    std::shared_ptr<Transform> t = Transform::getComponentTransform(shared_from_this());
-    TransformData td = t ? t->getGlobalTransform(interpolation).inverse() : TransformData();
-    return td.toMat4();
+    std::shared_ptr<Transform> t = getTransform();
+    if(t) {
+        TransformData td = t ? t->getGlobalTransform(interpolation).inverse() : TransformData();
+        return td.toMat4();
+    } else {
+        return TransformData().toMat4();
+    }
 }
 
 glm::mat4 Camera::getVPMatrix(float interpolation, float surfaceAspect) const

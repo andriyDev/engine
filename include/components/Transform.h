@@ -79,12 +79,22 @@ public:
     // Gets the parent of this transform.
     std::shared_ptr<Transform> getParent() const;
 
-    static std::shared_ptr<Transform> getComponentTransform(std::shared_ptr<const Component> comp);
-
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
     TransformData previousTransform[2]; // The transform data from the last 2 frames.
     std::weak_ptr<Transform> parent; // The parent of this transform.
 
     friend class RenderSystem;
+};
+
+class Transformable : public Component
+{
+public:
+    Transformable(uint typeId) : Component(typeId) {}
+
+    std::weak_ptr<Transform> transform;
+
+    inline std::shared_ptr<Transform> getTransform() const {
+        return transform.lock();
+    }
 };

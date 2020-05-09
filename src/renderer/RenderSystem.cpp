@@ -44,7 +44,7 @@ void RenderSystem::frameTick(float delta, float tickPercent)
             }
             renderer->mesh->bind();
             renderer->material->use();
-            std::shared_ptr<Transform> transform = Transform::getComponentTransform(renderer);
+            std::shared_ptr<Transform> transform = renderer->getTransform();
             glm::mat4 model = transform ? transform->getGlobalTransform(tickPercent).toMat4() : glm::mat4(1.0);
             renderer->material->setMVP(model, vpMatrix);
             renderer->mesh->render();

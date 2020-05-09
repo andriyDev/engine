@@ -159,9 +159,3 @@ void Transform::setGlobalTransform(const TransformData& globalTransform, bool te
     }
     setRelativeTransform(parentGlobal.inverse() * globalTransform, teleport);
 }
-
-std::shared_ptr<Transform> Transform::getComponentTransform(std::shared_ptr<const Component> comp)
-{
-    std::shared_ptr<Entity> owner = comp->getOwner();
-    return std::static_pointer_cast<Transform>(owner->findComponentByType(TRANSFORM_ID));
-}

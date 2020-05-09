@@ -2,13 +2,13 @@
 #pragma once
 
 #include "std.h"
-#include "core/Component.h"
+#include "components/Transform.h"
 
 #include "ComponentTypes.h"
 
 #include <glm/glm.hpp>
 
-class Camera : public Component
+class Camera : public Transformable
 {
 public:
     float fov = 90;
@@ -16,8 +16,7 @@ public:
     float farClip = 10000;
     float aspect = 0;
 
-    Camera() : Component(CAMERA_ID)
-    {}
+    Camera() : Transformable(CAMERA_ID) {}
 
     glm::mat4 getProjectionMatrix(float surfaceAspect) const;
 
