@@ -14,23 +14,36 @@ class Query
 {
 public:
     // Constructs a query initially containing all items T in the provided world.
-    Query<T>(World* world);
+    Query<T>(const std::set<T>& _items) : items(_items) {}
 
     Query<T>& filter(std::function<bool(T)> predicate) {
+        filters.push_back(predicate);
+        return *this;
+    }
+
+    Query<T>& apply() {
         std::set<T> result;
         for(T t : *this) {
-            if(predicate(t)) {
-                result.insert(t);
+            bool pass = true;
+            for(std::function<bool(T)> predicate : filters) {
+                if(!predicate(t)) {
+                    pass = false;
+                    break;
+                }
             }
+            if(pass) { result.insert(t); }
         }
+        filters.clear();
         items = std::move(result);
         return *this;
     }
 
     template<typename U>
     Query<U> map(std::function<U(T)> fcn) {
+        if(!filters.empty()) {
+            apply();
+        }
         Query<U> result;
-        result.world = world;
         for(T t : *this) {
             result.items.insert(fcn(t));
         }
@@ -39,11 +52,25 @@ public:
 
     template<typename U>
     Query<U> cast() {
+        if(!filters.empty()) {
+            apply();
+        }
         return map<U>([](T t){ return static_cast<U>(t); });
+    }
+
+    template<typename U>
+    Query<std::shared_ptr<U>> cast_ptr() {
+        if(!filters.empty()) {
+            apply();
+        }
+        return map<std::shared_ptr<U>>([](T t){ return std::static_pointer_cast<U>(t); });
     }
 
     // Takes the union of the two queries (mutating the left Query).
     Query<T>& operator|=(const Query<T>& other) {
+        if(!filters.empty()) {
+            apply();
+        }
         items.insert(other.begin(), other.end());
         return *this;
     }
@@ -53,6 +80,9 @@ public:
     }
     // Takes the intersection of the two queries (mutating the left Query).
     Query<T>& operator&=(const Query<T>& other) {
+        if(!filters.empty()) {
+            apply();
+        }
         set<T> result;
 
         std::set_intersection(
@@ -69,6 +99,9 @@ public:
     }
     // Takes the difference of the two queries (mutating the left Query).
     Query<T>& operator-=(const Query<T>& other) {
+        if(!filters.empty()) {
+            apply();
+        }
         std::set<T> result;
 
         std::set_difference(
@@ -83,23 +116,6 @@ public:
     friend Query<T> operator-(Query<T> left, const Query<T>& right) {
         return left -= right;
     }
-    /*
-    Inverts the query.
-    Specifically, entities in the world not in this query will be in the resulting query.
-    Returns a reference to this query, mutated.
-    */
-    Query<T>& operator~() {
-        std::set<T> result;
-        Query<T> all(world);
-
-        std::set_difference(
-            all.items.begin(), all.items.end(),
-            items.begin(), items.end(),
-            std::inserter(result, result.end())
-        );
-        entities = std::move(result);
-        return *this;
-    }
 
     typename std::set<T>::iterator begin() const {
         return items.begin();
@@ -109,14 +125,11 @@ public:
     }
 private:
     std::set<T> items; // The set of items currently in the query
-    World* world; // The world which the query is taking place for.
+    std::vector<std::function<bool(T)>> filters; // The filters that are queued to be applied to the vector.
 
     Query<T>() {}
 
     friend class Query;
 };
 
-std::set<uint> toIdSet(const Query<Entity*>& query);
-std::set<uint> toIdSet(const Query<Component*>& query);
-
-std::function<bool(Component*)> filterByTypeId(uint typeId);
+std::function<bool(std::shared_ptr<Component>)> filterByTypeId(uint typeId);

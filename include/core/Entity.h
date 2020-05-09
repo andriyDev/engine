@@ -3,6 +3,7 @@
 
 #include "std.h"
 
+class World;
 class Component;
 
 class Entity : public std::enable_shared_from_this<Entity>
@@ -13,6 +14,13 @@ public:
     Do not store shared_ptrs to the component afterwards.
     */
     void addComponent(std::shared_ptr<Component> component);
+    template<typename T>
+    std::shared_ptr<T> addComponent()
+    {
+        std::shared_ptr<T> t = std::make_shared<T>();
+        addComponent(t);
+        return t;
+    }
 
     // Finds any component attached to this entity with the specified type.
     std::shared_ptr<Component> findComponentByType(int typeId);

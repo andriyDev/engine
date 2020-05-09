@@ -7,13 +7,13 @@
 class Entity;
 class System;
 
-class World : std::enable_shared_from_this<World>
+class World : public std::enable_shared_from_this<World>
 {
 public:
     // Returns a query that can filter down entities in the world.
-    Query<Entity*> queryEntities();
+    Query<std::shared_ptr<Entity>> queryEntities();
     // Returns a query that can filter down components in the world.
-    Query<Component*> queryComponents();
+    Query<std::shared_ptr<Component>> queryComponents();
     
     /*
     Constructs an empty entity and returns a pointer to it.

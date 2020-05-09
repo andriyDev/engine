@@ -20,7 +20,7 @@ std::shared_ptr<World> Universe::removeWorld(std::weak_ptr<World> world)
 {
     std::shared_ptr<World> wptr = world.lock();
     if(wptr) {
-        worlds.erase(std::find(worlds.bestd::shared_ptr<Component>gin(), worlds.end(), wptr));
+        worlds.erase(std::find(worlds.begin(), worlds.end(), wptr));
     }
     return wptr;
 }

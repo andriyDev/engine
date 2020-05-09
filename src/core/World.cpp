@@ -4,14 +4,18 @@
 #include "core/Entity.h"
 #include "core/System.h"
 
-Query<Entity*> World::queryEntities()
+Query<std::shared_ptr<Entity>> World::queryEntities()
 {
-    return Query<Entity*>(this);
+    return Query<std::shared_ptr<Entity>>(entities);
 }
 
-Query<Component*> World::queryComponents()
+Query<std::shared_ptr<Component>> World::queryComponents()
 {
-    return Query<Component*>(this);
+    std::set<std::shared_ptr<Component>> s;
+    for(std::shared_ptr<Entity> e : entities) {
+        s.insert(e->components.begin(), e->components.end());
+    }
+    return Query<std::shared_ptr<Component>>(s);
 }
 
 std::shared_ptr<Entity> World::addEntity()

@@ -26,8 +26,8 @@ public:
     */
     virtual void gameplayTick(float delta) {}
 
-    inline std::weak_ptr<World> getWorld() const {
-        return world;
+    inline std::shared_ptr<World> getWorld() const {
+        return world.lock();
     }
 private:
     std::weak_ptr<World> world; // The world that this system manages.

@@ -3,7 +3,9 @@
 
 #include "std.h"
 
-class Component
+class Entity;
+
+class Component : public std::enable_shared_from_this<Component>
 {
 protected:
     Component(uint typeId) {
