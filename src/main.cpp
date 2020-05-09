@@ -104,9 +104,9 @@ public:
             }
             TransformData td = transform->getRelativeTransform();
             //std::cout << glm::to_string(td.rotation * glm::vec3(0,0,1)) << std::endl;
-            td.translation += (td.rotation * glm::vec3(0,0,-1)) * ISptr->getActionValue(0, "forward", true) * delta * 30.f;
-            td.translation += (td.rotation * glm::vec3(-1,0,0)) * ISptr->getActionValue(0, "left", true) * delta * 30.f;
-            td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 30.f;
+            td.translation += (td.rotation * glm::vec3(0,0,-1)) * ISptr->getActionValue(0, "forward", true) * delta * 5.f;
+            td.translation += (td.rotation * glm::vec3(-1,0,0)) * ISptr->getActionValue(0, "left", true) * delta * 5.f;
+            td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
             glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
             eulerRot.x -= ISptr->getActionValue(0, "lookYaw", true) * 0.2f;
             eulerRot.y = clamp(eulerRot.y - ISptr->getActionValue(0, "lookPitch", true) * 0.2f, -89.f, 89.f);
@@ -141,9 +141,10 @@ int main()
 
     ResourceLoader loader;
     {
+        loader.addResource("Box", Mesh::makeBox(glm::vec3(15, 1, 15)));
         loader.addResource("Mesh", std::make_shared<MeshBuilder>("Mesh", res));
         auto rmb = std::make_shared<RenderableMeshBuilder>();
-        rmb->sourceMesh = "Mesh";
+        rmb->sourceMesh = "Box";
         loader.addResource("RenderMesh", rmb);
 
         loader.addResource("Texture", std::make_shared<TextureBuilder>("EarthTexture", res));
@@ -167,10 +168,10 @@ int main()
     std::shared_ptr<Material> m1 = std::make_shared<Material>(
         loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
     m1->setVec3Property("albedo", glm::vec3(1, 1, 1));
-    m1->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
-        (uint)RenderResources::RenderableTexture));
     std::shared_ptr<Material> m2 = std::make_shared<Material>(m1);
     m2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
+    m1->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
+        (uint)RenderResources::RenderableTexture));
     m2->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
         (uint)RenderResources::RenderableTexture));
 
@@ -217,11 +218,8 @@ int main()
         m->material = nullptr;
         std::shared_ptr<Transform> meshTransform = e->addComponent<Transform>();
         m->transform = meshTransform;
-        glm::vec3 a(0,0,-10);
-        glm::vec3 b(0,0,0);
-        meshTransform->setRelativeTransform(TransformData(a,
-            glm::angleAxis(glm::radians(-90.f), glm::vec3(1, 0, 0)),
-            glm::vec3(0.6f, 0.6f, 0.6f)), true);
+        glm::vec3 a(0,0,0);
+        glm::vec3 b(0,5,0);
         
         std::shared_ptr<Entity> c = w->addEntity();
         std::shared_ptr<Transform> camTransform = c->addComponent<Transform>();

@@ -98,6 +98,12 @@ public:
     */
     void addResource(const std::string& name, std::shared_ptr<ResourceBuilder> builder);
 
+    /*
+    Adds a resource directly to the set of loaded resources.
+    The provided resource must have already been successfully loaded.
+    */
+    void addResource(const std::string& name, std::shared_ptr<Resource> resource);
+
     /* Removes the resource from the resource loader. */
     void releaseResource(const std::string& name);
 
