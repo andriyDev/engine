@@ -99,7 +99,6 @@ public:
             td.translation += (td.rotation * glm::vec3(-1,0,0)) * IS->getActionValue(0, "left", true) * delta * 30.f;
             td.translation += (td.rotation * glm::vec3(0,1,0)) * IS->getActionValue(0, "up", true) * delta * 30.f;
             glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
-            std::cout << glm::to_string(eulerRot) << std::endl;
             eulerRot.x -= IS->getActionValue(0, "lookYaw", true) * 0.2f;
             eulerRot.y = clamp(eulerRot.y - IS->getActionValue(0, "lookPitch", true) * 0.2f, -89.f, 89.f);
             td.rotation = glm::fromAxisRotator(eulerRot);
