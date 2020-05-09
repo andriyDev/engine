@@ -10,7 +10,8 @@ enum class RenderResources : uint
     Shader,
     MaterialProgram,
     Material,
-    Texture
+    Texture,
+    RenderableTexture
 };
 
 enum class FileRenderResources : uint
