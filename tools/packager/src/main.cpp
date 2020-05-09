@@ -143,48 +143,43 @@ Texture* loadPNGTexture(const string& fileName)
     fread(header, 1, 8, f);
     if(png_sig_cmp(header, 0, 8)) {
         fprintf(stderr, "Failed to read file as png '%s'.\n", fileName.c_str());
+        fclose(f);
         return nullptr;
     }
     png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if(!png_ptr) {
         fprintf(stderr, "Failed to create png read struct.\n");
+        png_destroy_read_struct(&png_ptr, NULL, NULL);
+        fclose(f);
         return nullptr;
     }
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
-    if(!png_ptr) {
+    if(!info_ptr) {
         fprintf(stderr, "Failed to create png info struct.\n");
+        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+        fclose(f);
         return nullptr;
     }
 
     if(setjmp(png_jmpbuf(png_ptr))) {
         fprintf(stderr, "init_io error (png stuff).\n");
+        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+        fclose(f);
         return nullptr;
     }
 
     png_init_io(png_ptr, f);
     png_set_sig_bytes(png_ptr, 8);
 
+    png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
     int width = png_get_image_width(png_ptr, info_ptr);
     int height = png_get_image_height(png_ptr, info_ptr);
     int colourType = png_get_color_type(png_ptr, info_ptr);
     int bitDepth = png_get_bit_depth(png_ptr, info_ptr);
     
-    png_set_interlace_handling(png_ptr);
-    png_read_update_info(png_ptr, info_ptr);
-
-    if (setjmp(png_jmpbuf(png_ptr))) {
-        fprintf(stderr, "Error reading png file.\n");
-        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-        return nullptr;
-    }
-
-    png_bytep* row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
-    for(int y = 0; y < height; y++) {
-        row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr, info_ptr));
-    }
-    png_read_image(png_ptr, row_pointers);
-    fclose(f);
+    png_bytep* row_pointers = png_get_rows(png_ptr, info_ptr);
 
     Texture* tex = nullptr;
     if(bitDepth == 8 && colourType == PNG_COLOR_TYPE_RGB) {
@@ -208,12 +203,9 @@ Texture* loadPNGTexture(const string& fileName)
         tex = new Texture();
         tex->fromColour4(data, width, height);
     } else {
-        fprintf(stderr, "Unrecognized colour type in png: %d.\n", colourType);
+        fprintf(stderr, "Unrecognized colour type or bit depth in png: %d/%d.\n", colourType, bitDepth);
     }
 
-    for (int y = 0; y < height; y++)
-        free(row_pointers[y]);
-    free(row_pointers);
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
     return tex;
 }
