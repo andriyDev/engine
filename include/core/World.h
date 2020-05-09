@@ -7,30 +7,35 @@
 class Entity;
 class System;
 
-class World
+class World : std::enable_shared_from_this<World>
 {
 public:
-    ~World();
-
     // Returns a query that can filter down entities in the world.
     Query<Entity*> queryEntities();
     // Returns a query that can filter down components in the world.
     Query<Component*> queryComponents();
+    
+    /*
+    Constructs an empty entity and returns a pointer to it.
+    Do not store shared_ptrs to the entity afterwards.
+    */
+    std::shared_ptr<Entity> addEntity();
+    /* Transfers ownership of an entity to this world. */
+    void addEntity(std::shared_ptr<Entity> entity);
 
-    // Attaches the entity to this world. Fails if the entity is attached to another world.
-    World* attach(Entity* entity);
-    // Detaches the entity from this world. Fails if the entity is not in this world.
-    World* detach(Entity* entity);
-
-    // Adds the system in order of decreasing priority (if priority is equal, later additions will be first).
-    System* addSystem(System* system);
+    /*
+    Adds the system in order of decreasing priority (if priority is equal, later additions will be first).
+    Do not store shared_ptrs to the system afterwards.
+    */
+    void addSystem(std::shared_ptr<System> system);
     // Creates the system as the provided type, and performs just as addSystem does.
     template<class T>
-    T* addSystem(float priority = 0)
+    std::shared_ptr<T> addSystem(float priority = 0)
     {
-        System* newSystem = new T();
+        std::shared_ptr<T> newSystem = std::make_shared<T>();
         newSystem->priority = priority;
-        return static_cast<T*>(addSystem(newSystem));
+        addSystem(newSystem);
+        return newSystem;
     }
 
     /*
@@ -45,16 +50,15 @@ public:
     */
     void gameplayTick(float delta);
 
-    inline uint getId() const {
-        return id;
-    }
-    inline std::set<Entity*> getEntities() const {
+    inline std::set<std::shared_ptr<Entity>> getEntities() const {
         return entities;
     }
+    inline std::vector<std::shared_ptr<System>> getSystems() const {
+        return systems;
+    }
 private:
-    uint id;
-    std::set<Entity*> entities;
-    std::vector<System*> systems;
+    std::set<std::shared_ptr<Entity>> entities;
+    std::vector<std::shared_ptr<System>> systems;
 
     friend class Universe;
 };

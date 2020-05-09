@@ -4,128 +4,27 @@
 #include "core/Component.h"
 #include "core/World.h"
 
-Universe* Universe::U = nullptr;
-
-Universe* Universe::init()
+std::shared_ptr<World> Universe::addWorld()
 {
-    Universe::U = new Universe();
-    return Universe::U;
+    std::shared_ptr<World> ptr = std::make_shared<World>();
+    addWorld(ptr);
+    return ptr;
 }
 
-void Universe::cleanUp()
+void Universe::addWorld(std::shared_ptr<World> world)
 {
-    delete Universe::U;
-    Universe::U = nullptr;
+    worlds.push_back(world);
 }
 
-Universe* Universe::get()
+std::shared_ptr<World> Universe::removeWorld(std::weak_ptr<World> world)
 {
-    return Universe::U;
-}
-
-Universe::~Universe()
-{
-    for(auto p : entities) {
-        delete p.second;
+    std::shared_ptr<World> wptr = world.lock();
+    if(wptr) {
+        worlds.erase(std::find(worlds.bestd::shared_ptr<Component>gin(), worlds.end(), wptr));
     }
-    for(auto p : components) {
-        delete p.second;
-    }
-    for(auto p : worlds) {
-        delete p.second;
-    }
+    return wptr;
 }
 
-uint generateUniqueId()
-{
-    uint r = rand();
-    return r == 0 ? 1 : r;
-}
-
-template<typename V>
-uint generateUnusedId(std::map<uint, V>& space)
-{
-    uint id;
-    do {
-        id = generateUniqueId();
-    } while(space.count(id));
-    return id;
-}
-
-Entity* Universe::addEntity(Entity* entity)
-{
-    uint id = generateUnusedId(entities);
-    entity->id = id;
-    entities.insert(std::make_pair(id, entity));
-    return entity;
-}
-
-Component* Universe::addComponent(Component* component)
-{
-    uint id = generateUnusedId(components);
-    component->id = id;
-    components.insert(std::make_pair(id, component));
-    return component;
-}
-
-World* Universe::addWorld(World* world)
-{
-    uint id = generateUnusedId(worlds);
-    world->id = id;
-    worlds.insert(std::make_pair(id, world));
-    return world;
-}
-
-Entity* Universe::addEntity()
-{
-    return addEntity(new Entity());
-}
-
-World* Universe::addWorld()
-{
-    return addWorld(new World());
-}
-
-void Universe::removeEntity(Entity* entity, bool removeDependent)
-{
-    assert(entity->id);
-    entities.erase(entity->id);
-    if(entity->worldId) {
-        World* world = check(getWorld(entity->worldId));
-        world->detach(entity);
-    }
-    if(removeDependent) {
-        for(Component* component : entity->components) {
-            component->ownerId = 0;
-            removeComponent(component);
-        }
-    }
-    delete entity;
-}
-
-void Universe::removeComponent(Component* component)
-{
-    assert(component->id);
-    components.erase(component->id);
-    if(component->ownerId) {
-        Entity* entity = check(getEntity(component->ownerId));
-        entity->detach(component);
-    }
-    delete component;
-}
-
-void Universe::removeWorld(World* world, bool removeDependent)
-{
-    assert(world->id);
-    worlds.erase(world->id);
-    if(removeDependent) {
-        for(Entity* entity : world->entities) {
-            entity->worldId = 0;
-            removeEntity(entity, true);
-        }
-    }
-    delete world;
-}
 
 void Universe::tick(float deltaTime)
 {
@@ -139,7 +38,7 @@ void Universe::tick(float deltaTime)
     for(int i = 0; i < issuedGameplayFrames; i++) {
         gameplayTime += gameplayDelta;
         for(auto p : worlds) {
-            p.second->gameplayTick(gameplayDelta);
+            p->gameplayTick(gameplayDelta);
         }
     }
 
@@ -149,6 +48,6 @@ void Universe::tick(float deltaTime)
 
     float tickPercent = (totalTime - gameplayTime) * gameplayRate;
     for(auto p : worlds) {
-        p.second->frameTick(deltaTime, tickPercent);
+        p->frameTick(deltaTime, tickPercent);
     }
 }

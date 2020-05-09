@@ -4,13 +4,6 @@
 #include "core/Entity.h"
 #include "core/System.h"
 
-World::~World()
-{
-    for(System* system : systems) {
-        delete system;
-    }
-}
-
 Query<Entity*> World::queryEntities()
 {
     return Query<Entity*>(this);
@@ -21,39 +14,34 @@ Query<Component*> World::queryComponents()
     return Query<Component*>(this);
 }
 
-World* World::attach(Entity* entity)
+std::shared_ptr<Entity> World::addEntity()
 {
-    assert(!entity->worldId);
+    std::shared_ptr<Entity> ptr = std::make_shared<Entity>();
+    addEntity(ptr);
+    return ptr;
+}
+
+void World::addEntity(std::shared_ptr<Entity> entity)
+{
     entities.insert(entity);
-    entity->worldId = id;
-    return this;
+    entity->world = shared_from_this();
 }
 
-World* World::detach(Entity* entity)
+void World::addSystem(std::shared_ptr<System> system)
 {
-    assert(entity->worldId == id);
-    entities.erase(entity);
-    entity->worldId = 0;
-    return this;
-}
-
-System* World::addSystem(System* system)
-{
-    assert(!system->world);
-    system->world = this;
+    system->world = shared_from_this();
     for(auto it = systems.begin(); it != systems.end(); it++) {
         if((*it)->priority <= system->priority) {
             systems.insert(it, system);
-            return system;
+            return;
         }
     }
     systems.push_back(system);
-    return system;
 }
 
 void World::frameTick(float delta, float tickPercent)
 {
-    for(System* system : systems) {
+    for(std::shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();
@@ -64,7 +52,7 @@ void World::frameTick(float delta, float tickPercent)
 
 void World::gameplayTick(float delta)
 {
-    for(System* system : systems) {
+    for(std::shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();

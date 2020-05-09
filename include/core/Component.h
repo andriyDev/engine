@@ -10,19 +10,15 @@ protected:
         this->typeId = typeId;
     }
 public:
-    inline uint getId() const {
-        return id;
-    }
     inline uint getTypeId() const {
         return typeId;
     }
-    inline uint getOwnerId() const {
-        return ownerId;
+    inline std::shared_ptr<Entity> getOwner() const {
+        return owner.lock();
     }
 private:
-    uint id = 0; // The id of the component.
     uint typeId; // The type id that determines this component.
-    uint ownerId = 0; // The id of the entity that owns this component.
+    std::weak_ptr<Entity> owner; // The entity this component is owned by.
 
     friend class Universe;
     friend class Entity;

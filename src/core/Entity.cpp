@@ -2,25 +2,15 @@
 #include "core/Entity.h"
 #include "core/Component.h"
 
-Entity* Entity::attach(Component* component)
+void Entity::addComponent(std::shared_ptr<Component> component)
 {
-    assert(!component->ownerId);
-    component->ownerId = id;
     components.insert(component);
-    return this;
+    component->owner = shared_from_this();
 }
 
-Entity* Entity::detach(Component* component)
+std::shared_ptr<Component> Entity::findComponentByType(int typeId)
 {
-    assert(component->ownerId == id);
-    component->ownerId = 0;
-    components.erase(component);
-    return this;
-}
-
-Component* Entity::findComponentByType(int typeId)
-{
-    for(Component* component : components) {
+    for(std::shared_ptr<Component> component : components) {
         if(component->getTypeId() == typeId) {
             return component;
         }
@@ -28,10 +18,10 @@ Component* Entity::findComponentByType(int typeId)
     return nullptr;
 }
 
-std::set<Component*> Entity::findComponentsByType(int typeId)
+std::set<std::shared_ptr<Component>> Entity::findComponentsByType(int typeId)
 {
-    std::set<Component*> typedComponents;
-    for(Component* component : components) {
+    std::set<std::shared_ptr<Component>> typedComponents;
+    for(std::shared_ptr<Component> component : components) {
         if(component->getTypeId() == typeId) {
             typedComponents.insert(component);
         }

@@ -26,11 +26,11 @@ public:
     */
     virtual void gameplayTick(float delta) {}
 
-    inline World* getWorld() const {
+    inline std::weak_ptr<World> getWorld() const {
         return world;
     }
 private:
-    World* world = nullptr; // The world that this system manages.
+    std::weak_ptr<World> world; // The world that this system manages.
     bool initialized = false; // Has this system been initialized.
 
     friend class World;
