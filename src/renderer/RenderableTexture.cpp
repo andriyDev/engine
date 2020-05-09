@@ -3,6 +3,24 @@
 
 #include "resources/RenderResources.h"
 
+RenderableTexture::RenderableTexture()
+    : Resource((uint)RenderResources::RenderableTexture)
+{}
+
+RenderableTexture::~RenderableTexture()
+{
+    if(isUsable()) {
+        glDeleteTextures(1, &textureId);
+    }
+}
+
+void RenderableTexture::bind(GLuint textureUnit)
+{
+    if(isUsable()) {
+        glBindTextureUnit(textureUnit, textureId);
+    }
+}
+
 std::shared_ptr<Resource> RenderableTextureBuilder::construct()
 {
     return std::make_shared<RenderableTexture>();

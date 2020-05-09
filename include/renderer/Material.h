@@ -4,6 +4,7 @@
 #include "std.h"
 
 #include "MaterialProgram.h"
+#include "RenderableTexture.h"
 
 #include "glm/glm.hpp"
 
@@ -17,6 +18,8 @@ public:
     void use();
     void setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix);
 
+    void setTexture(const std::string& textureName, const std::shared_ptr<RenderableTexture>& texture);
+
     void setBoolProperty(const std::string& name, bool value);
     void setIntProperty(const std::string& name, int value);
     void setFloatProperty(const std::string& name, float value);
@@ -28,6 +31,7 @@ public:
     inline bool isUsable() const { return usable; }
 private:
     std::shared_ptr<MaterialProgram> program;
+    std::map<GLuint, std::shared_ptr<RenderableTexture>> textures;
     bool usable = false;
     uint programLoadEvent = 0;
     GLuint ubo = 0;
@@ -48,6 +52,7 @@ private:
     Material(std::shared_ptr<MaterialProgram> _program, const std::map<std::string, PropInfo>& defaultProps);
 
     std::map<std::string, PropInfo> queuedProps;
+    std::map<std::string, std::shared_ptr<RenderableTexture>> queuedTextures;
 
     static void build(void* materialRaw, Resource::ResourceLoadDoneParams params);
 };

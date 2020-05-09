@@ -14,6 +14,8 @@ public:
     RenderableTexture();
     ~RenderableTexture();
 
+    void bind(GLuint textureUnit);
+
 protected:
     GLuint textureId;
 
