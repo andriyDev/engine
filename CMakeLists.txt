@@ -40,7 +40,9 @@ set(MAIN_SRC ${MAIN_SRC}
     src/resources/FileResourceBuilder.cpp
     src/resources/ResourceLoader.cpp
     src/resources/Mesh.cpp
-    src/resources/Shader.cpp)
+    src/resources/Shader.cpp
+    src/resources/Colour.cpp
+    src/resources/Texture.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/utility/Package.cpp
     src/utility/Serializer.cpp)
@@ -69,4 +71,7 @@ if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
-add_subdirectory(tools)
+set(BUILD_TOOLS ON CACHE BOOL "Should tools be built? Requires several more dependencies")
+if(BUILD_TOOLS)
+    add_subdirectory(tools)
+endif()

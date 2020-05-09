@@ -15,6 +15,10 @@
 
 #include "utility/Serializer.h"
 #include "utility/Package.h"
+#include "resources/Texture.h"
+
+#include <png.h>
+#include <stdio.h>
 
 using namespace std;
 
@@ -127,9 +131,97 @@ vector<pair<void*, string>> extractMeshes(const string& fileName,
     return resources;
 }
 
+Texture* loadPNGTexture(const string& fileName)
+{
+    FILE* f;
+    if(fopen_s(&f, fileName.c_str(), "rb")) {
+        fprintf(stderr, "Failed to read file '%s'.\n", fileName.c_str());
+        return nullptr;
+    }
+    
+    uchar header[8];
+    fread(header, 1, 8, f);
+    if(png_sig_cmp(header, 0, 8)) {
+        fprintf(stderr, "Failed to read file as png '%s'.\n", fileName.c_str());
+        return nullptr;
+    }
+    png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if(!png_ptr) {
+        fprintf(stderr, "Failed to create png read struct.\n");
+        return nullptr;
+    }
+
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if(!png_ptr) {
+        fprintf(stderr, "Failed to create png info struct.\n");
+        return nullptr;
+    }
+
+    if(setjmp(png_jmpbuf(png_ptr))) {
+        fprintf(stderr, "init_io error (png stuff).\n");
+        return nullptr;
+    }
+
+    png_init_io(png_ptr, f);
+    png_set_sig_bytes(png_ptr, 8);
+
+    int width = png_get_image_width(png_ptr, info_ptr);
+    int height = png_get_image_height(png_ptr, info_ptr);
+    int colourType = png_get_color_type(png_ptr, info_ptr);
+    int bitDepth = png_get_bit_depth(png_ptr, info_ptr);
+    
+    png_set_interlace_handling(png_ptr);
+    png_read_update_info(png_ptr, info_ptr);
+
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        fprintf(stderr, "Error reading png file.\n");
+        png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+        return nullptr;
+    }
+
+    png_bytep* row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+    for(int y = 0; y < height; y++) {
+        row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr, info_ptr));
+    }
+    png_read_image(png_ptr, row_pointers);
+    fclose(f);
+
+    Texture* tex = nullptr;
+    if(bitDepth == 8 && colourType == PNG_COLOR_TYPE_RGB) {
+        Colour3* data = new Colour3[width * height];
+        for(int y = 0; y < height; y++) {
+            png_bytep row = row_pointers[y];
+            for(int x = 0; x < width; x++) {
+                data[x + y * width] = { row[x * 3], row[x * 3 + 1], row[x * 3 + 2] };
+            }
+        }
+        tex = new Texture();
+        tex->fromColour3(data, width, height);
+    } else if(bitDepth == 8 && colourType == PNG_COLOR_TYPE_RGBA) {
+        Colour4* data = new Colour4[width * height];
+        for(int y = 0; y < height; y++) {
+            png_bytep row = row_pointers[y];
+            for(int x = 0; x < width; x++) {
+                data[x + y * width] = { row[x * 4], row[x * 4 + 1], row[x * 4 + 2], row[x * 4 + 3] };
+            }
+        }
+        tex = new Texture();
+        tex->fromColour4(data, width, height);
+    } else {
+        fprintf(stderr, "Unrecognized colour type in png: %d.\n", colourType);
+    }
+
+    for (int y = 0; y < height; y++)
+        free(row_pointers[y]);
+    free(row_pointers);
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
+    return tex;
+}
+
 map<uint, tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
     {(uint)FileRenderResources::Mesh, make_tuple(writeMesh, readMesh, readIntoMesh)},
-    {(uint)FileRenderResources::Shader, make_tuple(writeShader, readShader, readIntoShader)}
+    {(uint)FileRenderResources::Shader, make_tuple(writeShader, readShader, readIntoShader)},
+    {(uint)FileRenderResources::Texture, make_tuple(writeTexture, readTexture, readIntoTexture)}
 };
 Assimp::Importer gImporter;
 
@@ -201,6 +293,28 @@ void processResourceCommand(vector<string> command, Package& pkg)
             return;
         }
         pkg.addResource(trim(command[2]), (uint)FileRenderResources::Shader, shader);
+    }
+    else if(cmdType == "texture")
+    {
+        if(command.size() != 4) {
+            cerr << "Invalid texture command: 'texture <format> <file> <resource name>'" << endl;
+            return;
+        }
+
+        string format = command[1];
+        string file = command[2];
+
+        Texture* tex = nullptr;
+        if(format == "png") {
+            tex = loadPNGTexture(file);
+        } else {
+            cerr << "Bad format: '" << format << "'. Recognized formats: png" << endl;
+            return;
+        }
+        
+        if(tex) {
+            pkg.addResource(trim(command[3]), (uint)FileRenderResources::Texture, tex);
+        }
     }
     else
     {
