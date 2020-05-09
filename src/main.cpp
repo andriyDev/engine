@@ -19,6 +19,7 @@
 #include "ComponentTypes.h"
 #include "renderer/RenderSystem.h"
 #include "renderer/Material.h"
+#include "renderer/RenderableTexture.h"
 
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
@@ -137,6 +138,13 @@ int main()
         rmb->sourceMesh = "Mesh";
         loader.addResource("RenderMesh", rmb);
 
+        loader.addResource("Texture", std::make_shared<TextureBuilder>("EarthTexture", res));
+        auto rtb = std::make_shared<RenderableTextureBuilder>();
+        rtb->sourceTexture = "Texture";
+        rtb->wrapU = RenderableTextureBuilder::Clamp;
+        rtb->wrapV = RenderableTextureBuilder::Clamp;
+        loader.addResource("RenderTexture", rtb);
+
         loader.addResource("VShader", std::make_shared<ShaderBuilder>("vertex_basic_shader", res));
         loader.addResource("FShader", std::make_shared<ShaderBuilder>("fragment_basic_shader", res));
         auto mpb = std::make_shared<MaterialProgramBuilder>();
@@ -150,9 +158,13 @@ int main()
 
     std::shared_ptr<Material> m1 = std::make_shared<Material>(
         loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
-    m1->setVec3Property("albedo", glm::vec3(0.361f, 0.620f, 0.322f));
+    m1->setVec3Property("albedo", glm::vec3(1, 1, 1));
+    m1->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
+        (uint)RenderResources::RenderableTexture));
     std::shared_ptr<Material> m2 = std::make_shared<Material>(m1);
     m2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
+    m2->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
+        (uint)RenderResources::RenderableTexture));
 
     Universe* U = Universe::init();
     U->gameplayRate = 30;

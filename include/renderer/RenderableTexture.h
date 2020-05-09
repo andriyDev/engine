@@ -35,6 +35,8 @@ public:
         Linear
     };
 
+    RenderableTextureBuilder();
+
     WrapMode wrapU = Repeat;
     WrapMode wrapV = Repeat;
 

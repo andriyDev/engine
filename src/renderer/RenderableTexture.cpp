@@ -21,6 +21,12 @@ void RenderableTexture::bind(GLuint textureUnit)
     }
 }
 
+RenderableTextureBuilder::RenderableTextureBuilder()
+    : ResourceBuilder((uint)RenderResources::RenderableTexture)
+{
+
+}
+
 std::shared_ptr<Resource> RenderableTextureBuilder::construct()
 {
     return std::make_shared<RenderableTexture>();
