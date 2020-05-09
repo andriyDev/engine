@@ -33,6 +33,8 @@ public:
     ~Mesh();
 
     void clearData();
+
+    static std::shared_ptr<Mesh> makeBox(glm::vec3 extents=glm::vec3(.5f,.5f,.5f));
 };
 
 class MeshBuilder : public FileResourceBuilder<Mesh>

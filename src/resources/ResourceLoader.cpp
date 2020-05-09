@@ -35,6 +35,12 @@ void ResourceLoader::addResource(const std::string& name, std::shared_ptr<Resour
     pendingResources.insert_or_assign(name, builder);
 }
 
+void ResourceLoader::addResource(const std::string& name, std::shared_ptr<Resource> resource)
+{
+    assert(resource && resource->isUsable());
+    resources.insert_or_assign(name, resource);
+}
+
 void ResourceLoader::releaseResource(const std::string& name)
 {
     pendingResources.erase(name);
@@ -100,14 +106,14 @@ void ResourceLoader::initLoad()
             if(dep_pair.second) {
                 continue;
             }
-            // Look up the resource in the set of resources we are loading.
-            auto dep = pendingResources.find(dep_pair.first);
-            // If we don't find the builder of the resource, the dependency is invalid.
-            if(dep == pendingResources.end()) {
+            // Look up the resource in the set of resources we hold (possibly unbuilt).
+            auto dep = resources.find(dep_pair.first);
+            // If we don't find the resource, the dependency is invalid.
+            if(dep == resources.end()) {
                 throw "Dependency not found!";
             }
             // Set the dependency pointer to be the resource the builder is building.
-            dep_pair.second = dep->second->resource;
+            dep_pair.second = dep->second;
             // If the pointer was set to null, the dependency hasn't been constructed, so abort.
             if(!dep_pair.second) {
                 throw "Dependency not constructed!";
@@ -165,14 +171,20 @@ void ResourceLoader::beginLoad()
                 stack.pop_back();
                 continue;
             }
-            // Get the next child.
-            ResourceBuilder* child = last.second->second->builder.lock().get();
-            // Move to the next child (so when we come back we move on).
-            last.second++;
-            // Update its priority,
-            child->priority += last.first->priority + 1;
-            // Add the child to the stack, pointing to the first child.
-            stack.push_back(std::make_pair(child, child->dependencies.begin()));
+            // If the resource is already usable, we don't need to queue its builder.
+            if(last.second->second->isUsable()) {
+                last.second++;
+            }
+            else {
+                // Get the next child.
+                ResourceBuilder* child = last.second->second->builder.lock().get();
+                // Move to the next child (so when we come back we move on).
+                last.second++;
+                // Update its priority,
+                child->priority += last.first->priority + 1;
+                // Add the child to the stack, pointing to the first child.
+                stack.push_back(std::make_pair(child, child->dependencies.begin()));
+            }
         }
     }
 
