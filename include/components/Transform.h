@@ -69,6 +69,11 @@ public:
     TransformData getGlobalTransform(float interpolation) const;
     // Sets the relative transform so that it matches globally.
     void setGlobalTransform(const TransformData& globalTransform, bool teleport=false);
+    // Gets the transform of this component relative to the provided transform.
+    TransformData getTransformRelativeTo(std::shared_ptr<Transform> relative) const;
+    // Sets the transform of this component relative to the provided transform. Only this transform will be moved.
+    void setTransformRelativeTo(const TransformData& transform,
+        std::shared_ptr<Transform> relative, bool teleport=false);
 
     /*
     Replaces the current parent with the newParent (can be null to attach to world).

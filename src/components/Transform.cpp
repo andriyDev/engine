@@ -159,3 +159,46 @@ void Transform::setGlobalTransform(const TransformData& globalTransform, bool te
     }
     setRelativeTransform(parentGlobal.inverse() * globalTransform, teleport);
 }
+
+TransformData Transform::getTransformRelativeTo(std::shared_ptr<Transform> relative) const
+{
+    if(!relative) {
+        return getGlobalTransform();
+    }
+    if(relative.get() == this) {
+        return TransformData();
+    }
+    TransformData currTransform = relativeTransform;
+    std::shared_ptr<Transform> curr = parent.lock();
+
+    while(curr) {
+        if(curr == relative) {
+            return currTransform;
+        }
+        currTransform = curr->relativeTransform * currTransform;
+
+        curr = curr->parent.lock();
+    }
+    return relative->getGlobalTransform().inverse() * currTransform;
+}
+
+void Transform::setTransformRelativeTo(const TransformData& transform, std::shared_ptr<Transform> relative,
+    bool teleport)
+{
+    if(!relative) {
+        setGlobalTransform(transform, teleport);
+        return;
+    }
+    if(relative.get() == this) {
+        return;
+    }
+    TransformData parentRelative;
+    std::shared_ptr<Transform> par = parent.lock();
+    if(par) {
+        parentRelative = par->getTransformRelativeTo(relative).inverse();
+    } else {
+        parentRelative = relative->getGlobalTransform();
+    }
+    setRelativeTransform(parentRelative * transform, teleport);
+}
+
