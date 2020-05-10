@@ -83,7 +83,7 @@ public:
             .filter(filterByTypeId(MESH_RENDERER_ID))
             .cast_ptr<MeshRenderer>();
         for(std::shared_ptr<MeshRenderer> mr : mrs) {
-            mr->material = fmod(time, 2.f) < 1.f ? A : B;
+            mr->material = A;//fmod(time, 2.f) < 1.f ? A : B;
         }
         std::shared_ptr<InputSystem> ISptr = IS.lock();
         if(ISptr) {
