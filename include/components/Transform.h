@@ -57,18 +57,12 @@ public:
     TransformData getRelativeTransform() const {
         return relativeTransform;
     }
-    // Gets the relative transform 
-    TransformData getRelativeTransform(float interpolation) const {
-        return previousTransform[0].lerp(previousTransform[1], interpolation);
-    }
-    // Sets the relative transform. teleport should be set to true if this set is due to a "sharp" move.
-    void setRelativeTransform(const TransformData& relativeTransform, bool teleport=false);
+    // Sets the relative transform.
+    void setRelativeTransform(const TransformData& relativeTransform);
     // Gets the global transform of this component.
     TransformData getGlobalTransform() const;
-    // Gets the global transform of this component.
-    TransformData getGlobalTransform(float interpolation) const;
     // Sets the relative transform so that it matches globally.
-    void setGlobalTransform(const TransformData& globalTransform, bool teleport=false);
+    void setGlobalTransform(const TransformData& globalTransform);
 
     /*
     Replaces the current parent with the newParent (can be null to attach to world).
@@ -81,10 +75,7 @@ public:
 
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
-    TransformData previousTransform[2]; // The transform data from the last 2 frames.
     std::weak_ptr<Transform> parent; // The parent of this transform.
-
-    friend class RenderSystem;
 };
 
 class Transformable : public Component

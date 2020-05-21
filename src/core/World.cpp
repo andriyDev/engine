@@ -43,14 +43,14 @@ void World::addSystem(std::shared_ptr<System> system)
     systems.push_back(system);
 }
 
-void World::frameTick(float delta, float tickPercent)
+void World::frameTick(float delta)
 {
     for(std::shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();
         }
-        system->frameTick(delta, tickPercent);
+        system->frameTick(delta);
     }
 }
 

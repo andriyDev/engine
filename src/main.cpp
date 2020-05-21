@@ -77,7 +77,7 @@ public:
     std::shared_ptr<Material> B;
     float time = 0.f;
 
-    virtual void frameTick(float delta, float tickPercent) override {
+    virtual void frameTick(float delta) override {
         time += delta;
         Query<std::shared_ptr<MeshRenderer>> mrs = getWorld()->queryComponents()
             .filter(filterByTypeId(MESH_RENDERER_ID))
@@ -176,7 +176,7 @@ int main()
         (uint)RenderResources::RenderableTexture));
 
     Universe U;
-    U.gameplayRate = 30;
+    U.gameplayRate = 60;
     bool running = true;
 
     {
@@ -225,7 +225,7 @@ int main()
         std::shared_ptr<Transform> camTransform = c->addComponent<Transform>();
         std::shared_ptr<Camera> cam = c->addComponent<Camera>();
         cam->transform = camTransform;
-        camTransform->setRelativeTransform(TransformData(b), true);
+        camTransform->setRelativeTransform(TransformData(b));
 
         res->close();
     }

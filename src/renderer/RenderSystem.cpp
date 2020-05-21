@@ -20,7 +20,7 @@ void RenderSystem::init()
     glCullFace(GL_BACK);
 }
 
-void RenderSystem::frameTick(float delta, float tickPercent)
+void RenderSystem::frameTick(float delta)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -34,7 +34,7 @@ void RenderSystem::frameTick(float delta, float tickPercent)
     float screenAspect = 1280.f / 720.f; // TODO
 
     for(std::shared_ptr<Camera> camera : cameras) {
-        glm::mat4 vpMatrix = camera->getVPMatrix(tickPercent, screenAspect);
+        glm::mat4 vpMatrix = camera->getVPMatrix(screenAspect);
 
         for(std::shared_ptr<MeshRenderer> renderer : meshes) {
             // Don't render a mesh where the mesh or material are in a bad state.
@@ -45,22 +45,10 @@ void RenderSystem::frameTick(float delta, float tickPercent)
             renderer->mesh->bind();
             renderer->material->use();
             std::shared_ptr<Transform> transform = renderer->getTransform();
-            glm::mat4 model = transform ? transform->getGlobalTransform(tickPercent).toMat4() : glm::mat4(1.0);
+            glm::mat4 model = transform ? transform->getGlobalTransform().toMat4() : glm::mat4(1.0);
             renderer->material->setMVP(model, vpMatrix);
             renderer->mesh->render();
         }
     }
     targetWindow->swapBuffers();
-}
-
-void RenderSystem::gameplayTick(float delta)
-{
-    Query<std::shared_ptr<Transform>> transforms = getWorld()->queryComponents()
-        .filter(filterByTypeId(TRANSFORM_ID))
-        .cast_ptr<Transform>();
-    for(std::shared_ptr<Transform> transform : transforms)
-    {
-        transform->previousTransform[0] = transform->previousTransform[1];
-        transform->previousTransform[1] = transform->relativeTransform;
-    }
 }
