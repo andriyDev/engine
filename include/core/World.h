@@ -43,7 +43,7 @@ public:
     delta is the time in seconds since the last frame.
     tickPercent is in [0,1] and says how far we are into the current tick.
     */
-    void frameTick(float delta, float tickPercent);
+    void frameTick(float delta);
     /*
     Ticks once per physics rate.
     delta is the phyics rate.

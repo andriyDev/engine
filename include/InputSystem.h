@@ -19,7 +19,7 @@
 class InputSystem : public System, public WindowEventHandler
 {
 public:
-    virtual void frameTick(float delta, float tickPercent) override;
+    virtual void frameTick(float delta) override;
     virtual void gameplayTick(float delta) override;
 
     virtual void keyPressed(int key, int scancode, int mods) override;
