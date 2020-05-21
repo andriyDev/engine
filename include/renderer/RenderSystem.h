@@ -9,8 +9,7 @@
 class RenderSystem : public System
 {
     virtual void init() override;
-    virtual void frameTick(float delta, float tickPercent) override;
-    virtual void gameplayTick(float delta) override;
+    virtual void frameTick(float delta) override;
 public:
     Window* targetWindow;
 };

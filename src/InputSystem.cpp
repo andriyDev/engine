@@ -9,7 +9,7 @@ const uint SPECIAL_KEYS[9] = {
     0
 };
 
-void InputSystem::frameTick(float delta, float tickPercent)
+void InputSystem::frameTick(float delta)
 {
     for(int i = 0; i <= GLFW_KEY_LAST; i++) {
         keys_frame[i].pressed = false;

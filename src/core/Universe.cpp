@@ -46,8 +46,7 @@ void Universe::tick(float deltaTime)
     skippedTime += currentSkippedTime;
     gameplayTime += currentSkippedTime;
 
-    float tickPercent = (totalTime - gameplayTime) * gameplayRate;
     for(auto p : worlds) {
-        p->frameTick(deltaTime, tickPercent);
+        p->frameTick(deltaTime);
     }
 }

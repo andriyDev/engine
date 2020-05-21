@@ -20,7 +20,7 @@ public:
 
     glm::mat4 getProjectionMatrix(float surfaceAspect) const;
 
-    glm::mat4 getViewMatrix(float interpolation) const;
+    glm::mat4 getViewMatrix() const;
 
-    glm::mat4 getVPMatrix(float interpolation, float surfaceAspect) const;
+    glm::mat4 getVPMatrix(float surfaceAspect) const;
 };
