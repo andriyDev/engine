@@ -4,13 +4,15 @@
 #include "std.h"
 #include <algorithm>
 #include <functional>
+#include <random>
+#include <ctime>
 
 class Event
 {
 public:
     typedef std::function<void(void*)> EventFcn;
     uint addFunction(EventFcn f, void* data) {
-        uint fcnId = rand(); // TODO: Better random id gen.
+        uint fcnId = (std::mt19937((uint)time(0)))();
         if(fcnId == 0) { fcnId = 1; }
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
@@ -29,7 +31,7 @@ class ParamEvent
 public:
     typedef std::function<void(void*, T)> EventFcn;
     uint addFunction(EventFcn f, void* data) {
-        uint fcnId = rand(); // TODO: Better random id gen.
+        uint fcnId = (std::mt19937((uint)time(0)))();
         if(fcnId == 0) { fcnId = 1; }
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
