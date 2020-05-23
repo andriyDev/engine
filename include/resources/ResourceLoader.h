@@ -5,7 +5,7 @@
 #include "utility/Package.h"
 #include "utility/Event.h"
 
-class Resource : std::enable_shared_from_this<Resource>
+class Resource : public std::enable_shared_from_this<Resource>
 {
 public:
     enum State {

@@ -7,12 +7,14 @@
 #include <random>
 #include <ctime>
 
+static std::mt19937 rngId;
+
 class Event
 {
 public:
     typedef std::function<void(void*)> EventFcn;
     uint addFunction(EventFcn f, void* data) {
-        uint fcnId = (std::mt19937((uint)time(0)))();
+        uint fcnId = rngId();
         if(fcnId == 0) { fcnId = 1; }
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }
@@ -31,7 +33,7 @@ class ParamEvent
 public:
     typedef std::function<void(void*, T)> EventFcn;
     uint addFunction(EventFcn f, void* data) {
-        uint fcnId = (std::mt19937((uint)time(0)))();
+        uint fcnId = (rngId)();
         if(fcnId == 0) { fcnId = 1; }
         fcns.insert(std::make_pair(fcnId, std::make_pair(data, f)));
         return fcnId; }

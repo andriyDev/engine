@@ -12,7 +12,6 @@ class MaterialProgram : public Resource
 {
 public:
     MaterialProgram() : Resource((uint)RenderResources::MaterialProgram) {}
-        
     virtual ~MaterialProgram();
 
     void bind();
