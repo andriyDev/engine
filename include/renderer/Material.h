@@ -13,7 +13,7 @@ class Material
 public:
     Material(std::shared_ptr<MaterialProgram> _program);
     Material(std::shared_ptr<Material> original);
-    ~Material();
+    virtual ~Material();
 
     void use();
     void setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix);

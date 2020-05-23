@@ -82,7 +82,7 @@ class PackageFile
 {
 public:
     PackageFile(std::string _fileName, const uchar* _typeCode, std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>>* _parsers);
-    ~PackageFile();
+    virtual ~PackageFile();
 
     void open();
 

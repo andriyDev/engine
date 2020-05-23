@@ -20,7 +20,7 @@ public:
     };
 
     Texture();
-    ~Texture();
+    virtual ~Texture();
 
     void fromColour3(Colour3* _data, uint _width, uint _height);
     void fromColour4(Colour4* _data, uint _width, uint _height);
