@@ -12,7 +12,7 @@ class RenderableMesh : public Resource
 {
 public:
     RenderableMesh();
-    ~RenderableMesh();
+    virtual ~RenderableMesh();
 
     void bind();
     void render();

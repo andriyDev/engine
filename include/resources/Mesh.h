@@ -30,7 +30,7 @@ public:
     uint indexCount;
 
     Mesh();
-    ~Mesh();
+    virtual ~Mesh();
 
     void clearData();
 

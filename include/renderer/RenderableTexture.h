@@ -12,7 +12,7 @@ class RenderableTexture : public Resource
 {
 public:
     RenderableTexture();
-    ~RenderableTexture();
+    virtual ~RenderableTexture();
 
     void bind(GLuint textureUnit);
 

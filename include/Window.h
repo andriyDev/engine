@@ -25,7 +25,7 @@ public:
 class Window
 {
 public:
-    ~Window();
+    virtual ~Window();
 
     /*
     Constructs the window. If the window was already constructed,

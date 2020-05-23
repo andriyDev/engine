@@ -12,8 +12,7 @@ class MaterialProgram : public Resource
 {
 public:
     MaterialProgram() : Resource((uint)RenderResources::MaterialProgram) {}
-        
-    ~MaterialProgram();
+    virtual ~MaterialProgram();
 
     void bind();
     void useUBO(GLuint ubo);
