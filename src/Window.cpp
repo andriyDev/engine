@@ -187,7 +187,7 @@ void Window::bindContext()
 {
     if(window) {
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1);
+        glfwSwapInterval(0);
     }
 }
 

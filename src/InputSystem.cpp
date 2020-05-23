@@ -161,7 +161,7 @@ void InputSystem::mouseExited()
 
 void InputSystem::mouseScroll(double xScroll, double yScroll)
 {
-    scrollDelta = {xScroll, yScroll};
+    scrollDelta += glm::vec2(xScroll, yScroll);
     
     if(scrollDelta.x >= 0) {
         keys_frame[SCROLL_X_POS].value = scrollDelta.x;
