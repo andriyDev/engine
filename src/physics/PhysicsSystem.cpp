@@ -3,25 +3,9 @@
 #include "core/World.h"
 
 #include <bullet/btBulletDynamicsCommon.h>
+#include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 
-btVector3 convert(const glm::vec3& v) {
-    return btVector3(btScalar(v.x), btScalar(v.y), btScalar(v.z));
-}
-glm::vec3 convert(const btVector3& v) {
-    return glm::vec3(v.getX(), v.getY(), v.getZ());
-}
-btQuaternion convert(const glm::quat& q) {
-    return btQuaternion(btScalar(q.x), btScalar(q.y), btScalar(q.z), btScalar(q.w));
-}
-glm::quat convert(const btQuaternion& q) {
-    return glm::quat(q.getW(), q.getX(), q.getY(), q.getZ());
-}
-btTransform convert(const TransformData& t) {
-    return btTransform(convert(t.rotation), convert(t.translation));
-}
-TransformData convert(const btTransform& t) {
-    return TransformData(convert(t.getOrigin()), convert(t.getRotation()));
-}
+#include "physics/BulletUtil.h"
 
 class TransformMotionState : public btMotionState
 {
@@ -66,6 +50,14 @@ PhysicsSystem::~PhysicsSystem()
     }
 }
 
+void PhysicsSystem::setGravity(const glm::vec3& _gravity)
+{
+    gravity = _gravity;
+    if(physicsWorld) {
+        physicsWorld->setGravity(convert(gravity));
+    }
+}
+
 void PhysicsSystem::init()
 {
     configuration = new btDefaultCollisionConfiguration();
@@ -73,6 +65,7 @@ void PhysicsSystem::init()
     broadphase = new btDbvtBroadphase();
     solver = new btSequentialImpulseConstraintSolver();
     physicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, configuration);
+    physicsWorld->setGravity(convert(gravity));
 }
 
 void PhysicsSystem::gameplayTick(float delta)
@@ -86,7 +79,8 @@ void PhysicsSystem::gameplayTick(float delta)
             collisionObjects.erase(it++);
         } else {
             validBodies.insert(col);
-            updateCollisionObjectData(col, it->second);
+            updateCollidersOfObject(col, it->second);
+            updateStateOfObject(col, it->second);
             ++it;
         }
     }
@@ -150,7 +144,7 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
     collisionObjects.insert(std::make_pair(bodyComponent, data));
 }
 
-void PhysicsSystem::updateCollisionObjectData(std::shared_ptr<CollisionObject>& bodyComponent,
+void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bodyComponent,
     PhysicsSystem::CollisionObjectData& bodyData)
 {
     std::set<Collider*> colliders;
@@ -193,5 +187,9 @@ void PhysicsSystem::updateCollisionObjectData(std::shared_ptr<CollisionObject>& 
         bodyData.shapeMap.erase(it);
     }
 
+}
+
+void PhysicsSystem::updateStateOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData)
+{
     bodyData.collisionObject->setWorldTransform(convert(bodyComponent->getTransform()->getGlobalTransform()));
 }
