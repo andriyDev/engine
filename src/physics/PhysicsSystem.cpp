@@ -4,6 +4,8 @@
 
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
+#include "physics/Collider.h"
+#include "physics/CollisionObject.h"
 
 #include "physics/BulletUtil.h"
 
@@ -134,6 +136,7 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
     TransformMotionState* tms = new TransformMotionState(bodyComponent);
     data.motionState = tms;
     data.collisionObject = bodyComponent->constructObject(data.compoundShape, data.motionState);
+    bodyComponent->body = data.collisionObject;
     btRigidBody* asRB = btRigidBody::upcast(data.collisionObject);
     tms->body = asRB;
     if(asRB) {

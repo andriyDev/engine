@@ -2,9 +2,11 @@
 #pragma once
 
 #include "std.h"
-
 #include "core/System.h"
-#include "RigidBody.h"
+#include <glm/glm.hpp>
+
+class Collider;
+class CollisionObject;
 
 class PhysicsSystem : public System
 {
@@ -30,7 +32,7 @@ protected:
         class btCollisionObject* collisionObject;
         class btCompoundShape* compoundShape;
         class btMotionState* motionState;
-        std::map<std::weak_ptr<Collider>, btCollisionShape*, std::owner_less<>> shapeMap;
+        std::map<std::weak_ptr<Collider>, class btCollisionShape*, std::owner_less<>> shapeMap;
     };
 
     std::map<std::weak_ptr<CollisionObject>, CollisionObjectData, std::owner_less<>> collisionObjects;

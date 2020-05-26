@@ -15,4 +15,10 @@ public:
     std::vector<std::weak_ptr<Collider>> colliders;
 
     std::vector<std::shared_ptr<Collider>> getColliders();
+
+    btCollisionObject* getBody() const { return body; }
+private:
+    btCollisionObject* body = nullptr;
+
+    friend class PhysicsSystem;
 };

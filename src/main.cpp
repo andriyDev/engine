@@ -34,6 +34,7 @@
 #include "physics/BoxCollider.h"
 #include "physics/SphereCollider.h"
 #include "physics/KinematicBody.h"
+#include "physics/RigidBody.h"
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -82,6 +83,7 @@ public:
     std::shared_ptr<Material> B;
     std::shared_ptr<Transform> moveTarget;
     std::shared_ptr<BoxCollider> boxTarget;
+    std::shared_ptr<RigidBody> rbTarget;
     float time = 0.f;
 
     virtual void frameTick(float delta) override {
@@ -133,13 +135,8 @@ public:
             td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
             transform->setRelativeTransform(td);
         }
-        if(moveTarget) {
-            TransformData t = moveTarget->getGlobalTransform();
-            t.scale = glm::vec3(1,1,1) * ((sinf(2 * 3.14159f * time * 0.5f) * 0.5f + 0.5f) * 1.5f + 0.5f);
-            moveTarget->setGlobalTransform(t);
-        }
-        if(boxTarget) {
-            boxTarget->setExtents(glm::vec3(0.5f,0.5f,0.5f) * ((sinf(2 * 3.14159f * time * 0.5f) * 0.5f + 0.5f) * 1.5f + 0.5f));
+        if(rbTarget) {
+            rbTarget->addForce(glm::vec3(0, -9.81f, 0));
         }
     }
 };
@@ -242,7 +239,8 @@ int main()
         TS->IS = IS;
         TS->running = &running;
 
-        w->addSystem<PhysicsSystem>(0);
+        std::shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
+        Physics->setGravity(glm::vec3(0,0,0));
 
         w->addEntity();
 
@@ -284,6 +282,7 @@ int main()
             
             TS->moveTarget = meshTransform;
             TS->boxTarget = collider;
+            TS->rbTarget = body;
         }
         
         std::shared_ptr<Entity> camera = w->addEntity();
