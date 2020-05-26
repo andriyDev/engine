@@ -135,8 +135,13 @@ public:
             td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
             transform->setRelativeTransform(td);
         }
+        if(moveTarget) {
+            TransformData td = moveTarget->getGlobalTransform();
+            td.scale = glm::vec3(1,1,1) * ((sinf(2 * 3.14159f * time * 0.5f) * 0.5f + 0.5f) * (2 - 0.5f) + 0.5f);
+            moveTarget->setGlobalTransform(td);
+        }
         if(rbTarget) {
-            rbTarget->addImpulse(glm::vec3(0, -9.81f, 0));
+            rbTarget->addForce(glm::vec3(0, -10, 0) * rbTarget->mass);
         }
     }
 };

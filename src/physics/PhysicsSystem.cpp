@@ -150,6 +150,13 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
 void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bodyComponent,
     PhysicsSystem::CollisionObjectData& bodyData)
 {
+    btCompoundShapeChild* children = bodyData.compoundShape->getChildList();
+    int childCount = bodyData.compoundShape->getNumChildShapes();
+    std::map<btCollisionShape*, int> childMap;
+    for(int i = 0; i < childCount; i++) {
+        childMap.insert(std::make_pair(children[i].m_childShape, i));
+    }
+
     std::set<Collider*> colliders;
     // Go through each collider and ensure it exists and isn't updated.
     for(std::shared_ptr<Collider>& collider : bodyComponent->getColliders()) {
@@ -158,10 +165,11 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
         }
         colliders.insert(collider.get());
         auto it = bodyData.shapeMap.find(collider);
+        TransformData td = collider->getTransform()->getTransformRelativeTo(bodyComponent->getTransform());
         // If the collider is not part of the rigidbody, we need to create its shape.
         if(it == bodyData.shapeMap.end()) {
             btCollisionShape* shape = collider->constructShape();
-            TransformData td = collider->getTransform()->getTransformRelativeTo(bodyComponent->getTransform());
+            shape->setLocalScaling(convert(td.scale));
             bodyData.compoundShape->addChildShape(convert(td), shape);
             bodyData.shapeMap.insert(std::make_pair(collider, shape));
         } else if(collider->shapeUpdated) {
@@ -169,11 +177,14 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
             bodyData.compoundShape->removeChildShape(it->second);
             delete it->second;
             btCollisionShape* shape = collider->constructShape();
-            TransformData td = collider->getTransform()->getTransformRelativeTo(bodyComponent->getTransform());
+            shape->setLocalScaling(convert(td.scale));
             bodyData.compoundShape->addChildShape(convert(td), shape);
             it->second = shape;
             // Reset the updated flag.
             collider->shapeUpdated = false;
+        } else {
+            bodyData.compoundShape->updateChildTransform(childMap[it->second], convert(td), false);
+            it->second->setLocalScaling(convert(td.scale));
         }
     }
     
@@ -194,5 +205,10 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
 
 void PhysicsSystem::updateStateOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData)
 {
-    bodyData.collisionObject->setWorldTransform(convert(bodyComponent->getTransform()->getGlobalTransform()));
+    TransformData globalTransform = bodyComponent->getTransform()->getGlobalTransform();
+    bodyData.compoundShape->setLocalScaling(convert(globalTransform.scale));
+    if(!(bodyData.collisionObject->getCollisionFlags() & btCollisionObject::CF_KINEMATIC_OBJECT))
+    {
+        bodyData.collisionObject->setWorldTransform(convert(globalTransform));
+    }
 }
