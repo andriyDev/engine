@@ -16,7 +16,7 @@ out vec3 bitangent;
 void main() {
     gl_Position = mvp * vec4(vert_position, 1.0);
     uv = vert_uv;
-    normal = (modelMatrix * vec4(vert_normal, 0.0)).xyz;
-    tangent = (modelMatrix * vec4(vert_tangent, 0.0)).xyz;
-    bitangent = (modelMatrix * vec4(vert_bitangent, 0.0)).xyz;
+    normal = normalize((modelMatrix * vec4(vert_normal, 0.0)).xyz);
+    tangent = normalize((modelMatrix * vec4(vert_tangent, 0.0)).xyz);
+    bitangent = normalize((modelMatrix * vec4(vert_bitangent, 0.0)).xyz);
 }

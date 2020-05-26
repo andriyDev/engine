@@ -29,6 +29,11 @@
 
 #include "Window.h"
 #include "InputSystem.h"
+#include "physics/PhysicsSystem.h"
+#include "physics/StaticBody.h"
+#include "physics/BoxCollider.h"
+#include "physics/SphereCollider.h"
+#include "physics/KinematicBody.h"
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -75,22 +80,40 @@ public:
     bool* running = nullptr;
     std::shared_ptr<Material> A;
     std::shared_ptr<Material> B;
+    std::shared_ptr<Transform> moveTarget;
+    std::shared_ptr<BoxCollider> boxTarget;
     float time = 0.f;
 
     virtual void frameTick(float delta) override {
         time += delta;
+        /*
         Query<std::shared_ptr<MeshRenderer>> mrs = getWorld()->queryComponents()
             .filter(filterByTypeId(MESH_RENDERER_ID))
             .cast_ptr<MeshRenderer>();
         for(std::shared_ptr<MeshRenderer> mr : mrs) {
             mr->material = A;//fmod(time, 2.f) < 1.f ? A : B;
-        }
+        }*/
         std::shared_ptr<InputSystem> ISptr = IS.lock();
         if(ISptr) {
             if(ISptr->isActionDown(0, "escape", false)) {
                 *running = false;
                 ISptr->setTargetWindow(nullptr);
             }
+        }
+        Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
+            .filter(filterByTypeId(CAMERA_ID))
+            .cast_ptr<Camera>();
+        for(std::shared_ptr<Camera> cam : c) {
+            std::shared_ptr<Transform> transform = cam->getTransform();
+            if(!transform) {
+                continue;
+            }
+            TransformData td = transform->getRelativeTransform();
+            glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
+            eulerRot.x -= ISptr->getActionValue(0, "lookYaw", false) * 0.1f;
+            eulerRot.y = clamp(eulerRot.y - ISptr->getActionValue(0, "lookPitch", false) * 0.1f, -89.f, 89.f);
+            td.rotation = glm::fromAxisRotator(eulerRot);
+            transform->setRelativeTransform(td);
         }
     }
     virtual void gameplayTick(float delta) override {
@@ -108,11 +131,15 @@ public:
             td.translation += (td.rotation * glm::vec3(0,0,-1)) * ISptr->getActionValue(0, "forward", true) * delta * 5.f;
             td.translation += (td.rotation * glm::vec3(-1,0,0)) * ISptr->getActionValue(0, "left", true) * delta * 5.f;
             td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
-            glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
-            eulerRot.x -= ISptr->getActionValue(0, "lookYaw", true);
-            eulerRot.y = clamp(eulerRot.y - ISptr->getActionValue(0, "lookPitch", true), -89.f, 89.f);
-            td.rotation = glm::fromAxisRotator(eulerRot);
             transform->setRelativeTransform(td);
+        }
+        if(moveTarget) {
+            TransformData t = moveTarget->getGlobalTransform();
+            t.scale = glm::vec3(1,1,1) * ((sinf(2 * 3.14159f * time * 0.5f) * 0.5f + 0.5f) * 1.5f + 0.5f);
+            moveTarget->setGlobalTransform(t);
+        }
+        if(boxTarget) {
+            boxTarget->setExtents(glm::vec3(0.5f,0.5f,0.5f) * ((sinf(2 * 3.14159f * time * 0.5f) * 0.5f + 0.5f) * 1.5f + 0.5f));
         }
     }
 };
@@ -142,7 +169,7 @@ int main()
 
     ResourceLoader loader;
     {
-        loader.addResource("Box", Mesh::makeBox(glm::vec3(15, 1, 15)));
+        loader.addResource("Box", Mesh::makeBox(glm::vec3(0.5f,0.5f,0.5f)));
         loader.addResource("Mesh", std::make_shared<MeshBuilder>("Mesh", res));
         auto rmb = std::make_shared<RenderableMeshBuilder>();
         rmb->sourceMesh = "Box";
@@ -177,6 +204,8 @@ int main()
     m2->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
         (uint)RenderResources::RenderableTexture));
 
+    res->close();
+
     Universe U;
     U.gameplayRate = 60;
     bool running = true;
@@ -185,7 +214,7 @@ int main()
         std::shared_ptr<World> w = U.addWorld();
         std::shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
         RS->targetWindow = &window;
-        std::shared_ptr<InputSystem> IS = w->addSystem<InputSystem>();
+        std::shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
         IS->setTargetWindow(&window);
         IS->setControlSetCount(1);
         IS->createAction(0, "escape");
@@ -207,29 +236,69 @@ int main()
         IS->addActionKeyBind(0, "up", GLFW_KEY_LEFT_SHIFT, false, false, false, -1.0f);
         IS->setCursor(true, true);
 
-        std::shared_ptr<TestSystem> TS = w->addSystem<TestSystem>();
+        std::shared_ptr<TestSystem> TS = w->addSystem<TestSystem>(10);
         TS->A = m1;
         TS->B = m2;
         TS->IS = IS;
         TS->running = &running;
 
-        w->addEntity();
-        std::shared_ptr<Entity> e = w->addEntity();
-        std::shared_ptr<MeshRenderer> m = e->addComponent<MeshRenderer>();
-        m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
-        m->material = nullptr;
-        std::shared_ptr<Transform> meshTransform = e->addComponent<Transform>();
-        m->transform = meshTransform;
-        glm::vec3 a(0,0,0);
-        glm::vec3 b(0,5,0);
-        
-        std::shared_ptr<Entity> c = w->addEntity();
-        std::shared_ptr<Transform> camTransform = c->addComponent<Transform>();
-        std::shared_ptr<Camera> cam = c->addComponent<Camera>();
-        cam->transform = camTransform;
-        camTransform->setRelativeTransform(TransformData(b));
+        w->addSystem<PhysicsSystem>(0);
 
-        res->close();
+        w->addEntity();
+
+        glm::vec3 floorPos(0,0,0);
+        glm::vec3 camPos(0,5,5);
+        glm::vec3 boxPos(0,5,0);
+
+        std::shared_ptr<Entity> floor = w->addEntity();
+        {
+            std::shared_ptr<MeshRenderer> m = floor->addComponent<MeshRenderer>();
+            m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
+            m->material = m1;
+            std::shared_ptr<Transform> meshTransform = floor->addComponent<Transform>();
+            m->transform = meshTransform;
+            meshTransform->setGlobalTransform(TransformData(floorPos, glm::quat(0,0,0,1), glm::vec3(15, 1, 15)));
+            std::shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
+            collider->setExtents(glm::vec3(15, 1, 15) * 0.5f);
+            collider->transform = meshTransform;
+            std::shared_ptr<StaticBody> body = floor->addComponent<StaticBody>();
+            body->transform = meshTransform;
+            body->colliders.push_back(collider);
+        }
+
+        std::shared_ptr<Entity> box = w->addEntity();
+        {
+            std::shared_ptr<MeshRenderer> m = box->addComponent<MeshRenderer>();
+            m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
+            m->material = m1;
+            std::shared_ptr<Transform> meshTransform = box->addComponent<Transform>();
+            m->transform = meshTransform;
+            meshTransform->setGlobalTransform(TransformData(boxPos, glm::quat(0,0,0,1), glm::vec3(1, 1, 1)));
+            std::shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
+            collider->setExtents(glm::vec3(1, 1, 1) * 0.5f);
+            collider->transform = meshTransform;
+            std::shared_ptr<RigidBody> body = box->addComponent<RigidBody>();
+            body->transform = meshTransform;
+            body->mass = 10;
+            body->colliders.push_back(collider);
+            
+            TS->moveTarget = meshTransform;
+            TS->boxTarget = collider;
+        }
+        
+        std::shared_ptr<Entity> camera = w->addEntity();
+        {
+            std::shared_ptr<Transform> camTransform = camera->addComponent<Transform>();
+            std::shared_ptr<Camera> cam = camera->addComponent<Camera>();
+            cam->transform = camTransform;
+            camTransform->setRelativeTransform(TransformData(camPos));
+            std::shared_ptr<SphereCollider> collider = camera->addComponent<SphereCollider>();
+            collider->transform = camTransform;
+            collider->setRadius(0.5f);
+            std::shared_ptr<KinematicBody> body = camera->addComponent<KinematicBody>();
+            body->transform = camTransform;
+            body->colliders.push_back(collider);
+        }
     }
 
     float previousTime = (float)glfwGetTime();

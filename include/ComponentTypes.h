@@ -2,4 +2,9 @@
 #define TRANSFORM_ID 1
 #define CAMERA_ID 2
 #define MESH_RENDERER_ID 3
-#define ID_MAX 4
+#define BOX_COLLIDER_ID 4
+#define RIGIDBODY_ID 5
+#define STATICBODY_ID 6
+#define SPHERE_COLLIDER_ID 7
+#define KINEMATICBODY_ID 8
+#define ID_MAX 9

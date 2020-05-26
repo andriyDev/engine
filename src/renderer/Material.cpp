@@ -63,7 +63,7 @@ void Material::setTexture(const std::string& textureName, const std::shared_ptr<
     if(usable) {
         auto it = program->textureIdMap.find(textureName);
         if(it == program->textureIdMap.end()) {
-            throw "Bad texture name!";
+            return; // Do nothing if the texture doesn't exist.
         }
         GLuint id = it->second;
         textures.insert_or_assign(id, texture);
