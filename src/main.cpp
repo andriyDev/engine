@@ -136,7 +136,7 @@ public:
             transform->setRelativeTransform(td);
         }
         if(rbTarget) {
-            rbTarget->addForce(glm::vec3(0, -9.81f, 0));
+            rbTarget->addImpulse(glm::vec3(0, -9.81f, 0));
         }
     }
 };
