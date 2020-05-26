@@ -96,7 +96,10 @@ void PhysicsSystem::gameplayTick(float delta)
             return ptr->getTypeId() == RIGIDBODY_ID
                 || ptr->getTypeId() == STATICBODY_ID;
         })
-        .cast_ptr<CollisionObject>();
+        .cast_ptr<CollisionObject>()
+        .filter([](std::shared_ptr<CollisionObject> ptr) {
+            return ptr->colliders.size() > 0;
+        });
     for(std::shared_ptr<CollisionObject> body : allBodies) {
         auto p = validBodies.insert(body);
         if(!p.second) {
