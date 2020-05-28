@@ -7,10 +7,6 @@
 class FileResource : public Resource
 {
 public:
-    virtual std::vector<uint> getDependencies() override { return {}; }
-    virtual void resolveDependencies() override {}
-
-    virtual bool load(std::shared_ptr<void> data) override;
     bool save(std::string fileName);
 
     template<typename T>
@@ -18,6 +14,10 @@ public:
         return std::make_shared<T>();
     }
 protected:
+    virtual std::vector<uint> getDependencies() override { return {}; }
+    virtual void resolveDependencies() override {}
+    virtual bool load(std::shared_ptr<void> data) override;
+    
     virtual void loadFromFile(std::ifstream& file) = 0;
     virtual void saveToFile(std::ofstream& file) = 0;
 private:

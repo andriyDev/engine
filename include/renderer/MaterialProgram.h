@@ -11,7 +11,6 @@
 class MaterialProgram : public Resource
 {
 public:
-    MaterialProgram() : Resource((uint)RenderResources::MaterialProgram) {}
     virtual ~MaterialProgram();
 
     void bind();
@@ -24,8 +23,25 @@ public:
     GLuint getUniformId(const std::string& uniformName) const;
     GLuint getProgramId() const;
     const std::map<std::string, std::pair<GLenum, GLuint>>& getUniformInfo() const;
+
+    static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
+        std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
+        return build(buildData);
+    }
+protected:
+    virtual std::vector<uint> getDependencies() override;
+    virtual void resolveDependencies() override;
+    virtual bool load(std::shared_ptr<void> data) override;
 private:
-    GLuint ProgramId;
+    struct BuildData
+    {
+        std::vector<uint> vertexShaders;
+        std::vector<uint> fragmentShaders;
+    };
+
+    static std::shared_ptr<MaterialProgram> build(std::shared_ptr<BuildData> data);
+
+    GLuint ProgramId = 0;
 
     std::map<std::string, std::pair<GLenum, GLuint>> uniforms;
     std::map<std::string, GLuint> textureIdMap;
@@ -34,21 +50,9 @@ private:
     GLuint mvpLocation;
     GLuint modelMatrixLocation;
 
+    std::vector<ResourceRef<Shader>> vertexShaders;
+    std::vector<ResourceRef<Shader>> fragmentShaders;
+
     friend class MaterialProgramBuilder;
     friend class Material;
-};
-
-class MaterialProgramBuilder : public ResourceBuilder
-{
-public:
-    MaterialProgramBuilder() : ResourceBuilder((uint)RenderResources::MaterialProgram) {}
-
-    std::vector<std::string> vertexComponents;
-    std::vector<std::string> fragmentComponents;
-
-    virtual std::shared_ptr<Resource> construct() override;
-
-    virtual void init() override;
-    
-    virtual void startBuild() override;
 };

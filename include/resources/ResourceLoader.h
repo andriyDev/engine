@@ -9,7 +9,7 @@
 
 class Resource
 {
-public:
+protected:
     /*
     Returns the list of dependencies for this resource.
     */
@@ -25,6 +25,8 @@ public:
     data is the build data of the resource.
     */
     virtual bool load(std::shared_ptr<void> data) = 0;
+
+    friend class ResourceLoader;
 };
 
 enum class ResourceState : uchar
