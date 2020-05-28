@@ -45,6 +45,4 @@ private:
     float totalTime = 0; // The total time ticked.
     float gameplayTime = 0; // The gameplay time that has been processed (including skipped time).
     float skippedTime = 0; // The total skipped time.
-
-    static Universe* U;
 };
