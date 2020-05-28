@@ -17,8 +17,9 @@ public:
 
     /*
     Loads the resource. Returns true iff the resource is loaded successfully.
+    data is the build data of the resource.
     */
-    virtual bool load() = 0;
+    virtual bool load(std::shared_ptr<void> data) = 0;
 };
 
 enum class ResourceState : uchar

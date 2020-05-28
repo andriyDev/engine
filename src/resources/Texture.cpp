@@ -1,11 +1,7 @@
 
 #include "resources/Texture.h"
 
-#include "resources/RenderResources.h"
-
-Texture::Texture()
-    : Resource((uint)RenderResources::Texture)
-{}
+#include "utility/Serializer.h"
 
 Texture::~Texture()
 {
@@ -77,21 +73,14 @@ void read(Serializer& ser, Texture& texture)
     }
 }
 
-void writeTexture(Serializer& ser, void* textureRaw)
+void Texture::loadFromFile(std::ifstream& file)
 {
-    Texture* texture = static_cast<Texture*>(textureRaw);
-    write(ser, *texture);
+    Serializer ser(&file);
+    read(ser, *this);
 }
 
-void* readTexture(Serializer& ser)
+void Texture::saveToFile(std::ofstream& file)
 {
-    Texture* texture = new Texture();
-    read(ser, *texture);
-    return texture;
-}
-
-void readIntoTexture(Serializer& ser, void* textureRaw)
-{
-    Texture* texture = static_cast<Texture*>(textureRaw);
-    read(ser, *texture);
+    Serializer ser(&file);
+    write(ser, *this);
 }

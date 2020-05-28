@@ -118,7 +118,7 @@ void ResourceLoader::loadStep()
         }
 
         if(dependenciesReady) {
-            if(resource->load()) {
+            if(resource->load(res_pair->second.data)) {
                 res_pair->second.state = ResourceState::Ready;
             }
             else {

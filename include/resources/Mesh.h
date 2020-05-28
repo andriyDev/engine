@@ -5,13 +5,13 @@
 
 #include "utility/Serializer.h"
 #include "ResourceLoader.h"
-#include "FileResourceBuilder.h"
+#include "FileResource.h"
 
 #include <glm/glm.hpp>
 
 #include "RenderResources.h"
 
-class Mesh : public Resource
+class Mesh : public FileResource
 {
 public:
     struct Vertex
@@ -35,24 +35,7 @@ public:
     void clearData();
 
     static std::shared_ptr<Mesh> makeBox(glm::vec3 extents=glm::vec3(.5f,.5f,.5f));
+protected:
+    virtual void loadFromFile(std::ifstream& file) override;
+    virtual void saveToFile(std::ofstream& file) override;
 };
-
-class MeshBuilder : public FileResourceBuilder<Mesh>
-{
-public:
-    MeshBuilder(std::string resourceName, std::shared_ptr<PackageFile> resourcePackage)
-    : FileResourceBuilder((uint)RenderResources::Mesh, resourcePackage, resourceName, (uint)FileRenderResources::Mesh)
-    {}
-};
-
-template<>
-void write(Serializer& ser, const Mesh& mesh);
-
-template<>
-void read(Serializer& ser, Mesh& mesh);
-
-void writeMesh(Serializer& ser, void* meshRaw);
-
-void* readMesh(Serializer& ser);
-
-void readIntoMesh(Serializer& ser, void* meshRaw);
