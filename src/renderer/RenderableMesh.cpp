@@ -1,62 +1,39 @@
 
 #include "renderer/RenderableMesh.h"
 
-RenderableMesh::RenderableMesh()
-    : Resource((uint)RenderResources::RenderableMesh)
-{}
-
 RenderableMesh::~RenderableMesh()
 {
-    if(state == Resource::Success) {
-        glDeleteBuffers(bufferCount, buffers);
-        glDeleteVertexArrays(1, &vao);
-    }
+    glDeleteBuffers(bufferCount, buffers);
+    glDeleteVertexArrays(1, &vao);
 }
 
 void RenderableMesh::bind()
 {
-    if(state == Resource::Success) {
-        glBindVertexArray(vao);
-    }
+    glBindVertexArray(vao);
 }
 
 void RenderableMesh::render()
 {
-    if(state == Resource::Success) {
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
-    }
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
 }
 
-std::shared_ptr<Resource> RenderableMeshBuilder::construct()
+bool RenderableMesh::load(std::shared_ptr<void> data)
 {
-    return std::make_shared<RenderableMesh>();
-}
+    std::shared_ptr<Mesh> sourceMesh = sourceMeshRef.resolve();
+    assert(sourceMesh);
+    
+    bufferCount = 2;
+    indexCount = sourceMesh->indexCount;
 
-void RenderableMeshBuilder::init()
-{
-    addDependency(sourceMesh);
-}
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glGenBuffers(bufferCount, buffers);
 
-void RenderableMeshBuilder::startBuild()
-{
-    std::shared_ptr<RenderableMesh> outMesh = getResource<RenderableMesh>();
-    std::shared_ptr<Mesh> mesh = getDependency<Mesh>(sourceMesh, (uint)RenderResources::Mesh);
-    if(!mesh) {
-        throw "Bad Mesh!";
-    }
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sourceMesh->indexCount * sizeof(uint), sourceMesh->indexData, GL_STATIC_DRAW);
 
-    outMesh->bufferCount = 2;
-    outMesh->indexCount = mesh->indexCount;
-
-    glGenVertexArrays(1, &outMesh->vao);
-    glBindVertexArray(outMesh->vao);
-    glGenBuffers(outMesh->bufferCount, outMesh->buffers);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, outMesh->buffers[0]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->indexCount * sizeof(uint), mesh->indexData, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, outMesh->buffers[1]);
-    glBufferData(GL_ARRAY_BUFFER, mesh->vertCount * sizeof(Mesh::Vertex), mesh->vertData, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+    glBufferData(GL_ARRAY_BUFFER, sourceMesh->vertCount * sizeof(Mesh::Vertex), sourceMesh->vertData, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0); // Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)offsetof(Mesh::Vertex, position));
@@ -71,5 +48,13 @@ void RenderableMeshBuilder::startBuild()
     glEnableVertexAttribArray(5); // Bitangent
     glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)offsetof(Mesh::Vertex, bitangent));
 
-    outMesh->state = Resource::Success;
+    sourceMeshRef = ResourceRef<Mesh>();
+    return true;
+}
+
+std::shared_ptr<RenderableMesh> RenderableMesh::build(std::shared_ptr<BuildData> data)
+{
+    std::shared_ptr<RenderableMesh> mesh = std::make_shared<RenderableMesh>();
+    mesh->sourceMeshRef = data->sourceMesh;
+    return mesh;
 }

@@ -69,6 +69,9 @@ std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint
 
 std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
 {
+    if(resourceId == 0) {
+        return nullptr;
+    }
     // First find the resource. We assume this passes.
     auto res_pair = resources.find(resourceId);
     // If the resource is already built, we assume its children are also built.
@@ -126,6 +129,10 @@ void ResourceLoader::loadStep()
         // We now need to ensure the resource's dependencies are all complete.
         bool dependenciesReady = true;
         for(uint dep_id : resource->getDependencies()) {
+            // Invalid dependency IDs are implicitly ready.
+            if(dep_id == 0) {
+                continue;
+            }
             auto dep_pair = resources.find(dep_id);
             if(dep_pair == resources.end()) {
                 throw "Resource dependency doesn't exist!";

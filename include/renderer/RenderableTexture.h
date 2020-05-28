@@ -11,46 +11,52 @@
 class RenderableTexture : public Resource
 {
 public:
-    RenderableTexture();
     virtual ~RenderableTexture();
 
     void bind(GLuint textureUnit);
 
+    static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
+        std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
+        return build(buildData);
+    }
+
 protected:
-    GLuint textureId;
+    GLuint textureId = 0;
 
-    friend class RenderableTextureBuilder;
-};
+    ResourceRef<Texture> sourceTextureRef;
 
-class RenderableTextureBuilder : public ResourceBuilder
-{
-public:
-    enum WrapMode : uchar {
-        Repeat,
-        Clamp
+    virtual std::vector<uint> getDependencies() override {
+        return { sourceTextureRef };
+    }
+    virtual void resolveDependencies() override {
+        sourceTextureRef.resolve();
+    }
+    virtual bool load(std::shared_ptr<void> data) override;
+
+private:
+    struct BuildData
+    {
+        enum WrapMode : uchar {
+            Repeat,
+            Clamp
+        };
+
+        enum FilterMode : uchar {
+            Nearest,
+            Linear
+        };
+
+        uint sourceTexture;
+
+        WrapMode wrapU = Repeat;
+        WrapMode wrapV = Repeat;
+
+        uint mipMapLevels = 1;
+
+        FilterMode minFilter = Nearest;
+        FilterMode minFilterMipMap = Linear;
+        FilterMode magFilter = Linear;
     };
 
-    enum FilterMode : uchar {
-        Nearest,
-        Linear
-    };
-
-    RenderableTextureBuilder();
-
-    WrapMode wrapU = Repeat;
-    WrapMode wrapV = Repeat;
-
-    uint mipMapLevels = 1;
-
-    FilterMode minFilter = Nearest;
-    FilterMode minFilterMipMap = Linear;
-    FilterMode magFilter = Linear;
-
-    std::string sourceTexture;
-
-    virtual std::shared_ptr<Resource> construct() override;
-
-    virtual void init() override;
-
-    virtual void startBuild() override;
+    static std::shared_ptr<RenderableTexture> build(std::shared_ptr<BuildData> data);
 };
