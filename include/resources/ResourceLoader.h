@@ -16,6 +16,11 @@ public:
     virtual std::vector<uint> getDependencies() = 0;
 
     /*
+    Call resolve on all of this resource's dependencies to collect their pointers.
+    */
+    virtual void resolveDependencies() = 0;
+
+    /*
     Loads the resource. Returns true iff the resource is loaded successfully.
     data is the build data of the resource.
     */
@@ -72,13 +77,14 @@ private:
         ResourceState state;
     };
 
+    std::shared_ptr<Resource> buildResource(uint resourceId);
+
     std::unordered_map<std::type_index, ResourceBuilder> builders;
     std::unordered_map<uint, ResourceInfo> resources;
 
-    std::vector<uint> requests;
-    std::vector<uint> loadStack;
-
-    std::vector<std::shared_ptr<Resource>> loadCache;
+    std::vector<std::pair<uint, std::shared_ptr<Resource>>> requests;
+    std::vector<std::pair<uint, std::shared_ptr<Resource>>> loadStack;
+    std::set<uint> loadSet;
 
     static ResourceLoader loader;
 };

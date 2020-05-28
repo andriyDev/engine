@@ -8,6 +8,7 @@ class FileResource : public Resource
 {
 public:
     virtual std::vector<uint> getDependencies() override { return {}; }
+    virtual void resolveDependencies() override {}
 
     virtual bool load(std::shared_ptr<void> data) override;
     bool save(std::string fileName);
