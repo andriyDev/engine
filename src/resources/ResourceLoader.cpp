@@ -3,215 +3,139 @@
 
 #include <algorithm>
 
-uint Resource::triggerOnLoad(ParamEvent<ResourceLoadDoneParams>::EventFcn fcn, void* data)
+using ::ResourceState;
+
+ResourceLoader ResourceLoader::loader;
+
+std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint resourceId, ResolveMethod method)
 {
-    if(state == Success || state == Failure) {
-        fcn(data, {shared_from_this()});
-        return 0;
+    auto res_pair = resources.find(resourceId);
+    if(res_pair == resources.end() || res_pair->second.state == ResourceState::Failed) {
+        // Cannot find resource.
+        return std::make_pair(nullptr, ResourceState::Invalid);
+    }
+    
+    std::shared_ptr<Resource> resource = res_pair->second.ptr.lock();
+    if(resource) {
+        return std::make_pair(resource, res_pair->second.state);
+    }
+
+    resource = buildResource(resourceId);
+    if(method == Immediate) {
+        loadResource(resourceId);
     } else {
-        return resourceLoadDone.addFunction(fcn, data);
+        requests.push_back(std::make_pair(resourceId, resource));
+    }
+    return std::make_pair(resource, res_pair->second.state);
+}
+
+std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
+{
+    if(resourceId == 0) {
+        return nullptr;
+    }
+    // First find the resource. We assume this passes.
+    auto res_pair = resources.find(resourceId);
+    // If the resource is already built, we assume its children are also built.
+    std::shared_ptr<Resource> resource = res_pair->second.ptr.lock();
+    if(resource) {
+        return resource;
+    }
+    
+    // Next find its builder.
+    auto builder_pair = builders.find(res_pair->second.type);
+    if(builder_pair == builders.end()) {
+        return nullptr;
+    }
+
+    // Build the resource and add it to the resource info map.
+    resource = builder_pair->second(res_pair->second.data);
+    res_pair->second.ptr = resource;
+    res_pair->second.state = ResourceState::InProgress;
+
+    // Build all dependencies for this resource as well.
+    std::vector<std::shared_ptr<Resource>> dependencies;
+    for(uint dependency : resource->getDependencies()) {
+        dependencies.push_back(buildResource(dependency));
+    }
+    // Link the dependencies to the resource by resolving (use Deferred method since we are not loading here).
+    resource->resolveDependencies(Deferred);
+    return resource;
+}
+
+void ResourceLoader::loadStep()
+{
+    // Keep churning through requests until there are no more.
+    while(!requests.empty()) {
+        loadResource(requests.back().first);
+        requests.pop_back();
     }
 }
 
-void Resource::removeTriggerOnLoad(uint fcnId)
+bool ResourceLoader::loadResource(uint resourceId)
 {
-    resourceLoadDone.removeFunction(fcnId);
-}
-
-ResourceBuilder::ResourceBuilder(uint constructedType) {
-    typeId = constructedType;
-}
-
-void ResourceBuilder::addDependency(std::string dependencyName)
-{
-    dependencies.insert(std::make_pair(dependencyName, std::shared_ptr<Resource>()));
-}
-
-void ResourceLoader::addResource(const std::string& name, std::shared_ptr<ResourceBuilder> builder)
-{
-    assert(builder);
-    builder->resourceName = name;
-    // TODO: Handle clobbering better.
-    pendingResources.insert_or_assign(name, builder);
-}
-
-void ResourceLoader::addResource(const std::string& name, std::shared_ptr<Resource> resource)
-{
-    assert(resource && resource->isUsable());
-    resources.insert_or_assign(name, resource);
-}
-
-void ResourceLoader::releaseResource(const std::string& name)
-{
-    pendingResources.erase(name);
-    if(currentLoadTarget && currentLoadTarget->resourceName == name) {
-        currentLoadTarget = nullptr;
+    // Implicitly assume that null resources are ready to go.
+    if(resourceId == 0) {
+        return true;
     }
 
-    auto mit = resources.find(name);
-    if(mit == resources.end()) {
-        return;
+    auto res_pair = resources.find(resourceId);
+    if(res_pair == resources.end()) {
+        throw "Attempting to load non-existant resource.";
     }
-    if(mit->second->state == Resource::Queued) {
-        for(auto it = loadQueue.begin(); it != loadQueue.end(); ++it) {
-            if((*it)->resourceName == name) {
-                loadQueue.erase(it);
-                break;
-            }
-        }
-    }
-}
 
-void ResourceLoader::releaseUnusedResources(const std::set<std::string>& usedResources)
-{
-    std::vector<std::string> unusedResources;
-    for(auto pair : resources) {
-        if(usedResources.find(pair.first) == usedResources.end()) {
-            unusedResources.push_back(pair.first);
-        }
+    // Make sure this resource is built.
+    std::shared_ptr<Resource> resource = buildResource(resourceId);
+    // It must already be good to go.
+    if(res_pair->second.state != ResourceState::InProgress) {
+        return res_pair->second.state == ResourceState::Ready;
     }
-    for(std::string res : unusedResources) {
-        releaseResource(res);
-    }
-}
 
-std::vector<std::string> ResourceLoader::getResourceNames() const
-{
-    std::vector<std::string> names;
-    for(auto pair : resources) {
-        names.push_back(pair.first);
-    }
-    return names;
-}
-
-void ResourceLoader::initLoad()
-{
-    // Construct and init each resource.
-    for(auto res_pair : pendingResources) {
-        if(!res_pair.second->resource) {
-            res_pair.second->resource = res_pair.second->construct();
-            res_pair.second->resource->resourceName = res_pair.first;
-            resources.insert(std::make_pair(res_pair.first, res_pair.second->resource));
-            res_pair.second->resource->builder = res_pair.second;
-            res_pair.second->init();
+    for(uint dep_id : resource->getDependencies()) {
+        if(!loadResource(dep_id)) {
+            res_pair->second.state = ResourceState::Failed;
+            fprintf(stderr, "Failed to load resource %d due to dependency %d.\n", resourceId, dep_id);
+            return false;
         }
     }
 
-    // Go through each resource.
-    for(auto res_pair : pendingResources) {
-        std::map<std::string, std::shared_ptr<Resource>>& resourceDependencies = res_pair.second->dependencies;
-        // Go through each dependency of the resource.
-        for(auto& dep_pair : resourceDependencies) {
-            // No reason to try to resolve a resource
-            if(dep_pair.second) {
-                continue;
-            }
-            // Look up the resource in the set of resources we hold (possibly unbuilt).
-            auto dep = resources.find(dep_pair.first);
-            // If we don't find the resource, the dependency is invalid.
-            if(dep == resources.end()) {
-                throw "Dependency not found!";
-            }
-            // Set the dependency pointer to be the resource the builder is building.
-            dep_pair.second = dep->second;
-            // If the pointer was set to null, the dependency hasn't been constructed, so abort.
-            if(!dep_pair.second) {
-                throw "Dependency not constructed!";
-            }
-        }
+    if(resource->load(res_pair->second.data)) {
+        res_pair->second.state = ResourceState::Ready;
+        return true;
+    } else {
+        res_pair->second.state = ResourceState::Failed;
+        fprintf(stderr, "Failed to load resource %d.\n", resourceId);
+        return false;
     }
 }
 
-void ResourceLoader::beginLoad()
+void ResourceLoader::addResource(uint resourceId, std::shared_ptr<Resource> resource)
 {
-    std::vector<std::shared_ptr<ResourceBuilder>> allResources;
-    std::set<ResourceBuilder*> children;
-    // Go through each pending resource and add it to the list of resources we will load.
-    for(auto resource : pendingResources) {
-        allResources.push_back(resource.second);
-    }
-    // Add the previous load queue to the set so we make sure to reorganize it.
-    allResources.insert(allResources.end(), loadQueue.begin(), loadQueue.end());
-
-    // Go through the resource's dependencies and mark them that they are children.
-    for(const std::shared_ptr<ResourceBuilder>& resource : allResources) {
-        resource->resource->state = Resource::Queued;
-        for(auto dep_pair : resource->dependencies) {
-            std::shared_ptr<ResourceBuilder> ptr;
-            if(ptr = dep_pair.second->builder.lock()) {
-                children.insert(ptr.get());
-            }
-        }
-    }
-
-    // Go through each "root" resource and have it update the priority of all its descendents.
-    for(std::shared_ptr<ResourceBuilder>& resource : allResources) {
-        // Skip resources that are not children.
-        if(children.find(resource.get()) != children.end()) {
-            continue;
-        }
-
-        // This structure is nonsense
-        std::vector< // Stack of
-            std::pair< // Pairs of 
-                ResourceBuilder*, // ResourceBuilders and 
-                std::map< // Iterators for the dependencies of ResourceBuilders.
-                    std::string, std::shared_ptr<Resource>
-                >::iterator
-            >
-        > stack;
-        // We now push our initial state onto the stack. The "root" resource, starting at its first child.
-        stack.push_back(std::make_pair(resource.get(), resource->dependencies.begin()));
-        while(!stack.empty()) {
-            // Get the most recent entry.
-            auto& last = stack.back();
-            // Once the iterator is referring to the last of the parent's dependencies,
-            // we can discard this child and move to our parent's next child.
-            if(last.second == last.first->dependencies.end()) {
-                stack.pop_back();
-                continue;
-            }
-            // If the resource is already usable, we don't need to queue its builder.
-            if(last.second->second->isUsable()) {
-                last.second++;
-            }
-            else {
-                // Get the next child.
-                ResourceBuilder* child = last.second->second->builder.lock().get();
-                // Move to the next child (so when we come back we move on).
-                last.second++;
-                // Update its priority,
-                child->priority += last.first->priority + 1;
-                // Add the child to the stack, pointing to the first child.
-                stack.push_back(std::make_pair(child, child->dependencies.begin()));
-            }
-        }
-    }
-
-    // Sort the resources with increasing priority. Later we will pop from the back,
-    // so it's more like a reversed decreasing priority array.
-    std::sort(allResources.begin(), allResources.end(),
-        [](const std::shared_ptr<ResourceBuilder>& A, const std::shared_ptr<ResourceBuilder>& B) {
-            return A->priority < B->priority;
-    });
-    loadQueue = allResources;
-    pendingResources.clear();
+    ResourceInfo info;
+    info.ptr = resource;
+    info.data = nullptr;
+    info.type = typeid(ResourceInfo);
+    info.state = ResourceState::Ready;
+    resources.insert_or_assign(resourceId, info);
 }
 
-void ResourceLoader::poll() {
-    if(currentLoadTarget) {
-        if(currentLoadTarget->resource->state == Resource::Success
-            || currentLoadTarget->resource->state == Resource::Failure) {
-            currentLoadTarget->resource->resourceLoadDone.dispatch({currentLoadTarget->resource});
-            currentLoadTarget->resource->resourceLoadDone.clearFunctions();
-            currentLoadTarget = nullptr;
-        }
-    }
-
-    if(!currentLoadTarget && !loadQueue.empty()) {
-        currentLoadTarget = loadQueue.back();
-        loadQueue.pop_back();
-        currentLoadTarget->resource->state = Resource::InProgress;
-        currentLoadTarget->startBuild();
-    }
+void ResourceLoader::removeResource(uint resourceId)
+{
+    resources.erase(resourceId);
 }
+
+void ResourceLoader::addAssetType(std::type_index type, ResourceBuilder builder)
+{
+    builders.insert_or_assign(type, builder);
+}
+
+void ResourceLoader::addAssetData(uint resourceId, std::type_index type, std::shared_ptr<Resource::BuildData> buildData)
+{
+    ResourceInfo info;
+    info.ptr = std::shared_ptr<Resource>(nullptr);
+    info.data = buildData;
+    info.type = type;
+    info.state = ResourceState::NotRequested;
+    resources.insert_or_assign(resourceId, info);
+}
+

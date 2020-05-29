@@ -2,143 +2,145 @@
 #pragma once
 
 #include "std.h"
-#include "utility/Package.h"
-#include "utility/Event.h"
 
-class Resource : public std::enable_shared_from_this<Resource>
+#include <typeindex>
+
+enum ResolveMethod : uchar
+{
+    Immediate,
+    Deferred
+};
+
+class Resource
 {
 public:
-    enum State {
-        NotInitialized,
-        Queued,
-        InProgress,
-        Success,
-        Failure
+    class BuildData
+    {
+    public:
+        virtual ~BuildData() {}
     };
-
-    State state = NotInitialized;
-    std::weak_ptr<class ResourceBuilder> builder;
-    std::string resourceName;
-
-    struct ResourceLoadDoneParams { std::shared_ptr<Resource> resource; };
-    uint triggerOnLoad(ParamEvent<ResourceLoadDoneParams>::EventFcn fcn, void* data);
-    void removeTriggerOnLoad(uint fcnId);
-
-    inline uint getResourceType() const { return resourceTypeId; }
-
-    inline bool isUsable() const { return state == Success; }
 protected:
-    Resource(uint _typeId) { resourceTypeId = _typeId; }
-private:
-    uint resourceTypeId;
-    ParamEvent<ResourceLoadDoneParams> resourceLoadDone;
+    /*
+    Returns the list of dependencies for this resource.
+    */
+    virtual std::vector<uint> getDependencies() = 0;
+
+    /*
+    Call resolve on all of this resource's dependencies to collect their pointers.
+    */
+    virtual void resolveDependencies(ResolveMethod method) = 0;
+
+    /*
+    Loads the resource. Returns true iff the resource is loaded successfully.
+    data is the build data of the resource.
+    */
+    virtual bool load(std::shared_ptr<BuildData> data) = 0;
 
     friend class ResourceLoader;
 };
 
-class ResourceBuilder
+enum class ResourceState : uchar
+{
+    Invalid, NotRequested, InProgress, Ready, Failed
+};
+
+template<typename T>
+class ResourceRef
 {
 public:
-    float priority = 1.f; // The priority of this resource. This can only be changed before the ResourceLoader begins loading.
+    ResourceRef();
+    ResourceRef(std::shared_ptr<T> _resource);
+    ResourceRef(uint request);
 
-    inline Resource::State getState() const { return resource ? resource->state : Resource::NotInitialized; }
-protected:
-    /* Adds the dependency to the set of resources required to build this resource. */
-    void addDependency(std::string dependencyName);
-
-    template<typename T>
-    std::shared_ptr<T> getDependency(std::string dependencyName, uint verifyType) const {
-        auto it = dependencies.find(dependencyName);
-        if(it == dependencies.end() || !it->second || it->second->state != Resource::Success || it->second->getResourceType() != verifyType) {
-            return nullptr;
-        }
-        return std::static_pointer_cast<T>(it->second);
+    operator uint() {
+        return id;
     }
     
-    template<typename T>
-    std::shared_ptr<T> getResource() const {
-        return std::static_pointer_cast<T>(resource);
+    std::shared_ptr<T> resolve(ResolveMethod method);
+
+    inline ResourceState getState() const {
+        return state;
     }
-
-    /* Creates a resource pointer and returns it. */
-    virtual std::shared_ptr<Resource> construct() = 0;
-
-    /* Initializes the builder after the resource has been constructed. */
-    virtual void init() {}
-
-    /* Begins the process of modifying the resource into a ready state. Can also complete immediately. */
-    virtual void startBuild() = 0;
-
-    /* Forces the builder to complete immediately. Returns the state of the resource afterwards. */
-    virtual Resource::State awaitBuild() { return resource ? resource->state : Resource::NotInitialized; }
-
-    ResourceBuilder(uint constructedType);
 private:
-    /*
-    The set of dependencies required to build the resource.
-    Note these will be resolved after init is called, so ensure all dependencies
-    are added at the end of init.
-    */
-    std::map<std::string, std::shared_ptr<Resource>> dependencies;
-    std::shared_ptr<Resource> resource; // The pointer where we will store the resource once constructed.
-    uint typeId; // The type id that this build will build.
-    std::string resourceName; // The name of the resource we are building.
-
-    friend class ResourceLoader;
+    std::shared_ptr<T> resource;
+    uint id;
+    ResourceState state;
 };
+
+typedef std::shared_ptr<Resource> (*ResourceBuilder)(std::shared_ptr<Resource::BuildData>);
 
 class ResourceLoader
 {
 public:
+    std::pair<std::shared_ptr<Resource>, ResourceState> resolve(uint resourceId, ResolveMethod method);
 
-    /*
-    Adds the builder to the set of builders we want to build.
-    If builder is null, this is treated as a "keep alive" message. If the resource was loaded or was being loaded,
-    the resource will remain in the loader.
-    */
-    void addResource(const std::string& name, std::shared_ptr<ResourceBuilder> builder);
+    void loadStep();
+    bool loadResource(uint resourceId);
 
-    /*
-    Adds a resource directly to the set of loaded resources.
-    The provided resource must have already been successfully loaded.
-    */
-    void addResource(const std::string& name, std::shared_ptr<Resource> resource);
+    void addResource(uint resourceId, std::shared_ptr<Resource> resource);
+    void removeResource(uint resourceId);
+    void addAssetType(std::type_index type, ResourceBuilder builder);
+    void addAssetData(uint resourceId, std::type_index type, std::shared_ptr<Resource::BuildData> buildData);
 
-    /* Removes the resource from the resource loader. */
-    void releaseResource(const std::string& name);
+    static ResourceLoader& get() {
+        return loader;
+    }
+private:
+    struct ResourceInfo
+    {
+        std::weak_ptr<Resource> ptr;
+        std::shared_ptr<Resource::BuildData> data;
+        std::type_index type = std::type_index(typeid(ResourceInfo));
+        ResourceState state;
+    };
 
-    /*
-    Removes resources not contained in the provided vector.
-    Note we only consider resources that have been initialized to be able to be released.
-    */
-    void releaseUnusedResources(const std::set<std::string>& usedResources);
+    std::shared_ptr<Resource> buildResource(uint resourceId);
 
-    /* Gets the list of resources that this loader is managing. */
-    std::vector<std::string> getResourceNames() const;
+    std::unordered_map<std::type_index, ResourceBuilder> builders;
+    std::unordered_map<uint, ResourceInfo> resources;
 
-    template<typename T>
-    std::shared_ptr<T> getResource(const std::string& name, uint verificationTypeId) const {
-        auto it = resources.find(name);
-        if(it == resources.end() || !it->second) {
-            return nullptr;
-        }
-        assert(it->second->getResourceType() == verificationTypeId);
-        return std::static_pointer_cast<T>(it->second);
+    std::vector<std::pair<uint, std::shared_ptr<Resource>>> requests;
+
+    // Private constructor.
+    ResourceLoader() {}
+
+    static ResourceLoader loader;
+};
+
+template<typename T>
+ResourceRef<T>::ResourceRef()
+    : resource(nullptr), id(0), state(ResourceState::Invalid)
+{ }
+
+template<typename T>
+ResourceRef<T>::ResourceRef(std::shared_ptr<T> _resource)
+    : resource(_resource), id(0), state(_resource ? ResourceState::Ready : ResourceState::Invalid)
+{ }
+
+template<typename T>
+ResourceRef<T>::ResourceRef(uint request)
+    : id(request), resource(nullptr), state(ResourceState::NotRequested)
+{ }
+
+template<typename T>
+std::shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
+{
+    // These are all the cases in which we should just used the cached (or null-ed) value.
+    if(state != ResourceState::NotRequested && state != ResourceState::InProgress || id == 0) {
+        return resource;
     }
 
-    /*
-    Initializes the loading process. Constructs resources, inits builders, and resolves dependency pointers.
-    */
-    void initLoad();
-
-    /* Begins the loading process. */
-    void beginLoad();
-
-    /* Call regularly to continue load process. */
-    void poll();
-private:
-    std::map<std::string, std::shared_ptr<ResourceBuilder>> pendingResources;
-    std::map<std::string, std::shared_ptr<Resource>> resources;
-    std::vector<std::shared_ptr<ResourceBuilder>> loadQueue;
-    std::shared_ptr<ResourceBuilder> currentLoadTarget;
-};
+    // This means we need to collect the resource from the loader.
+    auto response = ResourceLoader::get().resolve(id, method);
+    resource = std::dynamic_pointer_cast<T>(response.first);
+    state = response.second;
+    // If the loader succeeded in acquiring the resource, but the cast failed,
+    // mark it as a failure.
+    if(state == ResourceState::Ready && !resource) {
+        state = ResourceState::Failed;
+    }
+    if(state == ResourceState::Failed || state == ResourceState::Invalid) {
+        resource = nullptr;
+    }
+    return state == ResourceState::Ready ? resource : nullptr;
+}

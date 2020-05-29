@@ -12,6 +12,6 @@ class MeshRenderer : public Transformable
 public:
     MeshRenderer() : Transformable(MESH_RENDERER_ID) { }
 
-    std::shared_ptr<RenderableMesh> mesh = nullptr;
-    std::shared_ptr<Material> material = nullptr;
+    ResourceRef<RenderableMesh> mesh;
+    ResourceRef<Material> material;
 };

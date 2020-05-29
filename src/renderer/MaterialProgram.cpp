@@ -1,41 +1,42 @@
 
 #include "renderer/MaterialProgram.h"
 
+MaterialProgram::MaterialProgram(std::vector<ResourceRef<Shader>> _vertexShaders,
+    std::vector<ResourceRef<Shader>> _fragmentShaders)
+    : vertexShaders(_vertexShaders), fragmentShaders(_fragmentShaders)
+{
+    resolveDependencies(Immediate);
+    if(!load(nullptr)) {
+        throw "Failed to create MaterialProgram!";
+    }
+}
+
 MaterialProgram::~MaterialProgram()
 {
-    if(state == Success) {
+    if(ProgramId) {
         glDeleteProgram(ProgramId);
     }
 }
 
 void MaterialProgram::bind()
 {
-    if(state == Success) {
-        glUseProgram(ProgramId);
-    }
+    glUseProgram(ProgramId);
 }
 
 void MaterialProgram::useUBO(GLuint ubo)
 {
-    if(state == Success) {
-        glBindBufferBase(GL_UNIFORM_BUFFER, uboLocation, ubo);
-    }
+    glBindBufferBase(GL_UNIFORM_BUFFER, uboLocation, ubo);
 }
 
 void MaterialProgram::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
 {
-    if(state == Success) {
-        glm::mat4 mvp = vpMatrix * modelMatrix;
-        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &mvp[0][0]);
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
-    }
+    glm::mat4 mvp = vpMatrix * modelMatrix;
+    glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &mvp[0][0]);
+    glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 }
 
 GLuint MaterialProgram::createUBO()
 {
-    if(state != Success) {
-        return 0;
-    }
     GLuint ubo;
     glGenBuffers(1, &ubo);
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
@@ -46,7 +47,7 @@ GLuint MaterialProgram::createUBO()
 
 GLuint MaterialProgram::getUniformId(const std::string& uniformName) const
 {
-    return state == Success ? glGetUniformLocation(ProgramId, uniformName.c_str()) : 0;
+    return glGetUniformLocation(ProgramId, uniformName.c_str());
 }
 
 GLuint MaterialProgram::getProgramId() const
@@ -57,21 +58,6 @@ GLuint MaterialProgram::getProgramId() const
 const std::map<std::string, std::pair<GLenum, GLuint>>& MaterialProgram::getUniformInfo() const
 {
     return uniforms;
-}
-
-std::shared_ptr<Resource> MaterialProgramBuilder::construct()
-{
-    return std::make_shared<MaterialProgram>();
-}
-
-void MaterialProgramBuilder::init()
-{
-    for(std::string component : vertexComponents) {
-        addDependency(component);
-    }
-    for(std::string component : fragmentComponents) {
-        addDependency(component);
-    }
 }
 
 void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& components)
@@ -99,116 +85,138 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
 
 #define MAX_UNIFORM_NAME_LEN 256
 
-void MaterialProgramBuilder::startBuild()
+std::vector<uint> MaterialProgram::getDependencies()
 {
-    std::shared_ptr<MaterialProgram> target = getResource<MaterialProgram>();
-
-    assert(!vertexComponents.empty());
-    assert(!fragmentComponents.empty());
-
-    std::vector<std::shared_ptr<Shader>> vertexShaderComponents;
-    std::vector<std::shared_ptr<Shader>> fragmentShaderComponents;
-    for(std::string shaderName : vertexComponents) {
-        if(auto ptr = getDependency<Shader>(shaderName, (uint)RenderResources::Shader)) {
-            vertexShaderComponents.push_back(ptr);
-        }
+    std::vector<uint> out;
+    out.reserve(vertexShaders.size() + fragmentShaders.size());
+    for(ResourceRef<Shader>& ref : vertexShaders) {
+        out.push_back(ref);
     }
-    for(std::string shaderName : fragmentComponents) {
-        if(auto ptr = getDependency<Shader>(shaderName, (uint)RenderResources::Shader)) {
-            fragmentShaderComponents.push_back(ptr);
-        }
+    for(ResourceRef<Shader>& ref : fragmentShaders) {
+        out.push_back(ref);
     }
+    return out;
+}
 
-    assert(!vertexShaderComponents.empty());
-    assert(!fragmentShaderComponents.empty());
+void MaterialProgram::resolveDependencies(ResolveMethod method)
+{
+    for(ResourceRef<Shader>& ref : vertexShaders) {
+        ref.resolve(method);
+    }
+    for(ResourceRef<Shader>& ref : fragmentShaders) {
+        ref.resolve(method);
+    }
+}
+
+
+bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
+{
+    assert(!vertexShaders.empty());
+    assert(!vertexShaders.empty());
 
     GLuint shaders[2];
     shaders[0] = glCreateShader(GL_VERTEX_SHADER);
     shaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
 
+    std::vector<std::shared_ptr<Shader>> vertexShaderComponents;
+    vertexShaderComponents.reserve(vertexShaders.size());
+    std::vector<std::shared_ptr<Shader>> fragmentShaderComponents;
+    fragmentShaderComponents.reserve(fragmentShaders.size());
+    for(ResourceRef<Shader>& ref : vertexShaders) {
+        vertexShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
+        if(!vertexShaderComponents.back()) {
+            return false;
+        }
+    }
+    for(ResourceRef<Shader>& ref : fragmentShaders) {
+        fragmentShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
+        if(!fragmentShaderComponents.back()) {
+            return false;
+        }
+    }
+
     compileShader(shaders[0], vertexShaderComponents);
     compileShader(shaders[1], fragmentShaderComponents);
 
-    target->ProgramId = glCreateProgram();
-    glAttachShader(target->ProgramId, shaders[0]);
-    glAttachShader(target->ProgramId, shaders[1]);
-    glLinkProgram(target->ProgramId);
+    ProgramId = glCreateProgram();
+    glAttachShader(ProgramId, shaders[0]);
+    glAttachShader(ProgramId, shaders[1]);
+    glLinkProgram(ProgramId);
 
     GLint Result = GL_FALSE;
     int infoLength;
 
-    glGetShaderiv(target->ProgramId, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(target->ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
+    glGetShaderiv(ProgramId, GL_COMPILE_STATUS, &Result);
+    glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
     if(infoLength > 0) {
         std::vector<char> errorMsg(infoLength + 1);
-        glGetProgramInfoLog(target->ProgramId, infoLength, NULL, &errorMsg[0]);
+        glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);
-        return;
+        return false;
     }
 
-    glDetachShader(target->ProgramId, shaders[0]);
-    glDetachShader(target->ProgramId, shaders[1]);
+    glDetachShader(ProgramId, shaders[0]);
+    glDetachShader(ProgramId, shaders[1]);
     
     glDeleteShader(shaders[0]);
     glDeleteShader(shaders[1]);
 
     int uniformCount;
-    glGetProgramiv(target->ProgramId, GL_ACTIVE_UNIFORMS, &uniformCount);
+    glGetProgramiv(ProgramId, GL_ACTIVE_UNIFORMS, &uniformCount);
 
     int* propIndices = new int[uniformCount];
     int* propTypes = new int[uniformCount];
     for(int i = 0; i < uniformCount; i++) {
         propIndices[i] = i;
     }
-    glGetActiveUniformsiv(target->ProgramId, uniformCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
+    glGetActiveUniformsiv(ProgramId, uniformCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
 
     int textures = 0;
     char buffer[MAX_UNIFORM_NAME_LEN];
     for(int i = 0; i < uniformCount; i++) {
-        glGetActiveUniformName(target->ProgramId, i, MAX_UNIFORM_NAME_LEN, 0, buffer);
+        glGetActiveUniformName(ProgramId, i, MAX_UNIFORM_NAME_LEN, 0, buffer);
 
         std::string uniformName = buffer;
         if(propTypes[i] != GL_SAMPLER_2D) {
             continue;
         }
-        GLuint loc = glGetUniformLocation(target->ProgramId, uniformName.c_str());
+        GLuint loc = glGetUniformLocation(ProgramId, uniformName.c_str());
         glUniform1i(loc, textures);
-        target->textureIdMap.insert(std::make_pair(uniformName, textures));
+        textureIdMap.insert(std::make_pair(uniformName, textures));
         textures++;
     }
     delete[] propIndices;
     delete[] propTypes;
 
-    uint propsId = glGetUniformBlockIndex(target->ProgramId, "MaterialProps");
+    uint propsId = glGetUniformBlockIndex(ProgramId, "MaterialProps");
     if(propsId == GL_INVALID_INDEX) {
-        glDeleteProgram(target->ProgramId);
-        target->state = Resource::Failure;
-        return;
+        glDeleteProgram(ProgramId);
+        return false;
     }
-    target->uboLocation = 0;
+    uboLocation = 0;
 
-    glUniformBlockBinding(target->ProgramId, propsId, target->uboLocation);
+    glUniformBlockBinding(ProgramId, propsId, uboLocation);
 
     int propCount;
-    glGetActiveUniformBlockiv(target->ProgramId, propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &propCount);
+    glGetActiveUniformBlockiv(ProgramId, propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &propCount);
 
     propIndices = new int[propCount];
-    glGetActiveUniformBlockiv(target->ProgramId, propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, propIndices);
+    glGetActiveUniformBlockiv(ProgramId, propsId, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, propIndices);
     
     propTypes = new int[propCount];
     int* propOffsets = new int[propCount];
     
-    glGetActiveUniformsiv(target->ProgramId, propCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
-    glGetActiveUniformsiv(target->ProgramId, propCount, (uint*)propIndices, GL_UNIFORM_OFFSET, propOffsets);
+    glGetActiveUniformsiv(ProgramId, propCount, (uint*)propIndices, GL_UNIFORM_TYPE, propTypes);
+    glGetActiveUniformsiv(ProgramId, propCount, (uint*)propIndices, GL_UNIFORM_OFFSET, propOffsets);
 
     for(int i = 0; i < propCount; i++) {
-        glGetActiveUniformName(target->ProgramId, propIndices[i], MAX_UNIFORM_NAME_LEN, 0, buffer);
+        glGetActiveUniformName(ProgramId, propIndices[i], MAX_UNIFORM_NAME_LEN, 0, buffer);
 
         std::string uniformName = buffer;
         GLenum uniformType = propTypes[i];
         GLuint uniformOffset = propOffsets[i];
 
-        target->uniforms.insert(std::make_pair(uniformName, std::make_pair(uniformType, uniformOffset)));
+        uniforms.insert(std::make_pair(uniformName, std::make_pair(uniformType, uniformOffset)));
     }
 
     delete[] propIndices;
@@ -216,11 +224,38 @@ void MaterialProgramBuilder::startBuild()
     delete[] propOffsets;
     
     int propsSize;
-    glGetActiveUniformBlockiv(target->ProgramId, propsId, GL_UNIFORM_BLOCK_DATA_SIZE, &propsSize);
-    target->uboSize = propsSize;
+    glGetActiveUniformBlockiv(ProgramId, propsId, GL_UNIFORM_BLOCK_DATA_SIZE, &propsSize);
+    uboSize = propsSize;
 
-    target->state = Resource::Success;
+    mvpLocation = getUniformId("mvp");
+    modelMatrixLocation = getUniformId("modelMatrix");
 
-    target->mvpLocation = target->getUniformId("mvp");
-    target->modelMatrixLocation = target->getUniformId("modelMatrix");
+    // We no longer need these dependencies.
+    vertexShaders.clear();
+    fragmentShaders.clear();
+
+    return true;
+}
+
+std::shared_ptr<MaterialProgram> MaterialProgram::build(std::shared_ptr<BuildData> data)
+{
+    std::shared_ptr<MaterialProgram> matProg(new MaterialProgram());
+    matProg->vertexShaders.reserve(data->vertexShaders.size());
+    matProg->fragmentShaders.reserve(data->fragmentShaders.size());
+    for(uint id : data->vertexShaders) {
+        matProg->vertexShaders.push_back(id);
+    }
+    for(uint id : data->fragmentShaders) {
+        matProg->fragmentShaders.push_back(id);
+    }
+    return matProg;
+}
+
+std::shared_ptr<MaterialProgram::BuildData> MaterialProgram::createAssetData(
+    const std::vector<uint>& vertexShaders, const std::vector<uint>& fragmentShaders)
+{
+    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    data->vertexShaders = vertexShaders;
+    data->fragmentShaders = fragmentShaders;
+    return data;
 }

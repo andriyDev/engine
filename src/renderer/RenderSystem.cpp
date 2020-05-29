@@ -37,17 +37,18 @@ void RenderSystem::frameTick(float delta)
         glm::mat4 vpMatrix = camera->getVPMatrix(screenAspect);
 
         for(std::shared_ptr<MeshRenderer> renderer : meshes) {
+            std::shared_ptr<RenderableMesh> mesh = renderer->mesh.resolve(Deferred);
+            std::shared_ptr<Material> material = renderer->material.resolve(Deferred);
             // Don't render a mesh where the mesh or material are in a bad state.
-            if(!renderer->mesh || !renderer->material
-                || renderer->mesh->state != Resource::Success || !renderer->material->isUsable()) {
+            if(!mesh || !material) {
                 continue;
             }
-            renderer->mesh->bind();
-            renderer->material->use();
+            mesh->bind();
+            material->use();
             std::shared_ptr<Transform> transform = renderer->getTransform();
             glm::mat4 model = transform ? transform->getGlobalTransform().toMat4() : glm::mat4(1.0);
-            renderer->material->setMVP(model, vpMatrix);
-            renderer->mesh->render();
+            material->setMVP(model, vpMatrix);
+            mesh->render();
         }
     }
     targetWindow->swapBuffers();
