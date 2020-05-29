@@ -30,7 +30,7 @@ public:
     }
 protected:
     virtual std::vector<uint> getDependencies() override;
-    virtual void resolveDependencies() override;
+    virtual void resolveDependencies(ResolveMethod method) override;
     virtual bool load(std::shared_ptr<void> data) override;
 private:
     struct BuildData

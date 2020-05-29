@@ -7,6 +7,12 @@
 
 #include <typeindex>
 
+enum ResolveMethod : uchar
+{
+    Immediate,
+    Deferred
+};
+
 class Resource
 {
 protected:
@@ -18,7 +24,7 @@ protected:
     /*
     Call resolve on all of this resource's dependencies to collect their pointers.
     */
-    virtual void resolveDependencies() = 0;
+    virtual void resolveDependencies(ResolveMethod method) = 0;
 
     /*
     Loads the resource. Returns true iff the resource is loaded successfully.
@@ -46,7 +52,7 @@ public:
         return id;
     }
     
-    std::shared_ptr<T> resolve();
+    std::shared_ptr<T> resolve(ResolveMethod method);
 
     inline ResourceState getState() const {
         return state;
@@ -62,7 +68,7 @@ typedef std::shared_ptr<Resource> (*ResourceBuilder)(std::shared_ptr<void>);
 class ResourceLoader
 {
 public:
-    std::pair<std::shared_ptr<Resource>, ResourceState> resolve(uint resourceId);
+    std::pair<std::shared_ptr<Resource>, ResourceState> resolve(uint resourceId, ResolveMethod method);
 
     void loadStep();
     void loadResource(uint resourceId);

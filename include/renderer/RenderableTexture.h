@@ -28,8 +28,8 @@ protected:
     virtual std::vector<uint> getDependencies() override {
         return { sourceTextureRef };
     }
-    virtual void resolveDependencies() override {
-        sourceTextureRef.resolve();
+    virtual void resolveDependencies(ResolveMethod method) override {
+        sourceTextureRef.resolve(method);
     }
     virtual bool load(std::shared_ptr<void> data) override;
 

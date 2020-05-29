@@ -15,7 +15,7 @@ public:
     }
 protected:
     virtual std::vector<uint> getDependencies() override { return {}; }
-    virtual void resolveDependencies() override {}
+    virtual void resolveDependencies(ResolveMethod method) override {}
     virtual bool load(std::shared_ptr<void> data) override;
     
     virtual void loadFromFile(std::ifstream& file) = 0;

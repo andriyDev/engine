@@ -19,7 +19,7 @@ void RenderableMesh::render()
 
 bool RenderableMesh::load(std::shared_ptr<void> data)
 {
-    std::shared_ptr<Mesh> sourceMesh = sourceMeshRef.resolve();
+    std::shared_ptr<Mesh> sourceMesh = sourceMeshRef.resolve(Immediate); // Make sure this is loaded.
     assert(sourceMesh);
     
     bufferCount = 2;

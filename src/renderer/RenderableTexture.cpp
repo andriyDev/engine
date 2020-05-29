@@ -18,7 +18,7 @@ void RenderableTexture::bind(GLuint textureUnit)
 bool RenderableTexture::load(std::shared_ptr<void> data)
 {
     std::shared_ptr<BuildData> bd = std::dynamic_pointer_cast<BuildData>(data);
-    std::shared_ptr<Texture> texture = sourceTextureRef.resolve();
+    std::shared_ptr<Texture> texture = sourceTextureRef.resolve(Immediate); // Make sure this is loaded.
     if(!texture || texture->getMode() == Texture::INVALID) {
         throw "Bad Texture!";
     }

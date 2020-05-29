@@ -32,8 +32,8 @@ protected:
     virtual std::vector<uint> getDependencies() override {
         return { sourceMeshRef };
     }
-    virtual void resolveDependencies() override {
-        sourceMeshRef.resolve();
+    virtual void resolveDependencies(ResolveMethod method) override {
+        sourceMeshRef.resolve(method);
     }
     virtual bool load(std::shared_ptr<void> data) override;
 

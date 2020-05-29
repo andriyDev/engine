@@ -88,13 +88,13 @@ std::vector<uint> MaterialProgram::getDependencies()
     return out;
 }
 
-void MaterialProgram::resolveDependencies()
+void MaterialProgram::resolveDependencies(ResolveMethod method)
 {
     for(ResourceRef<Shader>& ref : vertexShaders) {
-        ref.resolve();
+        ref.resolve(method);
     }
     for(ResourceRef<Shader>& ref : fragmentShaders) {
-        ref.resolve();
+        ref.resolve(method);
     }
 }
 
@@ -111,10 +111,10 @@ bool MaterialProgram::load(std::shared_ptr<void> data)
     std::vector<std::shared_ptr<Shader>> vertexShaderComponents(vertexShaders.size());
     std::vector<std::shared_ptr<Shader>> fragmentShaderComponents(fragmentShaders.size());
     for(ResourceRef<Shader>& ref : vertexShaders) {
-        vertexShaderComponents.push_back(ref.resolve());
+        vertexShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
     }
     for(ResourceRef<Shader>& ref : fragmentShaders) {
-        fragmentShaderComponents.push_back(ref.resolve());
+        fragmentShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
     }
 
     compileShader(shaders[0], vertexShaderComponents);

@@ -21,7 +21,7 @@ ResourceRef<T>::ResourceRef(uint request)
 { }
 
 template<typename T>
-std::shared_ptr<T> ResourceRef<T>::resolve()
+std::shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
 {
     // These are all the cases in which we should just used the cached (or null-ed) value.
     if(state != ResourceState::NotRequested && state != ResourceState::InProgress || id == 0) {
@@ -29,7 +29,7 @@ std::shared_ptr<T> ResourceRef<T>::resolve()
     }
 
     // This means we need to collect the resource from the loader.
-    auto response = ResourceLoader::get().resolve(id);
+    auto response = ResourceLoader::get().resolve(id, method);
     resource = std::dynamic_pointer_cast<T>(response.first);
     state = response.second;
     // If the loader succeeded in acquiring the resource, but the cast failed,
@@ -43,7 +43,7 @@ std::shared_ptr<T> ResourceRef<T>::resolve()
     return state == ResourceState::Ready ? resource : nullptr;
 }
 
-std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint resourceId)
+std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint resourceId, ResolveMethod method)
 {
     auto res_pair = resources.find(resourceId);
     if(res_pair == resources.end() || res_pair->second.state == ResourceState::Failed) {
@@ -63,7 +63,11 @@ std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint
     }
 
     resource = buildResource(resourceId);
-    requests.push_back(std::make_pair(resourceId, resource));
+    if(method == Immediate) {
+        loadResource(resourceId);
+    } else {
+        requests.push_back(std::make_pair(resourceId, resource));
+    }
     return std::make_pair(resource, res_pair->second.state);
 }
 
@@ -96,8 +100,8 @@ std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
     for(uint dependency : resource->getDependencies()) {
         dependencies.push_back(buildResource(dependency));
     }
-    // Link the dependencies to the resource by resolving.
-    resource->resolveDependencies();
+    // Link the dependencies to the resource by resolving (use Deferred method since we are not loading here).
+    resource->resolveDependencies(Deferred);
     return resource;
 }
 
