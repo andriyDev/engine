@@ -64,7 +64,7 @@ std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint
 
     resource = buildResource(resourceId);
     requests.push_back(std::make_pair(resourceId, resource));
-    return std::make_pair(resource, ResourceState::InProgress);
+    return std::make_pair(resource, res_pair->second.state);
 }
 
 std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
@@ -104,70 +104,33 @@ std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
 void ResourceLoader::loadStep()
 {
     // Keep churning through requests until there are no more.
-    while(true) {
-        // If there is nothing being loaded, start loading something.
-        if(loadStack.size() == 0) {
-            // If there are no requests, we're done.
-            if(requests.size() == 0) {
-                return;
-            }
+    while(!requests.empty()) {
+        loadResource(requests.back().first);
+        requests.pop_back();
+    }
+}
 
-            loadStack.push_back(requests[0]);
-            loadSet.insert(requests[0].first);
-            requests.erase(requests.begin());
-        }
+void ResourceLoader::loadResource(uint resourceId)
+{
+    // Implicitly assume that null resources are ready to go.
+    if(resourceId == 0) {
+        return;
+    }
 
-        // We now get the id and resource from the loadStack.
-        uint id = loadStack.back().first;
-        std::shared_ptr<Resource> resource = loadStack.back().second;
-        
-        // Find the resource info.
-        auto res_pair = resources.find(id);
-        if(res_pair == resources.end()) {
-            throw "Resource info for resource in load queue not found.";
-        }
-        // We now need to ensure the resource's dependencies are all complete.
-        bool dependenciesReady = true;
-        for(uint dep_id : resource->getDependencies()) {
-            // Invalid dependency IDs are implicitly ready.
-            if(dep_id == 0) {
-                continue;
-            }
-            auto dep_pair = resources.find(dep_id);
-            if(dep_pair == resources.end()) {
-                throw "Resource dependency doesn't exist!";
-            }
-            if(dep_pair->second.state != ResourceState::Ready) {
-                // This code is ugly but...
-                // Construct the pair corresponding to the dependency (for the load queue).
-                std::pair<uint, std::shared_ptr<Resource>> dep_pair2
-                    = std::make_pair(dep_id, dep_pair->second.ptr.lock());
-                // Check if the loadSet contains the dependency.
-                // If it does, we want to find the element in the load queue and move it to the end.
-                // Otherwise, we just want to push the new item to the load queue.
-                // In either case, loadSet contains the dependency Id afterwards.
-                if(loadSet.find(dep_id) == loadSet.end()) {
-                    loadSet.insert(dep_id);
-                } else {
-                    loadStack.erase(std::find(loadStack.begin(), loadStack.end(), dep_pair2));
-                }
-                loadStack.push_back(dep_pair2);
-                dependenciesReady = false;
-            }
-        }
+    auto res_pair = resources.find(resourceId);
+    if(res_pair == resources.end()) {
+        throw "Attempting to load non-existant resource.";
+    }
 
-        // If the dependencies are all loaded, we need to load this resource.
-        if(dependenciesReady) {
-            if(resource->load(res_pair->second.data)) {
-                res_pair->second.state = ResourceState::Ready;
-            }
-            else {
-                res_pair->second.state = ResourceState::Failed;
-            }
-            // Tell the load set it no longer contains this id.
-            loadSet.erase(id);
-            // Remove this element from the load stack (so we move to the previous item).
-            loadStack.erase(loadStack.end() - 1);
-        }
+    // Make sure this resource is built.
+    std::shared_ptr<Resource> resource = buildResource(resourceId);
+    for(uint dep_id : resource->getDependencies()) {
+        loadResource(dep_id);
+    }
+
+    if(resource->load(res_pair->second.data)) {
+        res_pair->second.state = ResourceState::Ready;
+    } else {
+        res_pair->second.state = ResourceState::Failed;
     }
 }

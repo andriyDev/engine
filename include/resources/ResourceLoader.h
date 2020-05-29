@@ -65,6 +65,7 @@ public:
     std::pair<std::shared_ptr<Resource>, ResourceState> resolve(uint resourceId);
 
     void loadStep();
+    void loadResource(uint resourceId);
 
     static ResourceLoader& get() {
         return loader;
@@ -85,8 +86,6 @@ private:
     std::unordered_map<uint, ResourceInfo> resources;
 
     std::vector<std::pair<uint, std::shared_ptr<Resource>>> requests;
-    std::vector<std::pair<uint, std::shared_ptr<Resource>>> loadStack;
-    std::set<uint> loadSet;
 
     static ResourceLoader loader;
 };
