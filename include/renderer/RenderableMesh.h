@@ -11,6 +11,7 @@
 class RenderableMesh : public Resource
 {
 public:
+    RenderableMesh(ResourceRef<Mesh> sourceMesh);
     virtual ~RenderableMesh();
 
     void bind();
@@ -22,6 +23,8 @@ public:
     }
 
 protected:
+    RenderableMesh() {}
+
     GLuint vao = 0;
     GLuint buffers[2] = {0, 0};
     uint bufferCount;

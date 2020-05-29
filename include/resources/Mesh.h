@@ -24,12 +24,11 @@ public:
         glm::vec3 bitangent;
     };
 
-    Vertex* vertData;
-    uint* indexData;
-    uint vertCount;
-    uint indexCount;
+    Vertex* vertData = nullptr;
+    uint* indexData = nullptr;
+    uint vertCount = 0;
+    uint indexCount = 0;
 
-    Mesh();
     virtual ~Mesh();
 
     void clearData();

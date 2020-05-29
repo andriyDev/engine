@@ -11,6 +11,8 @@
 class MaterialProgram : public Resource
 {
 public:
+    MaterialProgram(std::vector<ResourceRef<Shader>> _vertexShaders,
+        std::vector<ResourceRef<Shader>> _fragmentShaders);
     virtual ~MaterialProgram();
 
     void bind();
@@ -29,6 +31,8 @@ public:
         return build(buildData);
     }
 protected:
+    MaterialProgram() {}
+
     virtual std::vector<uint> getDependencies() override;
     virtual void resolveDependencies(ResolveMethod method) override;
     virtual bool load(std::shared_ptr<void> data) override;

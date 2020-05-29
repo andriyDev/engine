@@ -1,6 +1,15 @@
 
 #include "renderer/RenderableMesh.h"
 
+RenderableMesh::RenderableMesh(ResourceRef<Mesh> sourceMesh)
+    : sourceMeshRef(sourceMesh)
+{
+    resolveDependencies(Immediate);
+    if(!load(nullptr)) {
+        throw "Failed to create RenderableMesh!";
+    }
+}
+
 RenderableMesh::~RenderableMesh()
 {
     glDeleteBuffers(bufferCount, buffers);

@@ -11,6 +11,18 @@
 class RenderableTexture : public Resource
 {
 public:
+    enum WrapMode : uchar {
+        Repeat,
+        Clamp
+    };
+
+    enum FilterMode : uchar {
+        Nearest,
+        Linear
+    };
+
+    RenderableTexture(ResourceRef<Texture> sourceTexture, WrapMode wrapU, WrapMode wrapV,
+        FilterMode minFilter, FilterMode minFilterMipMap, FilterMode magFilter, uint mipMapLevels);
     virtual ~RenderableTexture();
 
     void bind(GLuint textureUnit);
@@ -21,6 +33,8 @@ public:
     }
 
 protected:
+    RenderableTexture() {}
+
     GLuint textureId = 0;
 
     ResourceRef<Texture> sourceTextureRef;
@@ -36,16 +50,6 @@ protected:
 private:
     struct BuildData
     {
-        enum WrapMode : uchar {
-            Repeat,
-            Clamp
-        };
-
-        enum FilterMode : uchar {
-            Nearest,
-            Linear
-        };
-
         uint sourceTexture;
 
         WrapMode wrapU = Repeat;

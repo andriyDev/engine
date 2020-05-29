@@ -1,6 +1,16 @@
 
 #include "renderer/MaterialProgram.h"
 
+MaterialProgram::MaterialProgram(std::vector<ResourceRef<Shader>> _vertexShaders,
+    std::vector<ResourceRef<Shader>> _fragmentShaders)
+    : vertexShaders(_vertexShaders), fragmentShaders(_fragmentShaders)
+{
+    resolveDependencies(Immediate);
+    if(!load(nullptr)) {
+        throw "Failed to create MaterialProgram!";
+    }
+}
+
 MaterialProgram::~MaterialProgram()
 {
     if(ProgramId) {

@@ -3,6 +3,23 @@
 
 #include "resources/RenderResources.h"
 
+RenderableTexture::RenderableTexture(ResourceRef<Texture> sourceTexture, WrapMode wrapU, WrapMode wrapV,
+    FilterMode minFilter, FilterMode minFilterMipMap, FilterMode magFilter, uint mipMapLevels)
+    : sourceTextureRef(sourceTexture)
+{
+    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    data->wrapU = wrapU;
+    data->wrapV = wrapV;
+    data->minFilter = minFilter;
+    data->minFilterMipMap = minFilterMipMap;
+    data->magFilter = magFilter;
+    data->mipMapLevels = mipMapLevels;
+    resolveDependencies(Immediate);
+    if(!load(data)) {
+        throw "Failed to create RenderableTexture";
+    }
+}
+
 RenderableTexture::~RenderableTexture()
 {
     if(textureId) {
@@ -26,12 +43,12 @@ bool RenderableTexture::load(std::shared_ptr<void> data)
     glCreateTextures(GL_TEXTURE_2D, 1, &textureId);
     uint filter;
     if(bd->mipMapLevels > 1) { filter = 0x2700 | bd->minFilter | (bd->minFilterMipMap << 1); }
-    else { filter = (bd->minFilter == bd->Linear ? GL_LINEAR : GL_NEAREST); }
+    else { filter = (bd->minFilter == Linear ? GL_LINEAR : GL_NEAREST); }
     glTextureParameteri(textureId, GL_TEXTURE_MIN_FILTER, filter);
-    glTextureParameteri(textureId, GL_TEXTURE_MAG_FILTER, bd->magFilter == bd->Linear ? GL_LINEAR : GL_NEAREST);
+    glTextureParameteri(textureId, GL_TEXTURE_MAG_FILTER, bd->magFilter == Linear ? GL_LINEAR : GL_NEAREST);
 
-    glTextureParameteri(textureId, GL_TEXTURE_WRAP_S, bd->wrapU == bd->Clamp ? GL_CLAMP : GL_REPEAT);
-    glTextureParameteri(textureId, GL_TEXTURE_WRAP_T, bd->wrapV == bd->Clamp ? GL_CLAMP : GL_REPEAT);
+    glTextureParameteri(textureId, GL_TEXTURE_WRAP_S, bd->wrapU == Clamp ? GL_CLAMP : GL_REPEAT);
+    glTextureParameteri(textureId, GL_TEXTURE_WRAP_T, bd->wrapV == Clamp ? GL_CLAMP : GL_REPEAT);
 
     if(texture->getMode() == Texture::RGB_8) {
         glTextureStorage2D(textureId, bd->mipMapLevels, GL_RGB8, texture->getWidth(), texture->getHeight());
