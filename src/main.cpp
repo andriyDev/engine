@@ -131,8 +131,9 @@ int main()
         loader.addAssetType(typeid(MaterialProgram), MaterialProgram::build);
         loader.addAssetType(typeid(Material), Material::build);
     }
+    std::shared_ptr<Mesh> box = Mesh::makeBox(glm::vec3(15, 1, 15));
     {
-        loader.addResource(1, Mesh::makeBox(glm::vec3(15, 1, 15)));
+        loader.addResource(1, box);
 
         loader.addAssetData(2, typeid(Mesh), Mesh::createAssetData("mesh.mpk"));
         loader.addAssetData(3, typeid(Texture), Texture::createAssetData("texture.tpk"));

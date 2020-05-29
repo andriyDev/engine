@@ -118,13 +118,21 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
     shaders[0] = glCreateShader(GL_VERTEX_SHADER);
     shaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
 
-    std::vector<std::shared_ptr<Shader>> vertexShaderComponents(vertexShaders.size());
-    std::vector<std::shared_ptr<Shader>> fragmentShaderComponents(fragmentShaders.size());
+    std::vector<std::shared_ptr<Shader>> vertexShaderComponents;
+    vertexShaderComponents.reserve(vertexShaders.size());
+    std::vector<std::shared_ptr<Shader>> fragmentShaderComponents;
+    fragmentShaderComponents.reserve(fragmentShaders.size());
     for(ResourceRef<Shader>& ref : vertexShaders) {
         vertexShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
+        if(!vertexShaderComponents.back()) {
+            return false;
+        }
     }
     for(ResourceRef<Shader>& ref : fragmentShaders) {
         fragmentShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
+        if(!fragmentShaderComponents.back()) {
+            return false;
+        }
     }
 
     compileShader(shaders[0], vertexShaderComponents);

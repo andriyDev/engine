@@ -31,7 +31,7 @@ void Material::use()
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
     prog->bind();
     prog->useUBO(ubo);
-    for(auto tex_pair : textures) {
+    for(auto& tex_pair : textures) {
         std::shared_ptr<RenderableTexture> tex = tex_pair.second.resolve(Immediate);
         tex->bind(tex_pair.first);
     }
@@ -134,7 +134,7 @@ std::vector<uint> Material::getDependencies()
 void Material::resolveDependencies(ResolveMethod method)
 {
     program.resolve(method);
-    for(auto p : textures) {
+    for(auto& p : textures) {
         p.second.resolve(method);
     }
 }

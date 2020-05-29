@@ -86,6 +86,11 @@ bool ResourceLoader::loadResource(uint resourceId)
 
     // Make sure this resource is built.
     std::shared_ptr<Resource> resource = buildResource(resourceId);
+    // It must already be good to go.
+    if(res_pair->second.state != ResourceState::InProgress) {
+        return res_pair->second.state == ResourceState::Ready;
+    }
+
     for(uint dep_id : resource->getDependencies()) {
         if(!loadResource(dep_id)) {
             res_pair->second.state = ResourceState::Failed;
