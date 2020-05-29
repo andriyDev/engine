@@ -9,8 +9,6 @@
 
 #include <glm/glm.hpp>
 
-#include "RenderResources.h"
-
 class Mesh : public FileResource
 {
 public:

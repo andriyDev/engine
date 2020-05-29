@@ -139,6 +139,21 @@ void ResourceLoader::loadResource(uint resourceId)
     }
 }
 
+void ResourceLoader::addResource(uint resourceId, std::shared_ptr<Resource> resource)
+{
+    ResourceInfo info;
+    info.ptr = resource;
+    info.data = nullptr;
+    info.type = typeid(ResourceInfo);
+    info.state = ResourceState::Ready;
+    resources.insert_or_assign(resourceId, info);
+}
+
+void ResourceLoader::removeResource(uint resourceId)
+{
+    resources.erase(resourceId);
+}
+
 void ResourceLoader::addAssetType(std::type_index type, ResourceBuilder builder)
 {
     builders.insert_or_assign(type, builder);
