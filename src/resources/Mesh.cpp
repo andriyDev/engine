@@ -1,9 +1,7 @@
 
 #include "resources/Mesh.h"
 
-Mesh::Mesh()
-    : Resource((uint)RenderResources::Mesh)
-{}
+#include "utility/Serializer.h"
 
 Mesh::~Mesh()
 {
@@ -65,7 +63,6 @@ std::shared_ptr<Mesh> Mesh::makeBox(glm::vec3 extents)
         mesh->indexData[i*6 + 4] = i*4 + 3;
         mesh->indexData[i*6 + 5] = i*4;
     }
-    mesh->state = Success;
     return mesh;
 }
 
@@ -103,21 +100,14 @@ void read(Serializer& ser, Mesh& mesh)
     read_array_alloc(ser, mesh.indexData, mesh.indexCount);
 }
 
-void writeMesh(Serializer& ser, void* meshRaw)
+void Mesh::loadFromFile(std::ifstream& file)
 {
-    Mesh* mesh = static_cast<Mesh*>(meshRaw);
-    write(ser, *mesh);
+    Serializer ser(&file);
+    read(ser, *this);
 }
 
-void* readMesh(Serializer& ser)
+void Mesh::saveToFile(std::ofstream& file)
 {
-    Mesh* mesh = new Mesh();
-    read(ser, *mesh);
-    return mesh;
-}
-
-void readIntoMesh(Serializer& ser, void* meshRaw)
-{
-    Mesh* mesh = static_cast<Mesh*>(meshRaw);
-    read(ser, *mesh);
+    Serializer ser(&file);
+    write(ser, *this);
 }

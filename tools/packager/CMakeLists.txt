@@ -12,11 +12,11 @@ set(INCLUDE "")
 set(LIB ${ASSIMP_LIB})
 set(SRC src/main.cpp
     ${CMAKE_SOURCE_DIR}/src/resources/Mesh.cpp
+    ${CMAKE_SOURCE_DIR}/src/resources/FileResource.cpp
     ${CMAKE_SOURCE_DIR}/src/resources/Shader.cpp
     ${CMAKE_SOURCE_DIR}/src/resources/Colour.cpp
     ${CMAKE_SOURCE_DIR}/src/resources/Texture.cpp
-    ${CMAKE_SOURCE_DIR}/src/utility/Serializer.cpp
-    ${CMAKE_SOURCE_DIR}/src/utility/Package.cpp)
+    ${CMAKE_SOURCE_DIR}/src/utility/Serializer.cpp)
 
 add_executable(packager ${SRC})
 

@@ -9,13 +9,11 @@
 #include <sstream>
 
 #include "std.h"
-#include "resources/RenderResources.h"
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
+#include "resources/Texture.h"
 
 #include "utility/Serializer.h"
-#include "utility/Package.h"
-#include "resources/Texture.h"
 
 #include <png.h>
 #include <stdio.h>
@@ -103,10 +101,10 @@ Mesh* convertMesh(aiMesh* srcMesh)
     return mesh;
 }
 
-vector<pair<void*, string>> extractMeshes(const string& fileName,
-    vector<string> desiredMeshes, map<string, string> meshNameMap, Assimp::Importer& importer)
+vector<pair<Mesh*, string>> extractMeshes(const string& fileName,
+    vector<string> desiredMeshes, unordered_map<string, string> meshNameMap, Assimp::Importer& importer)
 {
-    vector<pair<void*, string>> resources;
+    vector<pair<Mesh*, string>> resources;
 
     const aiScene* scene = importer.ReadFile(fileName,
         aiProcess_Triangulate
@@ -210,11 +208,6 @@ Texture* loadPNGTexture(const string& fileName)
     return tex;
 }
 
-map<uint, tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
-    {(uint)FileRenderResources::Mesh, make_tuple(writeMesh, readMesh, readIntoMesh)},
-    {(uint)FileRenderResources::Shader, make_tuple(writeShader, readShader, readIntoShader)},
-    {(uint)FileRenderResources::Texture, make_tuple(writeTexture, readTexture, readIntoTexture)}
-};
 Assimp::Importer gImporter;
 
 string toLower(const string& str)
@@ -248,48 +241,34 @@ inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
     return ltrim(rtrim(s, t), t);
 }
 
-void processResourceCommand(vector<string> command, Package& pkg)
+void processResourceCommand(vector<string> command)
 {
     string cmdType = toLower(command[0]);
     if(cmdType == "mesh")
     {
         string fileName = command[1];
         vector<string> meshNames;
-        map<string, string> meshNameMap;
-        for(int i = 2; i < command.size(); i++) {
-            vector<string> split = splitByDelimiter(command[i], '/');
-            if(split.size() > 2) {
-                cerr << "Mesh command improperly formatted." << endl;
-                return;
-            }
-            meshNames.push_back(trim(split[0]));
-            meshNameMap.insert(make_pair(split[0], trim(split[split.size() == 2 ? 1 : 0])));
-        }
-        for(pair<void*, string> res : extractMeshes(fileName, meshNames, meshNameMap, gImporter))
-        {
-            pkg.addResource(res.second, (uint)FileRenderResources::Mesh, res.first);
-        }
-    }
-    else if(cmdType == "shader")
-    {
-        Shader* shader = new Shader();
-        ifstream CodeFile(command[1]);
-        if(CodeFile.is_open()) {
-            stringstream ss;
-            ss << CodeFile.rdbuf();
-            shader->code = ss.str();
-            CodeFile.close();
-        } else {
-            cerr << "Cannot open shader code file." << endl;
-            delete shader;
+        unordered_map<string, string> meshFiles;
+        if(command.size() % 2 != 0) {
+            cerr << "Mesh command improperly formatted." << endl;
             return;
         }
-        pkg.addResource(trim(command[2]), (uint)FileRenderResources::Shader, shader);
+        for(int i = 2; i < command.size(); i += 2) {
+            meshNames.push_back(trim(command[i]));
+            meshFiles.insert(make_pair(meshNames.back(), trim(command[i + 1])));
+        }
+        for(pair<Mesh*, string> res : extractMeshes(fileName, meshNames, meshFiles, gImporter))
+        {
+            if(!res.first->save(res.second)) {
+                throw "Failed to save mesh";
+            }
+            delete res.first;
+        }
     }
     else if(cmdType == "texture")
     {
         if(command.size() != 4) {
-            cerr << "Invalid texture command: 'texture <format> <file> <resource name>'" << endl;
+            cerr << "Invalid texture command: 'texture <format> <file> <outFile>'" << endl;
             return;
         }
 
@@ -304,8 +283,12 @@ void processResourceCommand(vector<string> command, Package& pkg)
             return;
         }
         
+        string outFile = trim(command[3]);
+        if(!tex || !tex->save(outFile)) {
+            throw "Failed to load/save texture";
+        }
         if(tex) {
-            pkg.addResource(trim(command[3]), (uint)FileRenderResources::Texture, tex);
+            delete tex;
         }
     }
     else
@@ -358,7 +341,7 @@ vector<string> tokenize(string command)
     return tokens;
 }
 
-void processInput(Package& pkg)
+void processInput()
 {
     for(string command; getline(cin, command); )
     {
@@ -366,26 +349,13 @@ void processInput(Package& pkg)
         if(command.empty() || command[0] == '#') {
             continue;
         }
-        processResourceCommand(tokenize(command), pkg);
+        processResourceCommand(tokenize(command));
     }
 }
 
 int main(int argc, char** argv)
 {
-    if(argc != 3 || strlen(argv[2]) != 3) {
-        printf(USAGE);
-        return -1;
-    }
-    
-    string outFileName = argv[1];
-    ofstream file(outFileName, ios::binary);
-    Package pack(Serializer(&file), (const uchar*)argv[2], &parsers);
-
-    processInput(pack);
-
-    pack.savePackage();
-    pack.freeResources();
-    file.close();
+    processInput();
 
     return 0;
 }

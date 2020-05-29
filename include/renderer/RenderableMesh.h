@@ -11,32 +11,43 @@
 class RenderableMesh : public Resource
 {
 public:
-    RenderableMesh();
+    RenderableMesh(ResourceRef<Mesh> sourceMesh);
     virtual ~RenderableMesh();
 
     void bind();
     void render();
 
+    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
+        std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
+        return build(buildData);
+    }
+
+    class BuildData : public Resource::BuildData
+    {
+    public:
+        uint sourceMesh;
+    };
+
+    static std::shared_ptr<BuildData> createAssetData(uint sourceMesh);
+
 protected:
-    GLuint vao;
-    GLuint buffers[2];
+    RenderableMesh() {}
+
+    GLuint vao = 0;
+    GLuint buffers[2] = {0, 0};
     uint bufferCount;
     uint indexCount;
 
-    friend class RenderableMeshBuilder;
-};
+    ResourceRef<Mesh> sourceMeshRef;
 
-class RenderableMeshBuilder : public ResourceBuilder
-{
-public:
-    RenderableMeshBuilder()
-        : ResourceBuilder((uint)RenderResources::RenderableMesh) {}
+    virtual std::vector<uint> getDependencies() override {
+        return { sourceMeshRef };
+    }
+    virtual void resolveDependencies(ResolveMethod method) override {
+        sourceMeshRef.resolve(method);
+    }
+    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
 
-    std::string sourceMesh;
-
-    virtual std::shared_ptr<Resource> construct() override;
-
-    virtual void init() override;
-
-    virtual void startBuild() override;
+private:
+    static std::shared_ptr<RenderableMesh> build(std::shared_ptr<BuildData> data);
 };

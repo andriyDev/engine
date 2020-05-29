@@ -3,14 +3,11 @@
 
 #include "std.h"
 
-#include "ResourceLoader.h"
-#include "FileResourceBuilder.h"
-#include "utility/Serializer.h"
-#include "RenderResources.h"
+#include "FileResource.h"
 
 #include "Colour.h"
 
-class Texture : public Resource
+class Texture : public FileResource
 {
 public:
     enum Mode : uchar {
@@ -19,7 +16,6 @@ public:
         RGBA_8
     };
 
-    Texture();
     virtual ~Texture();
 
     void fromColour3(Colour3* _data, uint _width, uint _height);
@@ -32,6 +28,9 @@ public:
     inline Mode getMode() const { return mode; }
     inline Colour3* asRGB_8() const { return data.rgb_8; }
     inline Colour4* asRGBA_8() const { return data.rgba_8; }
+protected:
+    virtual void loadFromFile(std::ifstream& file) override;
+    virtual void saveToFile(std::ofstream& file) override;
 private:
     Mode mode = INVALID;
     uint width;
@@ -41,23 +40,3 @@ private:
         Colour4* rgba_8;
     } data;
 };
-
-class TextureBuilder : public FileResourceBuilder<Texture>
-{
-public:
-    TextureBuilder(std::string resourceName, std::shared_ptr<PackageFile> resourcePackage)
-    : FileResourceBuilder((uint)RenderResources::Texture, resourcePackage, resourceName,
-        (uint)FileRenderResources::Texture) {}
-};
-
-template<>
-void write(Serializer& ser, const Texture& texture);
-
-template<>
-void read(Serializer& ser, Texture& texture);
-
-void writeTexture(Serializer& ser, void* textureRaw);
-
-void* readTexture(Serializer& ser);
-
-void readIntoTexture(Serializer& ser, void* textureRaw);

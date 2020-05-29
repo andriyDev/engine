@@ -11,20 +11,6 @@
 class RenderableTexture : public Resource
 {
 public:
-    RenderableTexture();
-    virtual ~RenderableTexture();
-
-    void bind(GLuint textureUnit);
-
-protected:
-    GLuint textureId;
-
-    friend class RenderableTextureBuilder;
-};
-
-class RenderableTextureBuilder : public ResourceBuilder
-{
-public:
     enum WrapMode : uchar {
         Repeat,
         Clamp
@@ -35,22 +21,50 @@ public:
         Linear
     };
 
-    RenderableTextureBuilder();
+    RenderableTexture(ResourceRef<Texture> sourceTexture, WrapMode wrapU, WrapMode wrapV,
+        FilterMode minFilter, FilterMode minFilterMipMap, FilterMode magFilter, uint mipMapLevels);
+    virtual ~RenderableTexture();
 
-    WrapMode wrapU = Repeat;
-    WrapMode wrapV = Repeat;
+    void bind(GLuint textureUnit);
 
-    uint mipMapLevels = 1;
+    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
+        std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
+        return build(buildData);
+    }
 
-    FilterMode minFilter = Nearest;
-    FilterMode minFilterMipMap = Linear;
-    FilterMode magFilter = Linear;
+    class BuildData : public Resource::BuildData
+    {
+    public:
+        uint sourceTexture;
 
-    std::string sourceTexture;
+        WrapMode wrapU = Repeat;
+        WrapMode wrapV = Repeat;
 
-    virtual std::shared_ptr<Resource> construct() override;
+        uint mipMapLevels = 1;
 
-    virtual void init() override;
+        FilterMode minFilter = Nearest;
+        FilterMode minFilterMipMap = Linear;
+        FilterMode magFilter = Linear;
+    };
 
-    virtual void startBuild() override;
+    static std::shared_ptr<BuildData> createAssetData(uint sourceTexture);
+
+protected:
+    RenderableTexture() {}
+
+    GLuint textureId = 0;
+
+    ResourceRef<Texture> sourceTextureRef;
+
+    virtual std::vector<uint> getDependencies() override {
+        return { sourceTextureRef };
+    }
+    virtual void resolveDependencies(ResolveMethod method) override {
+        sourceTextureRef.resolve(method);
+    }
+    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
+
+private:
+
+    static std::shared_ptr<RenderableTexture> build(std::shared_ptr<BuildData> data);
 };
