@@ -73,13 +73,16 @@ public:
     void loadStep();
     void loadResource(uint resourceId);
 
+    void addAssetType(std::type_index type, ResourceBuilder builder);
+    void addAssetData(uint resourceId, std::type_index type, std::shared_ptr<void> buildData);
+
     static ResourceLoader& get() {
         return loader;
     }
 private:
     struct ResourceInfo
     {
-    public:
+        ResourceInfo() {}
         std::weak_ptr<Resource> ptr;
         std::shared_ptr<void> data;
         std::type_index type;

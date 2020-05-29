@@ -138,3 +138,19 @@ void ResourceLoader::loadResource(uint resourceId)
         res_pair->second.state = ResourceState::Failed;
     }
 }
+
+void ResourceLoader::addAssetType(std::type_index type, ResourceBuilder builder)
+{
+    builders.insert_or_assign(type, builder);
+}
+
+void ResourceLoader::addAssetData(uint resourceId, std::type_index type, std::shared_ptr<void> buildData)
+{
+    ResourceInfo info;
+    info.ptr = std::shared_ptr<Resource>(nullptr);
+    info.data = buildData;
+    info.type = type;
+    info.state = ResourceState::NotRequested;
+    resources.insert_or_assign(resourceId, info);
+}
+
