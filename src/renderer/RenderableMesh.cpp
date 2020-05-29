@@ -67,3 +67,10 @@ std::shared_ptr<RenderableMesh> RenderableMesh::build(std::shared_ptr<BuildData>
     mesh->sourceMeshRef = data->sourceMesh;
     return mesh;
 }
+
+std::shared_ptr<RenderableMesh::BuildData> RenderableMesh::createAssetData(uint sourceMesh)
+{
+    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    data->sourceMesh = sourceMesh;
+    return data;
+}

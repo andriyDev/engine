@@ -22,6 +22,13 @@ public:
         return build(buildData);
     }
 
+    struct BuildData
+    {
+        uint sourceMesh;
+    };
+
+    static std::shared_ptr<BuildData> createAssetData(uint sourceMesh);
+
 protected:
     RenderableMesh() {}
 
@@ -41,10 +48,5 @@ protected:
     virtual bool load(std::shared_ptr<void> data) override;
 
 private:
-    struct BuildData
-    {
-        uint sourceMesh;
-    };
-
     static std::shared_ptr<RenderableMesh> build(std::shared_ptr<BuildData> data);
 };

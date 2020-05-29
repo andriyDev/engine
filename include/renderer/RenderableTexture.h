@@ -32,6 +32,22 @@ public:
         return build(buildData);
     }
 
+    struct BuildData
+    {
+        uint sourceTexture;
+
+        WrapMode wrapU = Repeat;
+        WrapMode wrapV = Repeat;
+
+        uint mipMapLevels = 1;
+
+        FilterMode minFilter = Nearest;
+        FilterMode minFilterMipMap = Linear;
+        FilterMode magFilter = Linear;
+    };
+
+    static std::shared_ptr<BuildData> createAssetData(uint sourceTexture);
+
 protected:
     RenderableTexture() {}
 
@@ -48,19 +64,6 @@ protected:
     virtual bool load(std::shared_ptr<void> data) override;
 
 private:
-    struct BuildData
-    {
-        uint sourceTexture;
-
-        WrapMode wrapU = Repeat;
-        WrapMode wrapV = Repeat;
-
-        uint mipMapLevels = 1;
-
-        FilterMode minFilter = Nearest;
-        FilterMode minFilterMipMap = Linear;
-        FilterMode magFilter = Linear;
-    };
 
     static std::shared_ptr<RenderableTexture> build(std::shared_ptr<BuildData> data);
 };

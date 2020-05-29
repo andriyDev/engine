@@ -23,3 +23,10 @@ bool FileResource::save(std::string fileName)
     file.close();
     return true;
 }
+
+std::shared_ptr<FileResource::FileData> FileResource::createAssetData(std::string fileName)
+{
+    std::shared_ptr<FileData> data = std::make_shared<FileData>();
+    data->fileName = fileName;
+    return data;
+}

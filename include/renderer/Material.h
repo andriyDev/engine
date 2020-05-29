@@ -26,18 +26,13 @@ public:
     void setVec2Property(const std::string& name, const glm::vec2& value);
     void setVec3Property(const std::string& name, const glm::vec3& value);
     void setVec4Property(const std::string& name, const glm::vec4& value);
-    void setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
+    bool setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
 
     static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
         return build(buildData);
     }
-protected:
-    Material() {}
-    virtual std::vector<uint> getDependencies() override;
-    virtual void resolveDependencies(ResolveMethod method) override;
-    virtual bool load(std::shared_ptr<void> data) override;
-private:
+
     struct PropInfo {
         PropInfo(bool value) : matchType(GL_BOOL), dataSize(1), data_bool(value) { }
         PropInfo(int value) : matchType(GL_INT), dataSize(sizeof(int)), data_int(value) { }
@@ -60,17 +55,37 @@ private:
         friend class Material;
     };
 
+    struct BuildData
+    {
+    public:
+        uint program;
+
+        void setTexture(const std::string& textureName, uint textureId);
+
+        void setBoolProperty(const std::string& name, bool value);
+        void setIntProperty(const std::string& name, int value);
+        void setFloatProperty(const std::string& name, float value);
+        void setVec2Property(const std::string& name, const glm::vec2& value);
+        void setVec3Property(const std::string& name, const glm::vec3& value);
+        void setVec4Property(const std::string& name, const glm::vec4& value);
+    private:
+        std::map<std::string, PropInfo> values;
+        std::map<std::string, uint> textures;
+
+        friend class Material;
+    };
+
+    static std::shared_ptr<BuildData> createAssetData(uint programId);
+protected:
+    Material() {}
+    virtual std::vector<uint> getDependencies() override;
+    virtual void resolveDependencies(ResolveMethod method) override;
+    virtual bool load(std::shared_ptr<void> data) override;
+private:
     ResourceRef<MaterialProgram> program;
     std::map<std::string, PropInfo> propValues;
     std::map<GLuint, ResourceRef<RenderableTexture>> textures;
     GLuint ubo = 0;
-
-    struct BuildData
-    {
-        uint program;
-        std::map<std::string, PropInfo> values;
-        std::map<std::string, uint> textures;
-    };
     
     static std::shared_ptr<Material> build(std::shared_ptr<BuildData> data);
 };

@@ -72,3 +72,10 @@ std::shared_ptr<RenderableTexture> RenderableTexture::build(std::shared_ptr<Buil
     texture->sourceTextureRef = data->sourceTexture;
     return texture;
 }
+
+std::shared_ptr<RenderableTexture::BuildData> RenderableTexture::createAssetData(uint sourceTexture)
+{
+    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    data->sourceTexture = sourceTexture;
+    return data;
+}

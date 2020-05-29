@@ -242,3 +242,12 @@ std::shared_ptr<MaterialProgram> MaterialProgram::build(std::shared_ptr<BuildDat
     }
     return matProg;
 }
+
+std::shared_ptr<MaterialProgram::BuildData> MaterialProgram::createAssetData(
+    const std::vector<uint>& vertexShaders, const std::vector<uint>& fragmentShaders)
+{
+    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    data->vertexShaders = vertexShaders;
+    data->fragmentShaders = fragmentShaders;
+    return data;
+}

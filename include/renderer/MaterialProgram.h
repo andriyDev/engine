@@ -30,6 +30,15 @@ public:
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
         return build(buildData);
     }
+
+    struct BuildData
+    {
+        std::vector<uint> vertexShaders;
+        std::vector<uint> fragmentShaders;
+    };
+
+    static std::shared_ptr<BuildData> createAssetData(
+        const std::vector<uint>& vertexShaders, const std::vector<uint>& fragmentShaders);
 protected:
     MaterialProgram() {}
 
@@ -37,12 +46,6 @@ protected:
     virtual void resolveDependencies(ResolveMethod method) override;
     virtual bool load(std::shared_ptr<void> data) override;
 private:
-    struct BuildData
-    {
-        std::vector<uint> vertexShaders;
-        std::vector<uint> fragmentShaders;
-    };
-
     static std::shared_ptr<MaterialProgram> build(std::shared_ptr<BuildData> data);
 
     GLuint ProgramId = 0;

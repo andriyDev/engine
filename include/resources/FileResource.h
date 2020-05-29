@@ -13,6 +13,13 @@ public:
     static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
         return std::make_shared<T>();
     }
+
+    struct FileData
+    {
+        std::string fileName;
+    };
+
+    static std::shared_ptr<FileData> createAssetData(std::string fileName);
 protected:
     virtual std::vector<uint> getDependencies() override { return {}; }
     virtual void resolveDependencies(ResolveMethod method) override {}
@@ -20,9 +27,4 @@ protected:
     
     virtual void loadFromFile(std::ifstream& file) = 0;
     virtual void saveToFile(std::ofstream& file) = 0;
-private:
-    struct FileData
-    {
-        std::string fileName;
-    };
 };
