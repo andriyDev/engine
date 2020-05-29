@@ -7,6 +7,20 @@
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/transform.hpp>
 
+Transform::~Transform()
+{
+    std::shared_ptr<Transform> parentPtr = parent.lock();
+    if(parentPtr) {
+        // Erase one null pointer since that will correspond to us.
+        auto it = std::find_if(parentPtr->children.begin(), parentPtr->children.end(),
+            [](const std::weak_ptr<Transform>& child){
+                return child.lock() == nullptr;
+            });
+        assert(it != parentPtr->children.end());
+        parentPtr->children.erase(it);
+    }
+}
+
 void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
 {
     std::shared_ptr<Transform> parentPtr = parent.lock();
@@ -17,20 +31,30 @@ void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
     TransformData transform = getRelativeTransform();
     if(keepGlobal) { transform = getGlobalTransform(); }
 
+    std::shared_ptr<Transform> sharedThis = std::static_pointer_cast<Transform>(shared_from_this());
+
     if(parentPtr) {
         parent = std::weak_ptr<Transform>();
+
+        auto it = std::find_if(parentPtr->children.begin(), parentPtr->children.end(),
+            [&sharedThis](const std::weak_ptr<Transform>& child){
+                return sharedThis == child.lock();
+            });
+        assert(it != parentPtr->children.end());
+        parentPtr->children.erase(it);
     }
 
+    // We put this a little higher because otherwise the compiler complains about the goto.
+    std::shared_ptr<Transform> curr = newParent;
     // We already handled this when parent was valid.
     if(!newParent) {
-        return;
+        goto end; // goto here is convenient because we also need to goto in the case of a cycle.
     }
 
-    std::shared_ptr<Transform> curr = newParent;
     while(curr) {
         if(curr.get() == this) {
-            // If the ancestor is equal to this, the ancestry creates a cycle - invalid.
-            return;
+            // If the ancestor is equal to this, the ancestry creates a cycle - invalid (attaches to world).
+            goto end;
         }
         // Climb to the next ancestor.
         curr = curr->parent.lock();
@@ -38,11 +62,14 @@ void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
 
     // If we reach here, that means the parent is valid, so:
     parent = newParent;
-
+    // Tell the parent we are a child.
+    newParent->children.push_back(sharedThis);
+end:
+    // Setting global transform changes the update id.
     if(keepGlobal) {
         setGlobalTransform(transform);
-    } else {
-        setRelativeTransform(transform);
+    } else { // If we don't set the global transform, just increment.
+        incrementUpdateId();
     }
 }
 
@@ -118,6 +145,28 @@ glm::mat4 TransformData::toMat4()
 void Transform::setRelativeTransform(const TransformData& relativeTransform)
 {
     this->relativeTransform = relativeTransform;
+    incrementUpdateId();
+}
+
+void Transform::incrementUpdateId()
+{
+    updateId++;
+}
+
+uint Transform::sumUpdatesRelativeTo(std::shared_ptr<Transform> relative) const
+{
+    if(relative.get() == this) {
+        return 0;
+    }
+    uint sum = updateId;
+    std::shared_ptr<Transform> curr = parent.lock();
+
+    while(curr && curr != relative) {
+        sum += curr->updateId;
+
+        curr = curr->parent.lock();
+    }
+    return sum;
 }
 
 TransformData Transform::getGlobalTransform() const
@@ -141,6 +190,7 @@ void Transform::setGlobalTransform(const TransformData& globalTransform)
         parentGlobal = par->getGlobalTransform();
     }
     setRelativeTransform(parentGlobal.inverse() * globalTransform);
+    // setRelativeTransform changes the updateId for us, so we don't have to.
 }
 
 TransformData Transform::getTransformRelativeTo(std::shared_ptr<Transform> relative) const
@@ -182,5 +232,19 @@ void Transform::setTransformRelativeTo(const TransformData& transform, std::shar
         parentRelative = relative->getGlobalTransform();
     }
     setRelativeTransform(parentRelative * transform);
+    // setRelativeTransform changes the updateId for us, so we don't have to.
 }
 
+std::vector<std::shared_ptr<Transform>> Transform::getChildren() const
+{
+    std::vector<std::shared_ptr<Transform>> out;
+
+    for(const std::weak_ptr<Transform>& childPtr : children) {
+        std::shared_ptr<Transform> child = childPtr.lock();
+        if(child) {
+            out.push_back(child);
+        }
+    }
+
+    return out;
+}

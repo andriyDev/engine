@@ -52,6 +52,7 @@ class Transform : public Component
 {
 public:
     Transform() : Component(TRANSFORM_ID) {}
+    virtual ~Transform();
 
     // Gets the relative transform.
     TransformData getRelativeTransform() const {
@@ -77,9 +78,23 @@ public:
     // Gets the parent of this transform.
     std::shared_ptr<Transform> getParent() const;
 
+    // Gets the children of this transform.
+    std::vector<std::shared_ptr<Transform>> getChildren() const;
+
+    inline uint getUpdateId() const { return updateId; }
+
+    uint sumUpdatesRelativeTo(std::shared_ptr<Transform> relative) const;
+    uint sumUpdates() const { return sumUpdatesRelativeTo(nullptr); }
+protected:
+    void incrementUpdateId();
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
+    /*
+    Stores a number to identify this value of the transform. If the transform is changed, this value is changed.
+    */
+    uint updateId = 0;
     std::weak_ptr<Transform> parent; // The parent of this transform.
+    std::vector<std::weak_ptr<Transform>> children; // The children of this transform.
 };
 
 class Transformable : public Component
