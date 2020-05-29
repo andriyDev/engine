@@ -32,7 +32,7 @@ void RenderableTexture::bind(GLuint textureUnit)
     glBindTextureUnit(textureUnit, textureId);
 }
 
-bool RenderableTexture::load(std::shared_ptr<void> data)
+bool RenderableTexture::load(std::shared_ptr<Resource::BuildData> data)
 {
     std::shared_ptr<BuildData> bd = std::dynamic_pointer_cast<BuildData>(data);
     std::shared_ptr<Texture> texture = sourceTextureRef.resolve(Immediate); // Make sure this is loaded.

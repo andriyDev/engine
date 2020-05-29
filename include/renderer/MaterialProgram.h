@@ -26,13 +26,14 @@ public:
     GLuint getProgramId() const;
     const std::map<std::string, std::pair<GLenum, GLuint>>& getUniformInfo() const;
 
-    static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
+    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
         return build(buildData);
     }
 
-    struct BuildData
+    class BuildData : public Resource::BuildData
     {
+    public:
         std::vector<uint> vertexShaders;
         std::vector<uint> fragmentShaders;
     };
@@ -44,7 +45,7 @@ protected:
 
     virtual std::vector<uint> getDependencies() override;
     virtual void resolveDependencies(ResolveMethod method) override;
-    virtual bool load(std::shared_ptr<void> data) override;
+    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
 private:
     static std::shared_ptr<MaterialProgram> build(std::shared_ptr<BuildData> data);
 

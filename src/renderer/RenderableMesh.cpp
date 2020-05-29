@@ -26,7 +26,7 @@ void RenderableMesh::render()
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
 }
 
-bool RenderableMesh::load(std::shared_ptr<void> data)
+bool RenderableMesh::load(std::shared_ptr<Resource::BuildData> data)
 {
     std::shared_ptr<Mesh> sourceMesh = sourceMeshRef.resolve(Immediate); // Make sure this is loaded.
     assert(sourceMesh);

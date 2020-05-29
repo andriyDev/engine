@@ -27,13 +27,14 @@ public:
 
     void bind(GLuint textureUnit);
 
-    static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
+    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
         return build(buildData);
     }
 
-    struct BuildData
+    class BuildData : public Resource::BuildData
     {
+    public:
         uint sourceTexture;
 
         WrapMode wrapU = Repeat;
@@ -61,7 +62,7 @@ protected:
     virtual void resolveDependencies(ResolveMethod method) override {
         sourceTextureRef.resolve(method);
     }
-    virtual bool load(std::shared_ptr<void> data) override;
+    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
 
 private:
 

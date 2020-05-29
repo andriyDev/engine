@@ -15,6 +15,12 @@ enum ResolveMethod : uchar
 
 class Resource
 {
+public:
+    class BuildData
+    {
+    public:
+        virtual ~BuildData() {}
+    };
 protected:
     /*
     Returns the list of dependencies for this resource.
@@ -30,7 +36,7 @@ protected:
     Loads the resource. Returns true iff the resource is loaded successfully.
     data is the build data of the resource.
     */
-    virtual bool load(std::shared_ptr<void> data) = 0;
+    virtual bool load(std::shared_ptr<BuildData> data) = 0;
 
     friend class ResourceLoader;
 };
@@ -63,7 +69,7 @@ private:
     ResourceState state;
 };
 
-typedef std::shared_ptr<Resource> (*ResourceBuilder)(std::shared_ptr<void>);
+typedef std::shared_ptr<Resource> (*ResourceBuilder)(std::shared_ptr<Resource::BuildData>);
 
 class ResourceLoader
 {
@@ -76,7 +82,7 @@ public:
     void addResource(uint resourceId, std::shared_ptr<Resource> resource);
     void removeResource(uint resourceId);
     void addAssetType(std::type_index type, ResourceBuilder builder);
-    void addAssetData(uint resourceId, std::type_index type, std::shared_ptr<void> buildData);
+    void addAssetData(uint resourceId, std::type_index type, std::shared_ptr<Resource::BuildData> buildData);
 
     static ResourceLoader& get() {
         return loader;
@@ -85,7 +91,7 @@ private:
     struct ResourceInfo
     {
         std::weak_ptr<Resource> ptr;
-        std::shared_ptr<void> data;
+        std::shared_ptr<Resource::BuildData> data;
         std::type_index type = std::type_index(typeid(ResourceInfo));
         ResourceState state;
     };

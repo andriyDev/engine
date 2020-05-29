@@ -10,12 +10,13 @@ public:
     bool save(std::string fileName);
 
     template<typename T>
-    static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
+    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
         return std::make_shared<T>();
     }
 
-    struct FileData
+    class FileData : public Resource::BuildData
     {
+    public:
         std::string fileName;
     };
 
@@ -23,7 +24,7 @@ public:
 protected:
     virtual std::vector<uint> getDependencies() override { return {}; }
     virtual void resolveDependencies(ResolveMethod method) override {}
-    virtual bool load(std::shared_ptr<void> data) override;
+    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
     
     virtual void loadFromFile(std::ifstream& file) = 0;
     virtual void saveToFile(std::ofstream& file) = 0;

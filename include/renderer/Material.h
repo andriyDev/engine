@@ -28,7 +28,7 @@ public:
     void setVec4Property(const std::string& name, const glm::vec4& value);
     bool setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
 
-    static std::shared_ptr<Resource> build(std::shared_ptr<void> data) {
+    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
         return build(buildData);
     }
@@ -55,7 +55,7 @@ public:
         friend class Material;
     };
 
-    struct BuildData
+    class BuildData : public Resource::BuildData
     {
     public:
         uint program;
@@ -80,7 +80,7 @@ protected:
     Material() {}
     virtual std::vector<uint> getDependencies() override;
     virtual void resolveDependencies(ResolveMethod method) override;
-    virtual bool load(std::shared_ptr<void> data) override;
+    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
 private:
     ResourceRef<MaterialProgram> program;
     std::map<std::string, PropInfo> propValues;

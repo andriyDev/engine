@@ -159,7 +159,7 @@ void ResourceLoader::addAssetType(std::type_index type, ResourceBuilder builder)
     builders.insert_or_assign(type, builder);
 }
 
-void ResourceLoader::addAssetData(uint resourceId, std::type_index type, std::shared_ptr<void> buildData)
+void ResourceLoader::addAssetData(uint resourceId, std::type_index type, std::shared_ptr<Resource::BuildData> buildData)
 {
     ResourceInfo info;
     info.ptr = std::shared_ptr<Resource>(nullptr);

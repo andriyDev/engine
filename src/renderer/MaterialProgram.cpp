@@ -109,7 +109,7 @@ void MaterialProgram::resolveDependencies(ResolveMethod method)
 }
 
 
-bool MaterialProgram::load(std::shared_ptr<void> data)
+bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
 {
     assert(!vertexShaders.empty());
     assert(!vertexShaders.empty());

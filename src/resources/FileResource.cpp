@@ -1,7 +1,7 @@
 
 #include "resources/FileResource.h"
 
-bool FileResource::load(std::shared_ptr<void> data)
+bool FileResource::load(std::shared_ptr<Resource::BuildData> data)
 {
     std::shared_ptr<FileData> fileData = std::dynamic_pointer_cast<FileData>(data);
     std::ifstream file(fileData->fileName, std::ios_base::binary | std::ios_base::in);
