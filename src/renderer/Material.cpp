@@ -5,6 +5,17 @@ Material::Material(ResourceRef<MaterialProgram> _program)
     : program(_program)
 {
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
+    assert(prog);
+    ubo = prog->createUBO();
+}
+
+Material::Material(std::shared_ptr<Material> sourceMaterial)
+{
+    assert(sourceMaterial);
+    program = sourceMaterial->program;
+    propValues = sourceMaterial->propValues;
+    textures = sourceMaterial->textures;
+    std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
     ubo = prog->createUBO();
 }
 

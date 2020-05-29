@@ -12,6 +12,7 @@ class Material : public Resource
 {
 public:
     Material(ResourceRef<MaterialProgram> _program);
+    Material(std::shared_ptr<Material> sourceMaterial);
     virtual ~Material();
 
     void use();
