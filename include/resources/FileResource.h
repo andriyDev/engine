@@ -3,6 +3,7 @@
 
 #include "std.h"
 #include "resources/ResourceLoader.h"
+#include <fstream>
 
 class FileResource : public Resource
 {

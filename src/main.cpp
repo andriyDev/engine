@@ -25,8 +25,6 @@
 #include "resources/Shader.h"
 #include "resources/Texture.h"
 
-#include "utility/Package.h"
-
 #include "Window.h"
 #include "InputSystem.h"
 
@@ -141,7 +139,7 @@ int main()
         loader.addAssetData(4, typeid(Shader), Shader::createAssetData("res/basic_shader.v"));
         loader.addAssetData(5, typeid(Shader), Shader::createAssetData("res/basic_shader.f"));
         loader.addAssetData(6, typeid(MaterialProgram), MaterialProgram::createAssetData({4}, {5}));
-        loader.addAssetData(7, typeid(RenderableMesh), RenderableMesh::createAssetData(2));
+        loader.addAssetData(7, typeid(RenderableMesh), RenderableMesh::createAssetData(1));
         {
             auto textureData = RenderableTexture::createAssetData(3);
             textureData->wrapU = RenderableTexture::Clamp;
@@ -149,7 +147,7 @@ int main()
             loader.addAssetData(8, typeid(RenderableTexture), textureData);
         }
         {
-            auto materialData = Material::createAssetData(8);
+            auto materialData = Material::createAssetData(6);
             materialData->setTexture("tex", 8);
             materialData->setVec3Property("albedo", glm::vec3(1,1,1));
             loader.addAssetData(9, typeid(Material), materialData);
@@ -187,7 +185,7 @@ int main()
         IS->setCursor(true, true);
 
         std::shared_ptr<TestSystem> TS = w->addSystem<TestSystem>();
-        TS->A = 8;
+        TS->A = 9;
         TS->B = 0;
         TS->IS = IS;
         TS->running = &running;

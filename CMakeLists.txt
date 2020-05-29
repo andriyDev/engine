@@ -44,7 +44,6 @@ set(MAIN_SRC ${MAIN_SRC}
     src/resources/Colour.cpp
     src/resources/Texture.cpp)
 set(MAIN_SRC ${MAIN_SRC}
-    src/utility/Package.cpp
     src/utility/Serializer.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/renderer/RenderSystem.cpp

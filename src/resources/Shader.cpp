@@ -1,28 +1,17 @@
 
 #include "resources/Shader.h"
-
-#include "utility/Serializer.h"
-
-template<>
-void write(Serializer& ser, const Shader& shader)
-{
-    write_string<uint>(ser, shader.code);
-}
-
-template<>
-void read(Serializer& ser, Shader& shader)
-{
-    read_string<uint>(ser, shader.code);
-}
+#include <sstream>
 
 void Shader::loadFromFile(std::ifstream& file)
 {
-    Serializer ser((std::istream*)&file);
-    read(ser, *this);
+    file.seekg(0, std::ios::end);
+    code.resize(file.tellg());
+    file.seekg(0, std::ios::beg);
+
+    file.read(&code[0], code.capacity());
 }
 
 void Shader::saveToFile(std::ofstream& file)
 {
-    Serializer ser((std::ostream*)&file);
-    write(ser, *this);
+    file << code;
 }

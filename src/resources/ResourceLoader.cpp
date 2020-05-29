@@ -20,12 +20,6 @@ std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint
         return std::make_pair(resource, res_pair->second.state);
     }
 
-    // We need to build the resource.
-    auto builder_pair = builders.find(res_pair->second.type);
-    if(builder_pair == builders.end()) {
-        return std::make_pair(nullptr, ResourceState::Failed);
-    }
-
     resource = buildResource(resourceId);
     if(method == Immediate) {
         loadResource(resourceId);
@@ -95,15 +89,18 @@ bool ResourceLoader::loadResource(uint resourceId)
     for(uint dep_id : resource->getDependencies()) {
         if(!loadResource(dep_id)) {
             res_pair->second.state = ResourceState::Failed;
+            fprintf(stderr, "Failed to load resource %d due to dependency %d.\n", resourceId, dep_id);
             return false;
         }
     }
 
     if(resource->load(res_pair->second.data)) {
+        printf("Loaded %d\n", resourceId);
         res_pair->second.state = ResourceState::Ready;
         return true;
     } else {
         res_pair->second.state = ResourceState::Failed;
+        fprintf(stderr, "Failed to load resource %d.\n", resourceId);
         return false;
     }
 }
