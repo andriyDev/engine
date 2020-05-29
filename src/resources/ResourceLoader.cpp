@@ -100,7 +100,6 @@ bool ResourceLoader::loadResource(uint resourceId)
     }
 
     if(resource->load(res_pair->second.data)) {
-        printf("Loaded %d\n", resourceId);
         res_pair->second.state = ResourceState::Ready;
         return true;
     } else {
