@@ -11,6 +11,7 @@
 class Material : public Resource
 {
 public:
+    Material(ResourceRef<MaterialProgram> _program);
     virtual ~Material();
 
     void use();
@@ -31,6 +32,7 @@ public:
         return build(buildData);
     }
 protected:
+    Material() {}
     virtual std::vector<uint> getDependencies() override;
     virtual void resolveDependencies(ResolveMethod method) override;
     virtual bool load(std::shared_ptr<void> data) override;

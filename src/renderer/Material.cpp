@@ -1,6 +1,13 @@
 
 #include "renderer/Material.h"
 
+Material::Material(ResourceRef<MaterialProgram> _program)
+    : program(_program)
+{
+    std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
+    ubo = prog->createUBO();
+}
+
 Material::~Material()
 {
     if(ubo) {
@@ -84,7 +91,7 @@ void Material::setProperty(const std::string& name, const void* data, uint size,
     const auto& uniforms = prog->getUniformInfo();
     auto it = uniforms.find(name);
     if(it == uniforms.end() || matchType != 0 && it->second.first != matchType) {
-        throw "Bad uniform! Either uniform not found or it does not match the desired type!";
+        return; // Cannot set uniform.
     }
     glBindBuffer(GL_UNIFORM_BUFFER, ubo);
     glBufferSubData(GL_UNIFORM_BUFFER, it->second.second, size, data);
