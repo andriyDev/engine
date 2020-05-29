@@ -63,7 +63,7 @@ bool RenderableMesh::load(std::shared_ptr<Resource::BuildData> data)
 
 std::shared_ptr<RenderableMesh> RenderableMesh::build(std::shared_ptr<BuildData> data)
 {
-    std::shared_ptr<RenderableMesh> mesh = std::make_shared<RenderableMesh>();
+    std::shared_ptr<RenderableMesh> mesh(new RenderableMesh());
     mesh->sourceMeshRef = data->sourceMesh;
     return mesh;
 }

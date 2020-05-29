@@ -78,6 +78,7 @@ public:
     static std::shared_ptr<BuildData> createAssetData(uint programId);
 protected:
     Material() {}
+
     virtual std::vector<uint> getDependencies() override;
     virtual void resolveDependencies(ResolveMethod method) override;
     virtual bool load(std::shared_ptr<Resource::BuildData> data) override;

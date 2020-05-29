@@ -139,7 +139,7 @@ void Material::resolveDependencies(ResolveMethod method)
     }
 }
 
-bool Material::load(std::shared_ptr<void> data)
+bool Material::load(std::shared_ptr<Resource::BuildData> data)
 {
     std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
@@ -153,11 +153,12 @@ bool Material::load(std::shared_ptr<void> data)
     for(auto tex : buildData->textures) {
         setTexture(tex.first, resolvedTextures.find(tex.second)->second);
     }
+    return true;
 }
 
 std::shared_ptr<Material> Material::build(std::shared_ptr<BuildData> data)
 {
-    std::shared_ptr<Material> mat = std::make_shared<Material>();
+    std::shared_ptr<Material> mat(new Material());
     mat->program = data->program;
     // We will use the material's texture map as a cache to hold the references waiting to be filled.
     for(auto p : data->textures) {

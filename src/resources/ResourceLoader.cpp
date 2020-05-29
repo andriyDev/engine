@@ -5,43 +5,7 @@
 
 using ::ResourceState;
 
-template<typename T>
-ResourceRef<T>::ResourceRef()
-    : resource(nullptr), id(0), state(Invalid)
-{ }
-
-template<typename T>
-ResourceRef<T>::ResourceRef(std::shared_ptr<T> _resource)
-    : resource(_resource), id(0), state(_resource ? Ready : Invalid)
-{ }
-
-template<typename T>
-ResourceRef<T>::ResourceRef(uint request)
-    : id(request), resource(nullptr), state(NotRequested)
-{ }
-
-template<typename T>
-std::shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
-{
-    // These are all the cases in which we should just used the cached (or null-ed) value.
-    if(state != ResourceState::NotRequested && state != ResourceState::InProgress || id == 0) {
-        return resource;
-    }
-
-    // This means we need to collect the resource from the loader.
-    auto response = ResourceLoader::get().resolve(id, method);
-    resource = std::dynamic_pointer_cast<T>(response.first);
-    state = response.second;
-    // If the loader succeeded in acquiring the resource, but the cast failed,
-    // mark it as a failure.
-    if(state == ResourceState::Ready && !resource) {
-        state = ResourceState::Failed;
-    }
-    if(state == ResourceState::Failed || state == ResourceState::Invalid) {
-        resource = nullptr;
-    }
-    return state == ResourceState::Ready ? resource : nullptr;
-}
+ResourceLoader ResourceLoader::loader;
 
 std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint resourceId, ResolveMethod method)
 {
@@ -114,11 +78,11 @@ void ResourceLoader::loadStep()
     }
 }
 
-void ResourceLoader::loadResource(uint resourceId)
+bool ResourceLoader::loadResource(uint resourceId)
 {
     // Implicitly assume that null resources are ready to go.
     if(resourceId == 0) {
-        return;
+        return true;
     }
 
     auto res_pair = resources.find(resourceId);
@@ -129,13 +93,18 @@ void ResourceLoader::loadResource(uint resourceId)
     // Make sure this resource is built.
     std::shared_ptr<Resource> resource = buildResource(resourceId);
     for(uint dep_id : resource->getDependencies()) {
-        loadResource(dep_id);
+        if(!loadResource(dep_id)) {
+            res_pair->second.state = ResourceState::Failed;
+            return false;
+        }
     }
 
     if(resource->load(res_pair->second.data)) {
         res_pair->second.state = ResourceState::Ready;
+        return true;
     } else {
         res_pair->second.state = ResourceState::Failed;
+        return false;
     }
 }
 

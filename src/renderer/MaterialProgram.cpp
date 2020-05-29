@@ -144,7 +144,7 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
         std::vector<char> errorMsg(infoLength + 1);
         glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);
-        return;
+        return false;
     }
 
     glDetachShader(ProgramId, shaders[0]);
@@ -231,7 +231,7 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
 
 std::shared_ptr<MaterialProgram> MaterialProgram::build(std::shared_ptr<BuildData> data)
 {
-    std::shared_ptr<MaterialProgram> matProg = std::make_shared<MaterialProgram>();
+    std::shared_ptr<MaterialProgram> matProg(new MaterialProgram());
     matProg->vertexShaders.reserve(data->vertexShaders.size());
     matProg->fragmentShaders.reserve(data->fragmentShaders.size());
     for(uint id : data->vertexShaders) {

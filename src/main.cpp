@@ -12,7 +12,7 @@
 #include "std.h"
 
 #include "resources/ResourceLoader.h"
-#include "resources/FileResourceBuilder.h"
+#include "resources/FileResource.h"
 #include "components/Transform.h"
 #include "components/MeshRenderer.h"
 #include "components/Camera.h"
@@ -41,16 +41,6 @@ namespace glm
         f = normalize(f);
         float yaw = atan2f(-f.x, -f.z);
         return vec3(yaw, pitch, 0) * 180.f / 3.14159f;
-        /*
-        return eulerAngles(q) * 180.f / 3.14159f;
-        vec3 f = q * vec3(0, 0, 1);
-        vec3 fp = vec3(f.x, 0, f.z);
-        float pitch = (float)asin(f.y);
-        fp = normalize(fp);
-        float yaw = atan2f(fp.x, fp.z);
-        q = angleAxis(pitch, vec3(-1, 0, 0)) * angleAxis(yaw, vec3(0, -1, 0)) * q;
-        float roll = angle(q);
-        return eulerAngles(q);//vec3(yaw, pitch, 0) * 180.f / 3.14159f;*/
     }
 
     quat fromAxisRotator(vec3 v) {
@@ -73,8 +63,8 @@ class TestSystem : public System
 public:
     std::weak_ptr<InputSystem> IS;
     bool* running = nullptr;
-    std::shared_ptr<Material> A;
-    std::shared_ptr<Material> B;
+    ResourceRef<Material> A;
+    ResourceRef<Material> B;
     float time = 0.f;
 
     virtual void frameTick(float delta) override {
@@ -82,6 +72,8 @@ public:
         Query<std::shared_ptr<MeshRenderer>> mrs = getWorld()->queryComponents()
             .filter(filterByTypeId(MESH_RENDERER_ID))
             .cast_ptr<MeshRenderer>();
+        A.resolve(Immediate);
+        B.resolve(Immediate);
         for(std::shared_ptr<MeshRenderer> mr : mrs) {
             mr->material = A;//fmod(time, 2.f) < 1.f ? A : B;
         }
@@ -117,12 +109,6 @@ public:
     }
 };
 
-std::map<uint, std::tuple<WriteFcn, ReadFcn, ReadIntoFcn>> parsers = {
-    {(uint)FileRenderResources::Mesh, std::make_tuple(writeMesh, readMesh, readIntoMesh)},
-    {(uint)FileRenderResources::Shader, std::make_tuple(writeShader, readShader, readIntoShader)},
-    {(uint)FileRenderResources::Texture, std::make_tuple(writeTexture, readTexture, readIntoTexture)}
-};
-
 int main()
 {
     Window window;
@@ -137,45 +123,38 @@ int main()
         return -1;
     }
 
-    std::shared_ptr<PackageFile> res = std::make_shared<PackageFile>("res.pkg", (const uchar*)"REN", &parsers);
-    res->open();
-
-    ResourceLoader loader;
+    ResourceLoader& loader = ResourceLoader::get();
     {
-        loader.addResource("Box", Mesh::makeBox(glm::vec3(15, 1, 15)));
-        loader.addResource("Mesh", std::make_shared<MeshBuilder>("Mesh", res));
-        auto rmb = std::make_shared<RenderableMeshBuilder>();
-        rmb->sourceMesh = "Box";
-        loader.addResource("RenderMesh", rmb);
-
-        loader.addResource("Texture", std::make_shared<TextureBuilder>("EarthTexture", res));
-        auto rtb = std::make_shared<RenderableTextureBuilder>();
-        rtb->sourceTexture = "Texture";
-        rtb->wrapU = RenderableTextureBuilder::Clamp;
-        rtb->wrapV = RenderableTextureBuilder::Clamp;
-        loader.addResource("RenderTexture", rtb);
-
-        loader.addResource("VShader", std::make_shared<ShaderBuilder>("vertex_basic_shader", res));
-        loader.addResource("FShader", std::make_shared<ShaderBuilder>("fragment_basic_shader", res));
-        auto mpb = std::make_shared<MaterialProgramBuilder>();
-        mpb->vertexComponents.push_back("VShader");
-        mpb->fragmentComponents.push_back("FShader");
-        loader.addResource("Program", mpb);
+        loader.addAssetType(typeid(Mesh), FileResource::build<Mesh>);
+        loader.addAssetType(typeid(Shader), FileResource::build<Shader>);
+        loader.addAssetType(typeid(Texture), FileResource::build<Texture>);
+        loader.addAssetType(typeid(RenderableMesh), RenderableMesh::build);
+        loader.addAssetType(typeid(RenderableTexture), RenderableTexture::build);
+        loader.addAssetType(typeid(MaterialProgram), MaterialProgram::build);
+        loader.addAssetType(typeid(Material), Material::build);
     }
+    {
+        loader.addResource(1, Mesh::makeBox(glm::vec3(15, 1, 15)));
 
-    loader.initLoad();
-    loader.beginLoad();
-
-    std::shared_ptr<Material> m1 = std::make_shared<Material>(
-        loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
-    m1->setVec3Property("albedo", glm::vec3(1, 1, 1));
-    std::shared_ptr<Material> m2 = std::make_shared<Material>(
-        loader.getResource<MaterialProgram>("Program", (uint)RenderResources::MaterialProgram));
-    m2->setVec3Property("albedo", glm::vec3(0.1f, 0.1f, 0.95f));
-    m1->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
-        (uint)RenderResources::RenderableTexture));
-    m2->setTexture("tex", loader.getResource<RenderableTexture>("RenderTexture",
-        (uint)RenderResources::RenderableTexture));
+        loader.addAssetData(2, typeid(Mesh), Mesh::createAssetData("mesh.mpk"));
+        loader.addAssetData(3, typeid(Texture), Texture::createAssetData("texture.tpk"));
+        loader.addAssetData(4, typeid(Shader), Shader::createAssetData("res/basic_shader.v"));
+        loader.addAssetData(5, typeid(Shader), Shader::createAssetData("res/basic_shader.f"));
+        loader.addAssetData(6, typeid(MaterialProgram), MaterialProgram::createAssetData({4}, {5}));
+        loader.addAssetData(7, typeid(RenderableMesh), RenderableMesh::createAssetData(2));
+        {
+            auto textureData = RenderableTexture::createAssetData(3);
+            textureData->wrapU = RenderableTexture::Clamp;
+            textureData->wrapV = RenderableTexture::Clamp;
+            loader.addAssetData(8, typeid(RenderableTexture), textureData);
+        }
+        {
+            auto materialData = Material::createAssetData(8);
+            materialData->setTexture("tex", 8);
+            materialData->setVec3Property("albedo", glm::vec3(1,1,1));
+            loader.addAssetData(9, typeid(Material), materialData);
+        }
+    }
 
     Universe U;
     U.gameplayRate = 60;
@@ -208,16 +187,16 @@ int main()
         IS->setCursor(true, true);
 
         std::shared_ptr<TestSystem> TS = w->addSystem<TestSystem>();
-        TS->A = m1;
-        TS->B = m2;
+        TS->A = 8;
+        TS->B = 0;
         TS->IS = IS;
         TS->running = &running;
 
         w->addEntity();
         std::shared_ptr<Entity> e = w->addEntity();
         std::shared_ptr<MeshRenderer> m = e->addComponent<MeshRenderer>();
-        m->mesh = loader.getResource<RenderableMesh>("RenderMesh", (uint)RenderResources::RenderableMesh);
-        m->material = nullptr;
+        m->mesh = 7;
+        m->material = 0;
         std::shared_ptr<Transform> meshTransform = e->addComponent<Transform>();
         m->transform = meshTransform;
         glm::vec3 a(0,0,0);
@@ -228,8 +207,6 @@ int main()
         std::shared_ptr<Camera> cam = c->addComponent<Camera>();
         cam->transform = camTransform;
         camTransform->setRelativeTransform(TransformData(b));
-
-        res->close();
     }
 
     float previousTime = (float)glfwGetTime();
@@ -241,7 +218,7 @@ int main()
         fpsTime += delta;
         previousTime = newTime;
 
-        loader.poll();
+        loader.loadStep();
 
         if(fpsTime >= 1) {
             fpsTime -= 1;

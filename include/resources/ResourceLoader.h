@@ -2,8 +2,6 @@
 #pragma once
 
 #include "std.h"
-#include "utility/Package.h"
-#include "utility/Event.h"
 
 #include <typeindex>
 
@@ -77,7 +75,7 @@ public:
     std::pair<std::shared_ptr<Resource>, ResourceState> resolve(uint resourceId, ResolveMethod method);
 
     void loadStep();
-    void loadResource(uint resourceId);
+    bool loadResource(uint resourceId);
 
     void addResource(uint resourceId, std::shared_ptr<Resource> resource);
     void removeResource(uint resourceId);
@@ -108,3 +106,41 @@ private:
 
     static ResourceLoader loader;
 };
+
+template<typename T>
+ResourceRef<T>::ResourceRef()
+    : resource(nullptr), id(0), state(ResourceState::Invalid)
+{ }
+
+template<typename T>
+ResourceRef<T>::ResourceRef(std::shared_ptr<T> _resource)
+    : resource(_resource), id(0), state(_resource ? ResourceState::Ready : ResourceState::Invalid)
+{ }
+
+template<typename T>
+ResourceRef<T>::ResourceRef(uint request)
+    : id(request), resource(nullptr), state(ResourceState::NotRequested)
+{ }
+
+template<typename T>
+std::shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
+{
+    // These are all the cases in which we should just used the cached (or null-ed) value.
+    if(state != ResourceState::NotRequested && state != ResourceState::InProgress || id == 0) {
+        return resource;
+    }
+
+    // This means we need to collect the resource from the loader.
+    auto response = ResourceLoader::get().resolve(id, method);
+    resource = std::dynamic_pointer_cast<T>(response.first);
+    state = response.second;
+    // If the loader succeeded in acquiring the resource, but the cast failed,
+    // mark it as a failure.
+    if(state == ResourceState::Ready && !resource) {
+        state = ResourceState::Failed;
+    }
+    if(state == ResourceState::Failed || state == ResourceState::Invalid) {
+        resource = nullptr;
+    }
+    return state == ResourceState::Ready ? resource : nullptr;
+}

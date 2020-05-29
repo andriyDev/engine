@@ -1,8 +1,6 @@
 
 #include "renderer/RenderableTexture.h"
 
-#include "resources/RenderResources.h"
-
 RenderableTexture::RenderableTexture(ResourceRef<Texture> sourceTexture, WrapMode wrapU, WrapMode wrapV,
     FilterMode minFilter, FilterMode minFilterMipMap, FilterMode magFilter, uint mipMapLevels)
     : sourceTextureRef(sourceTexture)
@@ -68,7 +66,7 @@ bool RenderableTexture::load(std::shared_ptr<Resource::BuildData> data)
 
 std::shared_ptr<RenderableTexture> RenderableTexture::build(std::shared_ptr<BuildData> data)
 {
-    std::shared_ptr<RenderableTexture> texture = std::make_shared<RenderableTexture>();
+    std::shared_ptr<RenderableTexture> texture(new RenderableTexture());
     texture->sourceTextureRef = data->sourceTexture;
     return texture;
 }

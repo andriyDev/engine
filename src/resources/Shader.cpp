@@ -17,12 +17,12 @@ void read(Serializer& ser, Shader& shader)
 
 void Shader::loadFromFile(std::ifstream& file)
 {
-    Serializer ser(&file);
+    Serializer ser((std::istream*)&file);
     read(ser, *this);
 }
 
 void Shader::saveToFile(std::ofstream& file)
 {
-    Serializer ser(&file);
+    Serializer ser((std::ostream*)&file);
     write(ser, *this);
 }

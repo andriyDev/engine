@@ -102,12 +102,12 @@ void read(Serializer& ser, Mesh& mesh)
 
 void Mesh::loadFromFile(std::ifstream& file)
 {
-    Serializer ser(&file);
+    Serializer ser((std::istream*)&file);
     read(ser, *this);
 }
 
 void Mesh::saveToFile(std::ofstream& file)
 {
-    Serializer ser(&file);
+    Serializer ser((std::ostream*)&file);
     write(ser, *this);
 }

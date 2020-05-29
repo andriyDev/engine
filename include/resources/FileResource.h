@@ -11,7 +11,7 @@ public:
 
     template<typename T>
     static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
-        return std::make_shared<T>();
+        return std::shared_ptr<T>(new T());
     }
 
     class FileData : public Resource::BuildData

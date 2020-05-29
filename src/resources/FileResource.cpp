@@ -1,5 +1,6 @@
 
 #include "resources/FileResource.h"
+#include <fstream>
 
 bool FileResource::load(std::shared_ptr<Resource::BuildData> data)
 {
