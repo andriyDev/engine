@@ -93,5 +93,8 @@ private:
 
     std::vector<std::pair<uint, std::shared_ptr<Resource>>> requests;
 
+    // Private constructor.
+    ResourceLoader() {}
+
     static ResourceLoader loader;
 };
