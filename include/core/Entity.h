@@ -27,6 +27,21 @@ public:
     // Finds all components attached to this entity with the specified type.
     std::set<std::shared_ptr<Component>> findComponentsByType(uint typeId);
 
+    template<typename T>
+    std::shared_ptr<T> findComponent() {
+        return std::static_pointer_cast<T>(findComponentByType(get_id(T)));
+    }
+
+    template<typename T>
+    std::set<std::shared_ptr<T>> findComponents() {
+        std::set<std::shared_ptr<Component>> components = findComponentsByType(get_id(T));
+        std::set<std::shared_ptr<T>> results;
+        for(std::shared_ptr<Component>& c : components) {
+            results.insert(std::static_pointer_cast<T>(c));
+        }
+        return results;
+    }
+
     inline std::shared_ptr<World> getWorld() const {
         return world.lock();
     }
