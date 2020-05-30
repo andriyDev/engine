@@ -113,6 +113,35 @@ void PhysicsSystem::gameplayTick(float delta)
 
     // Step the simulation one frame.
     physicsWorld->stepSimulation(delta, 0);
+
+    int manifolds = dispatcher->getNumManifolds();
+    for(int i = 0; i < manifolds; i++) {
+        btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
+        const btCollisionObject* btObjectA = static_cast<const btCollisionObject*>(manifold->getBody0());
+        const btCollisionObject* btObjectB = static_cast<const btCollisionObject*>(manifold->getBody1());
+
+        CollisionObject* objectA = static_cast<CollisionObject*>(btObjectA->getUserPointer());
+        CollisionObject* objectB = static_cast<CollisionObject*>(btObjectB->getUserPointer());
+
+        CollisionObject::Hit* hitA = objectA->findOrCreateHit(
+            std::static_pointer_cast<CollisionObject>(objectB->shared_from_this()));
+        CollisionObject::Hit* hitB = objectB->findOrCreateHit(
+            std::static_pointer_cast<CollisionObject>(objectA->shared_from_this()));
+        
+        int contacts = manifold->getNumContacts();
+        for(int j = 0; j < contacts; j++) {
+            const btManifoldPoint& contact = manifold->getContactPoint(j);
+
+            hitA->contacts.push_back(CollisionObject::Contact(
+                convert(contact.getPositionWorldOnA()),
+                convert(contact.m_localPointA),
+                -convert(contact.m_normalWorldOnB)));
+            hitB->contacts.push_back(CollisionObject::Contact(
+                convert(contact.getPositionWorldOnB()),
+                convert(contact.m_localPointB),
+                convert(contact.m_normalWorldOnB)));
+        }
+    }
 }
 
 void PhysicsSystem::cleanUpCollisionObject(PhysicsSystem::CollisionObjectData& body)
@@ -144,7 +173,9 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
     data.updateId = bodyTransform->sumUpdates();
     data.motionState = tms;
     data.collisionObject = bodyComponent->constructObject(data.compoundShape, data.motionState);
+    data.collisionObject->setUserPointer(bodyComponent.get());
     bodyComponent->body = data.collisionObject;
+    bodyComponent->hits.clear();
     btRigidBody* asRB = btRigidBody::upcast(data.collisionObject);
     tms->body = asRB;
     if(asRB) {
@@ -265,6 +296,9 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
 
 void PhysicsSystem::updateStateOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData)
 {
+    // Clear any hit info.
+    bodyComponent->hits.clear();
+
     std::shared_ptr<Transform> transform = bodyComponent->getTransform();
     if(transform->sumUpdates() == bodyData.updateId) {
         return;

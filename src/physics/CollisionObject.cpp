@@ -13,3 +13,25 @@ std::vector<std::shared_ptr<Collider>> CollisionObject::getColliders()
     }
     return out;
 }
+
+CollisionObject::Hit* CollisionObject::findHit(std::shared_ptr<CollisionObject> other)
+{
+    for(Hit& hit : hits) {
+        if(hit.other.lock() == other) {
+            return &hit;
+        }
+    }
+    return nullptr;
+}
+
+CollisionObject::Hit* CollisionObject::findOrCreateHit(std::shared_ptr<CollisionObject> other)
+{
+    Hit* hit = findHit(other);
+    if(!hit) {
+        Hit h;
+        h.other = other;
+        hits.push_back(h);
+        hit = &hits.back();
+    }
+    return hit;
+}
