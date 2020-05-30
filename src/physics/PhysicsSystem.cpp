@@ -119,13 +119,13 @@ void PhysicsSystem::gameplayTick(float delta)
     physicsWorld->stepSimulation(delta, 0);
 
     // Go through all triggers we know about, clear their overlaps, and copy over their new overlaps.
-    for(auto it = collisionObjects.begin(); it != collisionObjects.end(); ) {
-        std::shared_ptr<CollisionObject> col = it->first.lock();
+    for(auto& pair : collisionObjects) {
+        std::shared_ptr<CollisionObject> col = pair.first.lock();
         if(!col || col->getTypeId() != get_id(Trigger)) {
             continue;
         }
         std::shared_ptr<Trigger> trigger = std::static_pointer_cast<Trigger>(col);
-        btGhostObject* btTrigger = static_cast<btGhostObject*>(it->second.collisionObject);
+        btGhostObject* btTrigger = static_cast<btGhostObject*>(pair.second.collisionObject);
         trigger->overlaps.clear();
         int overlaps = btTrigger->getNumOverlappingObjects();
         trigger->overlaps.reserve(overlaps);
