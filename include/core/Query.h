@@ -142,5 +142,12 @@ std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component);
 template<typename T>
 std::shared_ptr<T> mapToComponent(std::shared_ptr<Entity> entity)
 {
-    return entity->findComponent<T>();
+    return entity ? entity->findComponent<T>() : nullptr;
+}
+
+template<typename T>
+std::shared_ptr<T> mapToSibling(std::shared_ptr<Component> component)
+{
+    std::shared_ptr<Entity> owner = component->getOwner();
+    return owner ? owner->findComponent<T>() : nullptr;
 }

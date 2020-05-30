@@ -67,6 +67,19 @@ public:
     ApplyGravity() : Component(get_id(ApplyGravity)) {}
 };
 
+class GravitySystem : public System
+{
+public:
+    virtual void gameplayTick(float delta) override {
+        Query<std::shared_ptr<RigidBody>> query = getWorld()->queryComponents()
+            .filter(filterByType<ApplyGravity>)
+            .map<std::shared_ptr<RigidBody>>(mapToSibling<RigidBody>);
+        for(std::shared_ptr<RigidBody> body : query) {
+            body->addForce(glm::vec3(0, -10, 0) * body->mass);
+        }
+    }
+};
+
 void spawnBox(std::shared_ptr<World> world, glm::vec3 point)
 {
     std::shared_ptr<Entity> box = world->addEntity();
@@ -87,7 +100,7 @@ void spawnBox(std::shared_ptr<World> world, glm::vec3 point)
     box->addComponent<ApplyGravity>();
 }
 
-class TestSystem : public System
+class CameraLookSystem : public System
 {
 public:
     std::weak_ptr<InputSystem> IS;
@@ -135,13 +148,6 @@ public:
             td.translation += (td.rotation * glm::vec3(-1,0,0)) * ISptr->getActionValue(0, "left", true) * delta * 5.f;
             td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
             transform->setRelativeTransform(td);
-        }
-        Query<std::shared_ptr<RigidBody>> query = getWorld()->queryComponents()
-            .filter(filterByType<ApplyGravity>)
-            .map<std::shared_ptr<Entity>>(mapToOwner)
-            .map<std::shared_ptr<RigidBody>>(mapToComponent<RigidBody>);
-        for(std::shared_ptr<RigidBody> body : query) {
-            body->addForce(glm::vec3(0, -10, 0) * body->mass);
         }
     }
 };
@@ -228,9 +234,11 @@ int main()
         IS->addActionMouseBind(0, "rmb", GLFW_MOUSE_BUTTON_RIGHT);
         IS->setCursor(true, true);
 
-        std::shared_ptr<TestSystem> TS = w->addSystem<TestSystem>(10);
-        TS->IS = IS;
-        TS->running = &running;
+        std::shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
+        CLS->IS = IS;
+        CLS->running = &running;
+
+        w->addSystem<GravitySystem>(5);
 
         std::shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
         Physics->setGravity(glm::vec3(0,0,0));

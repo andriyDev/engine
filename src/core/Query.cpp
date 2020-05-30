@@ -10,5 +10,5 @@
 
 std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component)
 {
-    return component->getOwner();
+    return component ? component->getOwner() : nullptr;
 }
