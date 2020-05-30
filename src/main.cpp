@@ -31,6 +31,7 @@
 #include "physics/BoxCollider.h"
 #include "physics/SphereCollider.h"
 #include "physics/KinematicBody.h"
+#include "physics/Trigger.h"
 #include "physics/RigidBody.h"
 
 #include <glm/gtx/string_cast.hpp>
@@ -67,15 +68,27 @@ public:
     ApplyGravity() : Component(get_id(ApplyGravity)) {}
 };
 
+class GravityRegion : public Component
+{
+public:
+    GravityRegion() : Component(get_id(GravityRegion)) {}
+};
+
 class GravitySystem : public System
 {
 public:
     virtual void gameplayTick(float delta) override {
-        Query<std::shared_ptr<RigidBody>> query = getWorld()->queryComponents()
+        auto regionQuery = getWorld()->queryComponents()
+            .filter(filterByType<GravityRegion>)
+            .map_ptr<Trigger>(mapToSibling<Trigger>)
+            .map_group_ptr<CollisionObject>([](std::shared_ptr<Trigger> t){ return t->getOverlaps(); });
+        auto bodyQuery = getWorld()->queryComponents()
             .filter(filterByType<ApplyGravity>)
             .map_ptr<RigidBody>(mapToSibling<RigidBody>);
-        for(std::shared_ptr<RigidBody> body : query) {
-            body->addForce(glm::vec3(0, -10, 0) * body->mass);
+        for(std::shared_ptr<RigidBody> body : bodyQuery) {
+            if(regionQuery.contains(body)) {
+                body->addForce(glm::vec3(0, -10, 0) * body->mass);
+            }
         }
     }
 };
@@ -207,6 +220,9 @@ public:
             .map_ptr<RigidBody>(mapToSibling<RigidBody>);
         for(std::shared_ptr<RigidBody> body : query) {
             for(CollisionObject::Hit& hit : body->getHits()) {
+                if(hit.other.lock()->getTypeId() == get_id(Trigger)) {
+                    continue;
+                }
                 for(CollisionObject::Contact& contact : hit.contacts) {
                     body->addPointImpulse(impulse * contact.normal, contact.worldPoint);
                 }
@@ -315,6 +331,8 @@ int main()
         glm::vec3 floorPos(0,0,0);
         glm::vec3 camPos(0,5,5);
         glm::vec3 boxPos(0,5,0);
+        glm::vec3 gravPos(0, 3, -7.5);
+        glm::vec3 gravSize(15, 5, 7.5);
 
         std::shared_ptr<Entity> floor = w->addEntity();
         {
@@ -325,11 +343,24 @@ int main()
             m->transform = meshTransform;
             meshTransform->setGlobalTransform(TransformData(floorPos, glm::quat(0,0,0,1), glm::vec3(15, 1, 15)));
             std::shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
-            collider->setExtents(glm::vec3(15, 1, 15) * 0.5f);
+            collider->setExtents(glm::vec3(1, 1, 1) * 0.5f);
             collider->transform = meshTransform;
             std::shared_ptr<StaticBody> body = floor->addComponent<StaticBody>();
             body->transform = meshTransform;
             body->colliders.push_back(collider);
+        }
+
+        std::shared_ptr<Entity> gravRegion = w->addEntity();
+        {
+            std::shared_ptr<Transform> t = gravRegion->addComponent<Transform>();
+            t->setGlobalTransform(TransformData(gravPos, glm::quat(0,0,0,1), gravSize));
+            std::shared_ptr<BoxCollider> collider = gravRegion->addComponent<BoxCollider>();
+            collider->setExtents(glm::vec3(1,1,1) * 0.5f);
+            collider->transform = t;
+            std::shared_ptr<Trigger> trig = gravRegion->addComponent<Trigger>();
+            trig->transform = t;
+            trig->colliders.push_back(collider);
+            gravRegion->addComponent<GravityRegion>();
         }
 
         spawnBox(w, boxPos);
