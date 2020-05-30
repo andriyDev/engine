@@ -73,7 +73,7 @@ public:
     virtual void gameplayTick(float delta) override {
         Query<std::shared_ptr<RigidBody>> query = getWorld()->queryComponents()
             .filter(filterByType<ApplyGravity>)
-            .map<std::shared_ptr<RigidBody>>(mapToSibling<RigidBody>);
+            .map_ptr<RigidBody>(mapToSibling<RigidBody>);
         for(std::shared_ptr<RigidBody> body : query) {
             body->addForce(glm::vec3(0, -10, 0) * body->mass);
         }
@@ -122,11 +122,11 @@ public:
                 ISptr->setTargetWindow(nullptr);
             }
         }
-        Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
+        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents()
             .filter(filterByType<ControlledEntity>)
-            .map<std::shared_ptr<Camera>>(mapToSibling<Camera>);
-        for(std::shared_ptr<Camera> cam : c) {
-            std::shared_ptr<Transform> transform = cam->getTransform();
+            .map_ptr<Camera>(mapToSibling<Camera>)
+            .map_ptr<Transform>(mapToTransform);
+        for(std::shared_ptr<Transform> transform : c) {
             if(!transform) {
                 continue;
             }
@@ -140,11 +140,11 @@ public:
     }
     virtual void gameplayTick(float delta) override {
         std::shared_ptr<InputSystem> ISptr = IS.lock();
-        Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
+        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents()
             .filter(filterByType<ControlledEntity>)
-            .map<std::shared_ptr<Camera>>(mapToSibling<Camera>);
-        for(std::shared_ptr<Camera> cam : c) {
-            std::shared_ptr<Transform> transform = cam->getTransform();
+            .map_ptr<Camera>(mapToSibling<Camera>)
+            .map_ptr<Transform>(mapToTransform);
+        for(std::shared_ptr<Transform> transform : c) {
             if(!transform) {
                 continue;
             }
