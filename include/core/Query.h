@@ -133,3 +133,11 @@ private:
 };
 
 std::function<bool(std::shared_ptr<Component>)> filterByTypeId(uint typeId);
+
+std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component);
+
+template<typename T>
+std::shared_ptr<T> mapToComponent(std::shared_ptr<Entity> entity)
+{
+    return entity->findComponent<T>();
+}
