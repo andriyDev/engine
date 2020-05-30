@@ -70,6 +70,5 @@ btCollisionObject* RigidBody::constructObject(btCollisionShape* shape, btMotionS
     btVector3 inertia;
     shape->calculateLocalInertia(mass, inertia);
     btRigidBody* r = new btRigidBody(mass, motion, shape, inertia);
-    r->setActivationState(DISABLE_DEACTIVATION);
     return r;
 }
