@@ -132,7 +132,10 @@ private:
     friend class Query;
 };
 
-std::function<bool(std::shared_ptr<Component>)> filterByTypeId(uint typeId);
+template<typename T>
+bool filterByType(std::shared_ptr<Component> component) {
+    return component->getTypeId() == get_id(T);
+}
 
 std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component);
 
