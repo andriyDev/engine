@@ -21,6 +21,23 @@ public:
         addComponent(t);
         return t;
     }
+    
+    /*
+    Removes the component from this entities ownership.
+    */
+    void removeComponent(std::shared_ptr<Component> component);
+    // Finds any component satisfying the type and removes it.
+    std::shared_ptr<Component> removeComponentByType(uint typeId);
+    // Finds all components satisfying the type and removes them.
+    void removeComponentsByType(uint typeId);
+    template<typename T>
+    std::shared_ptr<T> removeComponent() {
+        return std::static_pointer_cast<T>(removeComponentByType(get_id(T)));
+    }
+    template<typename T>
+    void removeComponents() {
+        removeComponentsByType(get_id(T));
+    }
 
     // Finds any component attached to this entity with the specified type.
     std::shared_ptr<Component> findComponentByType(uint typeId);
