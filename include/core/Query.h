@@ -66,6 +66,34 @@ public:
     }
 
     template<typename U>
+    Query<U> map_group(std::function<std::vector<U> (T)> fcn)
+    {
+        if(!filters.empty()) {
+            apply();
+        }
+        Query<U> result;
+        for(T t : *this) {
+            std::vector<U> u = fcn(t);
+            result.items.insert(u.begin(), u.end());
+        }
+        return result;
+    }
+
+    template<typename U>
+    Query<std::shared_ptr<U>> map_group_ptr(std::function<std::vector<std::shared_ptr<U>> (T)> fcn)
+    {
+        if(!filters.empty()) {
+            apply();
+        }
+        Query<std::shared_ptr<U>> result;
+        for(T t : *this) {
+            std::vector<std::shared_ptr<U>> u = fcn(t);
+            result.items.insert(u.begin(), u.end());
+        }
+        return result;
+    }
+
+    template<typename U>
     Query<U> cast() {
         if(!filters.empty()) {
             apply();
@@ -79,6 +107,10 @@ public:
             apply();
         }
         return map<std::shared_ptr<U>>([](T t){ return std::static_pointer_cast<U>(t); });
+    }
+
+    bool contains(T t) {
+        return items.find(t) != items.end();
     }
 
     // Takes the union of the two queries (mutating the left Query).
