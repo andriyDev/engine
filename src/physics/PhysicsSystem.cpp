@@ -135,11 +135,11 @@ void PhysicsSystem::gameplayTick(float delta)
             hitA->contacts.push_back(CollisionObject::Contact(
                 convert(contact.getPositionWorldOnA()),
                 convert(contact.m_localPointA),
-                -convert(contact.m_normalWorldOnB)));
+                convert(contact.m_normalWorldOnB)));
             hitB->contacts.push_back(CollisionObject::Contact(
                 convert(contact.getPositionWorldOnB()),
                 convert(contact.m_localPointB),
-                convert(contact.m_normalWorldOnB)));
+                -convert(contact.m_normalWorldOnB)));
         }
     }
 }

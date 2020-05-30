@@ -80,6 +80,8 @@ public:
     }
 };
 
+class Bounce;
+
 void spawnBox(std::shared_ptr<World> world, glm::vec3 point)
 {
     std::shared_ptr<Entity> box = world->addEntity();
@@ -98,6 +100,7 @@ void spawnBox(std::shared_ptr<World> world, glm::vec3 point)
     body->mass = 10;
     body->colliders.push_back(collider);
     box->addComponent<ApplyGravity>();
+    box->addComponent<Bounce>();
 }
 
 class ControlledEntity : public Component
@@ -183,6 +186,31 @@ public:
         }
         else {
             down = false;
+        }
+    }
+};
+
+class Bounce : public Component
+{
+public:
+    Bounce() : Component(get_id(Bounce)) {}
+};
+
+class BoxBouncer : public System
+{
+public:
+    float impulse = 2.5f;
+
+    virtual void gameplayTick(float delta) override {
+        auto query = getWorld()->queryComponents()
+            .filter(filterByType<Bounce>)
+            .map_ptr<RigidBody>(mapToSibling<RigidBody>);
+        for(std::shared_ptr<RigidBody> body : query) {
+            for(CollisionObject::Hit& hit : body->getHits()) {
+                for(CollisionObject::Contact& contact : hit.contacts) {
+                    body->addPointImpulse(impulse * contact.normal, contact.worldPoint);
+                }
+            }
         }
     }
 };
@@ -277,6 +305,8 @@ int main()
 
         std::shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
         Physics->setGravity(glm::vec3(0,0,0));
+
+        w->addSystem<BoxBouncer>(-5);
 
         w->addSystem<BoxSpawner>(6)->IS = IS;
 
