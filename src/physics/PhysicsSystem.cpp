@@ -182,7 +182,7 @@ void PhysicsSystem::cleanUpCollisionObject(PhysicsSystem::CollisionObjectData& b
 
 void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyComponent)
 {
-    CollisionObjectData data;
+    CollisionObjectData data; 
     data.compoundShape = new btCompoundShape();
     std::shared_ptr<Transform> bodyTransform = bodyComponent->getTransform();
     for(std::shared_ptr<Collider>& collider : bodyComponent->getColliders())
@@ -200,15 +200,19 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
         : new TransformMotionState(bodyComponent, &collisionObjects);
     data.updateId = bodyTransform->sumUpdates();
     data.motionState = tms;
+    TransformData bodyTD = bodyTransform->getGlobalTransform();
+    data.compoundShape->setLocalScaling(convert(bodyTD.scale));
     data.collisionObject = bodyComponent->constructObject(data.compoundShape, data.motionState);
     if(bodyComponent->getTypeId() == get_id(Trigger)) {
-        data.collisionObject->setWorldTransform(convert(bodyTransform->getGlobalTransform()));
+        data.collisionObject->setWorldTransform(convert(bodyTD));
     }
     data.collisionObject->setUserPointer(bodyComponent.get());
     bodyComponent->body = data.collisionObject;
     bodyComponent->hits.clear();
     btRigidBody* asRB = btRigidBody::upcast(data.collisionObject);
-    tms->body = asRB;
+    if(tms) {
+        tms->body = asRB;
+    }
     if(asRB) {
         physicsWorld->addRigidBody(asRB);
         data.type = CollisionObjectData::RigidBody;

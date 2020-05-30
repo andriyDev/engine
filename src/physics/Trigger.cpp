@@ -6,6 +6,7 @@
 btCollisionObject* Trigger::constructObject(class btCollisionShape* shape, class btMotionState* motion)
 {
     btGhostObject* obj = new btGhostObject();
+    obj->setCollisionFlags(obj->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
     obj->setCollisionShape(shape);
     return obj;
 }
