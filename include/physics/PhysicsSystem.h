@@ -9,6 +9,21 @@ class Entity;
 class Collider;
 class CollisionObject;
 
+struct RaycastHit
+{
+    bool valid = false;
+    glm::vec3 point;
+    float fraction;
+    glm::vec3 normal;
+    std::weak_ptr<CollisionObject> obj;
+
+    inline std::shared_ptr<CollisionObject> getObj() const { return obj.lock(); }
+
+    operator bool() const {
+        return valid;
+    }
+};
+
 class PhysicsSystem : public System
 {
 public:
@@ -19,21 +34,6 @@ public:
 
     void setGravity(const glm::vec3& _gravity);
     glm::vec3 getGravity() const { return gravity; }
-
-    struct RaycastHit
-    {
-        bool valid = false;
-        glm::vec3 point;
-        float fraction;
-        glm::vec3 normal;
-        std::weak_ptr<CollisionObject> obj;
-
-        inline std::shared_ptr<CollisionObject> getObj() const { return obj.lock(); }
-
-        operator bool() const {
-            return valid;
-        }
-    };
 
     RaycastHit rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
         std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;

@@ -57,6 +57,8 @@ PhysicsSystem::~PhysicsSystem()
     if(solver) { delete solver; }
     if(triggerCallback) { delete triggerCallback; }
 
+    physicsWorld = nullptr;
+
     for(auto& p : collisionObjects) {
         cleanUpCollisionObject(p.second);
     }
@@ -176,6 +178,13 @@ void PhysicsSystem::gameplayTick(float delta)
 
 void PhysicsSystem::cleanUpCollisionObject(PhysicsSystem::CollisionObjectData& body)
 {
+    if(physicsWorld) {
+        if(body.type == CollisionObjectData::RigidBody) {
+            physicsWorld->removeRigidBody(btRigidBody::upcast(body.collisionObject));
+        } else {
+            physicsWorld->removeCollisionObject(body.collisionObject);
+        }
+    }
     delete body.collisionObject;
     delete body.compoundShape;
     delete body.motionState;
@@ -382,7 +391,7 @@ public:
     }
 };
 
-PhysicsSystem::RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
+RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
     std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     std::set<std::shared_ptr<Entity>> ignoredEntities;
@@ -391,7 +400,7 @@ PhysicsSystem::RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const 
         std::set<std::shared_ptr<CollisionObject>>(), hitTriggers);
 }
 
-PhysicsSystem::RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
+RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
     const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
     bool hitTriggers) const
@@ -429,7 +438,7 @@ PhysicsSystem::RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const 
     return result;
 }
         
-std::vector<PhysicsSystem::RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const glm::vec3& direction, 
+std::vector<RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const glm::vec3& direction, 
     float range, std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     std::set<std::shared_ptr<Entity>> ignoredEntities;
@@ -438,7 +447,7 @@ std::vector<PhysicsSystem::RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3
         std::set<std::shared_ptr<CollisionObject>>(), hitTriggers);
 }
 
-std::vector<PhysicsSystem::RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const glm::vec3& direction,
+std::vector<RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const glm::vec3& direction,
     float range, const std::set<std::shared_ptr<Entity>>& ignoredEntities,
     const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
     bool hitTriggers) const

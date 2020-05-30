@@ -25,6 +25,11 @@ std::shared_ptr<Entity> World::addEntity()
     return ptr;
 }
 
+void World::removeEntity(std::shared_ptr<Entity> entity)
+{
+    entities.erase(entity);
+}
+
 void World::addEntity(std::shared_ptr<Entity> entity)
 {
     entities.insert(entity);

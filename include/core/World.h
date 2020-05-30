@@ -22,6 +22,8 @@ public:
     std::shared_ptr<Entity> addEntity();
     /* Transfers ownership of an entity to this world. */
     void addEntity(std::shared_ptr<Entity> entity);
+    /* Removes the entity from the world's ownership. */
+    void removeEntity(std::shared_ptr<Entity> entity);
 
     /*
     Adds the system in order of decreasing priority (if priority is equal, later additions will be first).
