@@ -5,6 +5,7 @@
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 #include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <bullet/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 #include "physics/Collider.h"
 #include "physics/CollisionObject.h"
 #include "physics/RigidBody.h"
@@ -348,4 +349,125 @@ void PhysicsSystem::updateStateOfObject(std::shared_ptr<CollisionObject>& bodyCo
     {
         bodyData.collisionObject->setWorldTransform(convert(globalTransform));
     }
+}
+
+struct FilterRaysCallback : public btCollisionWorld::RayResultCallback
+{
+public:
+    btCollisionWorld::RayResultCallback* wrappedCallback;
+    bool hitTriggers;
+    const std::set<std::shared_ptr<CollisionObject>>* ignoredBodies;
+    const std::set<std::shared_ptr<Entity>>* ignoreEntities;
+
+    FilterRaysCallback(btCollisionWorld::RayResultCallback* _wrappedCallback)
+        : wrappedCallback(_wrappedCallback)
+    { }
+
+    bool hasHit() const {
+        return wrappedCallback->hasHit();
+    }
+
+    virtual bool needsCollision(btBroadphaseProxy* proxy0) const override {
+        return wrappedCallback->needsCollision(proxy0);
+    }
+
+    virtual btScalar addSingleResult(btCollisionWorld::LocalRayResult& rayResult, bool normalInWorldSpace) override
+    {
+        if(true) { // Do filtering.
+            return wrappedCallback->addSingleResult(rayResult, normalInWorldSpace);
+        }
+        else {
+            return wrappedCallback->m_closestHitFraction;
+        }
+    }
+};
+
+PhysicsSystem::RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
+{
+    std::set<std::shared_ptr<Entity>> ignoredEntities;
+    ignoredEntities.insert(ignoredEntity);
+    return rayCast(source, direction, range, ignoredEntities,
+        std::set<std::shared_ptr<CollisionObject>>(), hitTriggers);
+}
+
+PhysicsSystem::RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
+    const std::set<std::shared_ptr<Entity>>& ignoredEntities,
+    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    bool hitTriggers) const
+{
+    RaycastHit result;
+    result.valid = false;
+    result.point = source + direction * range;
+    result.normal = glm::vec3(0,0,0);
+    result.obj = std::shared_ptr<CollisionObject>();
+    result.fraction = 1;
+
+    if(!physicsWorld) {
+        return result;
+    }
+
+    btVector3 from = convert(source);
+    btVector3 to = convert(result.point); // We already computed the endpoint.
+
+    btCollisionWorld::ClosestRayResultCallback closestRay(from, to);
+    closestRay.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+
+    FilterRaysCallback filter(&closestRay);
+    filter.ignoredBodies = &ignoredBodies;
+    filter.ignoreEntities = &ignoredEntities;
+
+    physicsWorld->rayTest(from, to, filter);
+
+    if(closestRay.hasHit()) {
+        result.valid = true;
+        result.point = convert(closestRay.m_hitPointWorld);
+        result.obj = reverseObjects.find(const_cast<btCollisionObject*>(closestRay.m_collisionObject))->second.lock();
+        result.normal = convert(closestRay.m_hitNormalWorld);
+        result.fraction = closestRay.m_closestHitFraction;
+    }
+    return result;
+}
+        
+std::vector<PhysicsSystem::RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const glm::vec3& direction, 
+    float range, std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
+{
+    std::set<std::shared_ptr<Entity>> ignoredEntities;
+    ignoredEntities.insert(ignoredEntity);
+    return rayCastAll(source, direction, range, ignoredEntities,
+        std::set<std::shared_ptr<CollisionObject>>(), hitTriggers);
+}
+
+std::vector<PhysicsSystem::RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const glm::vec3& direction,
+    float range, const std::set<std::shared_ptr<Entity>>& ignoredEntities,
+    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    bool hitTriggers) const
+{
+    std::vector<RaycastHit> hits;
+    if(!physicsWorld) {
+        return hits;
+    }
+
+    btVector3 from = convert(source);
+    btVector3 to = convert(source + direction * range); // We already computed the endpoint.
+
+    btCollisionWorld::AllHitsRayResultCallback allRays(from, to);
+    allRays.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
+
+    FilterRaysCallback filter(&allRays);
+    filter.ignoredBodies = &ignoredBodies;
+    filter.ignoreEntities = &ignoredEntities;
+
+    physicsWorld->rayTest(from, to, filter);
+
+    hits.resize(allRays.m_hitFractions.size());
+    for(int i = 0; i < allRays.m_hitFractions.size(); i++) {
+        RaycastHit& result = hits[i];
+        result.valid = true;
+        result.point = convert(allRays.m_hitPointWorld[i]);
+        result.obj = reverseObjects.find(const_cast<btCollisionObject*>(allRays.m_collisionObjects[i]))->second.lock();
+        result.normal = convert(allRays.m_hitNormalWorld[i]);
+        result.fraction = allRays.m_hitFractions[i];
+    }
+    return hits;
 }
