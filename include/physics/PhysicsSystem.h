@@ -29,11 +29,23 @@ protected:
 
     struct CollisionObjectData
     {
+        enum Type
+        {
+            RigidBody,
+            Generic
+        };
+
         class btCollisionObject* collisionObject;
         class btCompoundShape* compoundShape;
         class btMotionState* motionState;
-        std::map<std::weak_ptr<Collider>, class btCollisionShape*, std::owner_less<>> shapeMap;
+        Type type;
+        uint updateId;
+        std::map<std::weak_ptr<Collider>,
+            std::pair<class btCollisionShape*, uint>,
+            std::owner_less<>> shapeMap;
     };
+
+    friend class TransformMotionState;
 
     std::map<std::weak_ptr<CollisionObject>, CollisionObjectData, std::owner_less<>> collisionObjects;
 

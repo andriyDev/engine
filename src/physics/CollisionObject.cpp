@@ -7,7 +7,9 @@ std::vector<std::shared_ptr<Collider>> CollisionObject::getColliders()
     out.reserve(colliders.size());
     for(std::weak_ptr<Collider>& wptr : colliders) {
         std::shared_ptr<Collider> collider = wptr.lock();
-        out.push_back(collider);
+        if(collider) {
+            out.push_back(collider);
+        }
     }
     return out;
 }
