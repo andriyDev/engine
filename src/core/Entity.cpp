@@ -2,6 +2,11 @@
 #include "core/Entity.h"
 #include "core/Component.h"
 
+Query<std::shared_ptr<Component>> Entity::queryComponents()
+{
+    return Query<std::shared_ptr<Component>>(components);
+}
+
 void Entity::addComponent(std::shared_ptr<Component> component)
 {
     components.insert(component);

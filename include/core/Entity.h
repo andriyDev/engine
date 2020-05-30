@@ -2,6 +2,7 @@
 #pragma once
 
 #include "std.h"
+#include "core/Query.h"
 
 class World;
 class Component;
@@ -9,6 +10,9 @@ class Component;
 class Entity : public std::enable_shared_from_this<Entity>
 {
 public:
+    // Returns a query that can filter down components owned by the entity.
+    Query<std::shared_ptr<Component>> queryComponents();
+
     /*
     Transfers ownership of the component to this entity.
     Do not store shared_ptrs to the component afterwards.
