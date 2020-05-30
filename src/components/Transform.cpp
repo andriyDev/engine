@@ -99,7 +99,8 @@ TransformData& TransformData::operator*=(const TransformData& rhs)
     return *this;
 }
 
-TransformData TransformData::inverse() {
+TransformData TransformData::inverse() const
+{
     TransformData inv;
     inv.rotation = glm::inverse(rotation);
     inv.scale = glm::vec3(
@@ -111,17 +112,17 @@ TransformData TransformData::inverse() {
     return inv;
 }
 
-glm::vec3 TransformData::transformPoint(const glm::vec3& point)
+glm::vec3 TransformData::transformPoint(const glm::vec3& point) const
 {
     return rotation * (scale * point) + translation;
 }
 
-glm::vec3 TransformData::transformDirection(const glm::vec3& direction)
+glm::vec3 TransformData::transformDirection(const glm::vec3& direction) const
 {
     return rotation * direction;
 }
 
-glm::vec3 TransformData::transformDirectionWithScale(const glm::vec3& direction)
+glm::vec3 TransformData::transformDirectionWithScale(const glm::vec3& direction) const
 {
     return rotation * (scale * direction);
 }
@@ -135,7 +136,7 @@ TransformData TransformData::lerp(TransformData other, float alpha) const
     return result;
 }
 
-glm::mat4 TransformData::toMat4()
+glm::mat4 TransformData::toMat4() const
 {
     return glm::translate(glm::mat4(1.0f), translation)
         * glm::mat4_cast(rotation)

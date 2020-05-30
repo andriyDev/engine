@@ -25,18 +25,22 @@ struct TransformData
     {}
 
     // Computes the inverse of this transformation.
-    TransformData inverse();
+    TransformData inverse() const;
 
     // Applies translation, rotation and scaling to the point so it is relative to the transform's reference frame.
-    glm::vec3 transformPoint(const glm::vec3& point);
+    glm::vec3 transformPoint(const glm::vec3& point) const;
     // Applies rotation to the direction so it is relative to the transform's reference frame.
-    glm::vec3 transformDirection(const glm::vec3& direction);
+    glm::vec3 transformDirection(const glm::vec3& direction) const;
     // Applies rotation and scaling to the direction so it is relative to the transform's reference frame.
-    glm::vec3 transformDirectionWithScale(const glm::vec3& direction);
+    glm::vec3 transformDirectionWithScale(const glm::vec3& direction) const;
+
+    glm::vec3 forward() const { return transformDirection(glm::vec3(0, 0, -1)); }
+    glm::vec3 right() const { return transformDirection(glm::vec3(1, 0, 0)); }
+    glm::vec3 up() const { return transformDirection(glm::vec3(0, 1, 0)); }
 
     TransformData lerp(TransformData other, float alpha) const;
 
-    glm::mat4 toMat4();
+    glm::mat4 toMat4() const;
 
     TransformData& operator*=(const TransformData& rhs);
     friend TransformData& operator*(TransformData lhs, const TransformData& rhs) {
