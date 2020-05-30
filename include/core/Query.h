@@ -51,6 +51,18 @@ public:
     }
 
     template<typename U>
+    Query<std::shared_ptr<U>> map_ptr(std::function<std::shared_ptr<U> (T)> fcn) {
+        if(!filters.empty()) {
+            apply();
+        }
+        Query<std::shared_ptr<U>> result;
+        for(T t : *this) {
+            result.items.insert(fcn(t));
+        }
+        return result;
+    }
+
+    template<typename U>
     Query<U> cast() {
         if(!filters.empty()) {
             apply();
