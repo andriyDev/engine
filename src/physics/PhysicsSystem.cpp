@@ -9,6 +9,7 @@
 #include "physics/RigidBody.h"
 #include "physics/StaticBody.h"
 #include "physics/KinematicBody.h"
+#include "physics/Trigger.h"
 
 #include "physics/BulletUtil.h"
 
@@ -97,7 +98,8 @@ void PhysicsSystem::gameplayTick(float delta)
         .filter([](std::shared_ptr<Component> ptr){
             return ptr->getTypeId() == get_id(RigidBody)
                 || ptr->getTypeId() == get_id(StaticBody)
-                || ptr->getTypeId() == get_id(KinematicBody);
+                || ptr->getTypeId() == get_id(KinematicBody)
+                || ptr->getTypeId() == get_id(Trigger);
         })
         .cast_ptr<CollisionObject>()
         .filter([](std::shared_ptr<CollisionObject> ptr) {
@@ -171,10 +173,15 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
         data.shapeMap.insert(std::make_pair(collider, std::make_pair(shape, updateId)));
         collider->shapeUpdated = false;
     }
-    TransformMotionState* tms = new TransformMotionState(bodyComponent, &collisionObjects);
+    // No point in constructing the motion state if we won't use it.
+    TransformMotionState* tms = bodyComponent->getTypeId() == get_id(Trigger) ? nullptr
+        : new TransformMotionState(bodyComponent, &collisionObjects);
     data.updateId = bodyTransform->sumUpdates();
     data.motionState = tms;
     data.collisionObject = bodyComponent->constructObject(data.compoundShape, data.motionState);
+    if(bodyComponent->getTypeId() == get_id(Trigger)) {
+        data.collisionObject->setWorldTransform(convert(bodyTransform->getGlobalTransform()));
+    }
     data.collisionObject->setUserPointer(bodyComponent.get());
     bodyComponent->body = data.collisionObject;
     bodyComponent->hits.clear();

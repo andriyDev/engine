@@ -49,6 +49,7 @@ set(MAIN_SRC ${MAIN_SRC}
     src/physics/Collider.cpp
     src/physics/RigidBody.cpp
     src/physics/KinematicBody.cpp
+    src/physics/Trigger.cpp
     src/physics/BoxCollider.cpp
     src/physics/SphereCollider.cpp
     src/physics/PhysicsSystem.cpp)
