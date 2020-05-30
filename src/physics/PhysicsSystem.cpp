@@ -54,6 +54,7 @@ PhysicsSystem::~PhysicsSystem()
     if(dispatcher) { delete dispatcher; }
     if(broadphase) { delete broadphase; }
     if(solver) { delete solver; }
+    if(triggerCallback) { delete triggerCallback; }
 
     for(auto& p : collisionObjects) {
         cleanUpCollisionObject(p.second);
@@ -75,6 +76,8 @@ void PhysicsSystem::init()
     broadphase = new btDbvtBroadphase();
     solver = new btSequentialImpulseConstraintSolver();
     physicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, configuration);
+    triggerCallback = new btGhostPairCallback();
+    physicsWorld->getPairCache()->setInternalGhostPairCallback(triggerCallback);
     physicsWorld->setGravity(convert(gravity));
 }
 

@@ -25,6 +25,7 @@ protected:
     class btCollisionDispatcher* dispatcher = nullptr;
     class btBroadphaseInterface* broadphase = nullptr;
     class btConstraintSolver* solver = nullptr;
+    class btGhostPairCallback* triggerCallback = nullptr;
     class btDiscreteDynamicsWorld* physicsWorld = nullptr;
 
     struct CollisionObjectData
