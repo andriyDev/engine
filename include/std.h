@@ -21,3 +21,5 @@
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
+
+#define get_id(x) (uint)(typeid(x).hash_code())
