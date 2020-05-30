@@ -254,7 +254,9 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
     if(shapeUpdated) {
         bodyData.compoundShape->recalculateLocalAabb();
         if(bodyData.type == CollisionObjectData::RigidBody) {
-            physicsWorld->addRigidBody(btRigidBody::upcast(bodyData.collisionObject));
+            btRigidBody* rb = btRigidBody::upcast(bodyData.collisionObject);
+            rb->updateInertiaTensor();
+            physicsWorld->addRigidBody(rb);
         } else {
             physicsWorld->addCollisionObject(bodyData.collisionObject);
         }
