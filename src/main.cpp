@@ -16,7 +16,6 @@
 #include "components/Transform.h"
 #include "components/MeshRenderer.h"
 #include "components/Camera.h"
-#include "ComponentTypes.h"
 #include "renderer/RenderSystem.h"
 #include "renderer/Material.h"
 #include "renderer/RenderableTexture.h"
@@ -68,7 +67,7 @@ public:
     virtual void frameTick(float delta) override {
         time += delta;
         Query<std::shared_ptr<MeshRenderer>> mrs = getWorld()->queryComponents()
-            .filter(filterByTypeId(MESH_RENDERER_ID))
+            .filter(filterByTypeId(get_id(MeshRenderer)))
             .cast_ptr<MeshRenderer>();
         A.resolve(Immediate);
         B.resolve(Immediate);
@@ -86,7 +85,7 @@ public:
     virtual void gameplayTick(float delta) override {
         std::shared_ptr<InputSystem> ISptr = IS.lock();
         Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
-            .filter(filterByTypeId(CAMERA_ID))
+            .filter(filterByTypeId(get_id(Camera)))
             .cast_ptr<Camera>();
         for(std::shared_ptr<Camera> cam : c) {
             std::shared_ptr<Transform> transform = cam->getTransform();

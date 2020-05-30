@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <typeindex>
 #include <vector>
 #include <map>
 #include <unordered_map>
@@ -20,3 +21,5 @@
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
+
+#define get_id(x) (uint)(typeid(x).hash_code())

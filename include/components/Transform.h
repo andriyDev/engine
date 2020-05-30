@@ -9,8 +9,6 @@
 
 #include "core/Component.h"
 
-#include "ComponentTypes.h"
-
 struct TransformData
 {
     glm::vec3 translation;
@@ -51,7 +49,7 @@ std::string to_string(const TransformData& data);
 class Transform : public Component
 {
 public:
-    Transform() : Component(TRANSFORM_ID) {}
+    Transform() : Component(get_id(Transform)) {}
 
     // Gets the relative transform.
     TransformData getRelativeTransform() const {
