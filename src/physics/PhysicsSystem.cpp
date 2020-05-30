@@ -132,6 +132,8 @@ void PhysicsSystem::gameplayTick(float delta)
         for(int j = 0; j < contacts; j++) {
             const btManifoldPoint& contact = manifold->getContactPoint(j);
 
+            // TODO: Figure out how much force was applied by the contact.
+
             hitA->contacts.push_back(CollisionObject::Contact(
                 convert(contact.getPositionWorldOnA()),
                 convert(contact.m_localPointA),
