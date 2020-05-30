@@ -106,3 +106,5 @@ public:
         return transform.lock();
     }
 };
+
+std::shared_ptr<Transform> mapToTransform(std::shared_ptr<Transformable> component);

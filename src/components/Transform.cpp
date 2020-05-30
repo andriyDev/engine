@@ -248,3 +248,8 @@ std::vector<std::shared_ptr<Transform>> Transform::getChildren() const
 
     return out;
 }
+
+std::shared_ptr<Transform> mapToTransform(std::shared_ptr<Transformable> component)
+{
+    return component ? component->getTransform() : nullptr;
+}
