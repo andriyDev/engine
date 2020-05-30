@@ -7,7 +7,7 @@
 class RigidBody : public CollisionObject
 {
 public:
-    RigidBody() : CollisionObject(RIGIDBODY_ID) {}
+    RigidBody() : CollisionObject(get_id(RigidBody)) {}
 
     float mass = 1;
 

@@ -4,12 +4,10 @@
 #include "std.h"
 #include "physics/Collider.h"
 
-#include "ComponentTypes.h"
-
 class BoxCollider : public Collider
 {
 public:
-    BoxCollider() : Collider(BOX_COLLIDER_ID) {}
+    BoxCollider() : Collider(get_id(BoxCollider)) {}
 
     void setExtents(const glm::vec3& _extents);
     inline glm::vec3 getExtents() const { return extents; }

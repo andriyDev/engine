@@ -7,7 +7,7 @@
 class StaticBody : public CollisionObject
 {
 public:
-    StaticBody() : CollisionObject(STATICBODY_ID) {}
+    StaticBody() : CollisionObject(get_id(StaticBody)) {}
 
     float mass = 1;
 

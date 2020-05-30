@@ -92,7 +92,7 @@ public:
             }
         }
         Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
-            .filter(filterByTypeId(CAMERA_ID))
+            .filter(filterByTypeId(get_id(Camera)))
             .cast_ptr<Camera>();
         for(std::shared_ptr<Camera> cam : c) {
             std::shared_ptr<Transform> transform = cam->getTransform();

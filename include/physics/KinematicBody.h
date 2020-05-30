@@ -7,7 +7,7 @@
 class KinematicBody : public CollisionObject
 {
 public:
-    KinematicBody() : CollisionObject(RIGIDBODY_ID) {}
+    KinematicBody() : CollisionObject(get_id(KinematicBody)) {}
 
     float mass = 1;
 

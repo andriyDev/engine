@@ -6,6 +6,9 @@
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
 #include "physics/Collider.h"
 #include "physics/CollisionObject.h"
+#include "physics/RigidBody.h"
+#include "physics/StaticBody.h"
+#include "physics/KinematicBody.h"
 
 #include "physics/BulletUtil.h"
 
@@ -92,8 +95,9 @@ void PhysicsSystem::gameplayTick(float delta)
     // Look through all body components and setup any new bodies.
     Query<std::shared_ptr<CollisionObject>> allBodies = getWorld()->queryComponents()
         .filter([](std::shared_ptr<Component> ptr){
-            return ptr->getTypeId() == RIGIDBODY_ID
-                || ptr->getTypeId() == STATICBODY_ID;
+            return ptr->getTypeId() == get_id(RigidBody)
+                || ptr->getTypeId() == get_id(StaticBody)
+                || ptr->getTypeId() == get_id(KinematicBody);
         })
         .cast_ptr<CollisionObject>()
         .filter([](std::shared_ptr<CollisionObject> ptr) {
