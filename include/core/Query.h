@@ -57,7 +57,10 @@ public:
         }
         Query<std::shared_ptr<U>> result;
         for(T t : *this) {
-            result.items.insert(fcn(t));
+            std::shared_ptr<U> u = fcn(t);
+            if(u) {
+                result.items.insert(u);
+            }
         }
         return result;
     }
