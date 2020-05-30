@@ -10,8 +10,6 @@
 #include "components/MeshRenderer.h"
 #include "components/Camera.h"
 
-#include "ComponentTypes.h"
-
 void RenderSystem::init()
 {
     glEnable(GL_CULL_FACE);
@@ -25,10 +23,10 @@ void RenderSystem::frameTick(float delta)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Query<std::shared_ptr<Camera>> cameras = getWorld()->queryComponents()
-        .filter(filterByTypeId(CAMERA_ID))
+        .filter(filterByTypeId(get_id(Camera)))
         .cast_ptr<Camera>();
     Query<std::shared_ptr<MeshRenderer>> meshes = getWorld()->queryComponents()
-        .filter(filterByTypeId(MESH_RENDERER_ID))
+        .filter(filterByTypeId(get_id(MeshRenderer)))
         .cast_ptr<MeshRenderer>();
 
     float screenAspect = 1280.f / 720.f; // TODO

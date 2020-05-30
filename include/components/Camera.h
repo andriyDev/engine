@@ -4,8 +4,6 @@
 #include "std.h"
 #include "components/Transform.h"
 
-#include "ComponentTypes.h"
-
 #include <glm/glm.hpp>
 
 class Camera : public Transformable
@@ -16,7 +14,7 @@ public:
     float farClip = 10000;
     float aspect = 0;
 
-    Camera() : Transformable(CAMERA_ID) {}
+    Camera() : Transformable(get_id(Camera)) {}
 
     glm::mat4 getProjectionMatrix(float surfaceAspect) const;
 
