@@ -23,9 +23,9 @@ public:
     }
 
     // Finds any component attached to this entity with the specified type.
-    std::shared_ptr<Component> findComponentByType(int typeId);
+    std::shared_ptr<Component> findComponentByType(uint typeId);
     // Finds all components attached to this entity with the specified type.
-    std::set<std::shared_ptr<Component>> findComponentsByType(int typeId);
+    std::set<std::shared_ptr<Component>> findComponentsByType(uint typeId);
 
     inline std::shared_ptr<World> getWorld() const {
         return world.lock();

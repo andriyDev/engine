@@ -8,7 +8,7 @@ void Entity::addComponent(std::shared_ptr<Component> component)
     component->owner = shared_from_this();
 }
 
-std::shared_ptr<Component> Entity::findComponentByType(int typeId)
+std::shared_ptr<Component> Entity::findComponentByType(uint typeId)
 {
     for(std::shared_ptr<Component> component : components) {
         if(component->getTypeId() == typeId) {
@@ -18,7 +18,7 @@ std::shared_ptr<Component> Entity::findComponentByType(int typeId)
     return nullptr;
 }
 
-std::set<std::shared_ptr<Component>> Entity::findComponentsByType(int typeId)
+std::set<std::shared_ptr<Component>> Entity::findComponentsByType(uint typeId)
 {
     std::set<std::shared_ptr<Component>> typedComponents;
     for(std::shared_ptr<Component> component : components) {
