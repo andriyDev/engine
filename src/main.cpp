@@ -158,6 +158,35 @@ public:
     }
 };
 
+class BoxSpawner : public System
+{
+public:
+    std::weak_ptr<InputSystem> IS;
+    bool down = false;
+
+    virtual void gameplayTick(float delta) override {
+        std::shared_ptr<InputSystem> ISptr = IS.lock();
+        if(ISptr->isActionDown(0, "lmb", true)) {
+            // Workaround until we get isActionPressed working properly.
+            if(down) {
+                return;
+            }
+            down = true;
+            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents()
+                .filter(filterByType<ControlledEntity>)
+                .map_ptr<Camera>(mapToSibling<Camera>)
+                .map_ptr<Transform>(mapToTransform);
+            for(std::shared_ptr<Transform> transform : t) {
+                TransformData td = transform->getGlobalTransform();
+                spawnBox(getWorld(), td.transformPoint(glm::vec3(0, 0, -5)));
+            }
+        }
+        else {
+            down = false;
+        }
+    }
+};
+
 int main()
 {
     Window window;
@@ -248,6 +277,8 @@ int main()
 
         std::shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
         Physics->setGravity(glm::vec3(0,0,0));
+
+        w->addSystem<BoxSpawner>(6)->IS = IS;
 
         w->addEntity();
 
