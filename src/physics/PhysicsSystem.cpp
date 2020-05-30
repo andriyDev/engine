@@ -4,6 +4,7 @@
 
 #include <bullet/btBulletDynamicsCommon.h>
 #include <bullet/BulletDynamics/Dynamics/btRigidBody.h>
+#include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "physics/Collider.h"
 #include "physics/CollisionObject.h"
 #include "physics/RigidBody.h"
@@ -84,6 +85,7 @@ void PhysicsSystem::gameplayTick(float delta)
     for(auto it = collisionObjects.begin(); it != collisionObjects.end(); ) {
         std::shared_ptr<CollisionObject> col = it->first.lock();
         if(!col) {
+            reverseObjects.erase(it->second.collisionObject);
             cleanUpCollisionObject(it->second);
             collisionObjects.erase(it++);
         } else {
@@ -115,6 +117,26 @@ void PhysicsSystem::gameplayTick(float delta)
 
     // Step the simulation one frame.
     physicsWorld->stepSimulation(delta, 0);
+
+    // Go through all triggers we know about, clear their overlaps, and copy over their new overlaps.
+    for(auto it = collisionObjects.begin(); it != collisionObjects.end(); ) {
+        std::shared_ptr<CollisionObject> col = it->first.lock();
+        if(!col || col->getTypeId() != get_id(Trigger)) {
+            continue;
+        }
+        std::shared_ptr<Trigger> trigger = std::static_pointer_cast<Trigger>(col);
+        btGhostObject* btTrigger = static_cast<btGhostObject*>(it->second.collisionObject);
+        trigger->overlaps.clear();
+        int overlaps = btTrigger->getNumOverlappingObjects();
+        trigger->overlaps.reserve(overlaps);
+        for(int i = 0; i < overlaps; i++) {
+            auto jt = reverseObjects.find(btTrigger->getOverlappingObject(i));
+            if(jt == reverseObjects.end()) {
+                throw "Really not sure what heppened. Overlapped with an unknown collision object.";
+            }
+            trigger->overlaps.push_back(jt->second);
+        }
+    }
 
     int manifolds = dispatcher->getNumManifolds();
     for(int i = 0; i < manifolds; i++) {
@@ -195,6 +217,7 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
         data.type = CollisionObjectData::Generic;
     }
     collisionObjects.insert(std::make_pair(bodyComponent, data));
+    reverseObjects.insert(std::make_pair(data.collisionObject, bodyComponent));
 }
 
 std::map<btCollisionShape*, int> getChildMap(btCompoundShape* shape)

@@ -48,6 +48,7 @@ protected:
     friend class TransformMotionState;
 
     std::map<std::weak_ptr<CollisionObject>, CollisionObjectData, std::owner_less<>> collisionObjects;
+    std::map<btCollisionObject*, std::weak_ptr<CollisionObject>> reverseObjects;
 
     // Deletes everything associated with the specified body (does not remove the body from the collisionObjects map).
     void cleanUpCollisionObject(CollisionObjectData& body);

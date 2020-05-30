@@ -9,3 +9,15 @@ btCollisionObject* Trigger::constructObject(class btCollisionShape* shape, class
     obj->setCollisionShape(shape);
     return obj;
 }
+
+std::vector<std::shared_ptr<CollisionObject>> Trigger::getOverlaps()
+{
+    std::vector<std::shared_ptr<CollisionObject>> result;
+    for(std::weak_ptr<CollisionObject>& overlap : overlaps) {
+        std::shared_ptr<CollisionObject> overlapPtr = overlap.lock();
+        if(overlapPtr) {
+            result.push_back(overlapPtr);
+        }
+    }
+    return result;
+}
