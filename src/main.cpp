@@ -100,6 +100,12 @@ void spawnBox(std::shared_ptr<World> world, glm::vec3 point)
     box->addComponent<ApplyGravity>();
 }
 
+class ControlledEntity : public Component
+{
+public:
+    ControlledEntity() : Component(get_id(ControlledEntity)) {}
+};
+
 class CameraLookSystem : public System
 {
 public:
@@ -117,8 +123,8 @@ public:
             }
         }
         Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
-            .filter(filterByType<Camera>)
-            .cast_ptr<Camera>();
+            .filter(filterByType<ControlledEntity>)
+            .map<std::shared_ptr<Camera>>(mapToSibling<Camera>);
         for(std::shared_ptr<Camera> cam : c) {
             std::shared_ptr<Transform> transform = cam->getTransform();
             if(!transform) {
@@ -135,8 +141,8 @@ public:
     virtual void gameplayTick(float delta) override {
         std::shared_ptr<InputSystem> ISptr = IS.lock();
         Query<std::shared_ptr<Camera>> c = getWorld()->queryComponents()
-            .filter(filterByType<Camera>)
-            .cast_ptr<Camera>();
+            .filter(filterByType<ControlledEntity>)
+            .map<std::shared_ptr<Camera>>(mapToSibling<Camera>);
         for(std::shared_ptr<Camera> cam : c) {
             std::shared_ptr<Transform> transform = cam->getTransform();
             if(!transform) {
@@ -279,6 +285,7 @@ int main()
             std::shared_ptr<KinematicBody> body = camera->addComponent<KinematicBody>();
             body->transform = camTransform;
             body->colliders.push_back(collider);
+            camera->addComponent<ControlledEntity>();
         }
     }
 
