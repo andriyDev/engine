@@ -364,13 +364,19 @@ struct FilterRaysCallback : public btCollisionWorld::RayResultCallback
 {
 public:
     btCollisionWorld::RayResultCallback* wrappedCallback;
+    const std::map<btCollisionObject*, std::weak_ptr<CollisionObject>>* reverseObjects;
     bool hitTriggers;
     const std::set<std::shared_ptr<CollisionObject>>* ignoredBodies;
     const std::set<std::shared_ptr<Entity>>* ignoreEntities;
 
-    FilterRaysCallback(btCollisionWorld::RayResultCallback* _wrappedCallback)
-        : wrappedCallback(_wrappedCallback)
-    { }
+    FilterRaysCallback(btCollisionWorld::RayResultCallback* _wrappedCallback,
+        const std::map<btCollisionObject*, std::weak_ptr<CollisionObject>>* _reverseObjects)
+        : wrappedCallback(_wrappedCallback), reverseObjects(_reverseObjects)
+    {
+        m_flags = wrappedCallback->m_flags;
+        m_collisionFilterMask = wrappedCallback->m_collisionFilterMask;
+        m_collisionFilterGroup = wrappedCallback->m_collisionFilterGroup;
+    }
 
     bool hasHit() const {
         return wrappedCallback->hasHit();
@@ -382,8 +388,17 @@ public:
 
     virtual btScalar addSingleResult(btCollisionWorld::LocalRayResult& rayResult, bool normalInWorldSpace) override
     {
-        if(true) { // Do filtering.
-            return wrappedCallback->addSingleResult(rayResult, normalInWorldSpace);
+        auto it = reverseObjects->find(const_cast<btCollisionObject*>(rayResult.m_collisionObject));
+        auto CO = it != reverseObjects->end() ? it->second.lock() : nullptr;
+        auto EN = CO ? CO->getOwner() : nullptr;
+        if((!btGhostObject::upcast(rayResult.m_collisionObject) || hitTriggers)
+            && (!CO || ignoredBodies->find(CO) == ignoredBodies->end())
+            && (!EN || ignoreEntities->find(EN) == ignoreEntities->end())
+        ) { // Do filtering.
+            btScalar s = wrappedCallback->addSingleResult(rayResult, normalInWorldSpace);
+            m_closestHitFraction = wrappedCallback->m_closestHitFraction;
+            m_collisionObject = wrappedCallback->m_collisionObject;
+            return s;
         }
         else {
             return wrappedCallback->m_closestHitFraction;
@@ -422,7 +437,7 @@ RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& dire
     btCollisionWorld::ClosestRayResultCallback closestRay(from, to);
     closestRay.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
 
-    FilterRaysCallback filter(&closestRay);
+    FilterRaysCallback filter(&closestRay, &reverseObjects);
     filter.ignoredBodies = &ignoredBodies;
     filter.ignoreEntities = &ignoredEntities;
 
@@ -463,7 +478,7 @@ std::vector<RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const
     btCollisionWorld::AllHitsRayResultCallback allRays(from, to);
     allRays.m_flags |= btTriangleRaycastCallback::kF_KeepUnflippedNormal;
 
-    FilterRaysCallback filter(&allRays);
+    FilterRaysCallback filter(&allRays, &reverseObjects);
     filter.ignoredBodies = &ignoredBodies;
     filter.ignoreEntities = &ignoredEntities;
 
