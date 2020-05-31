@@ -148,6 +148,7 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
 
     glGetShaderiv(ProgramId, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
+    
     if(infoLength > 0) {
         std::vector<char> errorMsg(infoLength + 1);
         glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
