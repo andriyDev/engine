@@ -50,6 +50,29 @@ public:
         const std::set<std::shared_ptr<Entity>>& ignoredEntities,
         const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
+
+    RaycastHit shapeCast(const class btConvexShape* shape,
+        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
+        const glm::vec3& targetPosition, const glm::quat& targetRotation,
+        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+
+    RaycastHit shapeCast(const class btConvexShape* shape,
+        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
+        const glm::vec3& targetPosition, const glm::quat& targetRotation,
+        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
+        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        
+    std::vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
+        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
+        const glm::vec3& targetPosition, const glm::quat& targetRotation,
+        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+
+    std::vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
+        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
+        const glm::vec3& targetPosition, const glm::quat& targetRotation,
+        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
+        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+        bool hitTriggers = false) const;
 protected:
     glm::vec3 gravity = glm::vec3(0,-9.81f,0);
 
