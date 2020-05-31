@@ -104,13 +104,12 @@ void PhysicsSystem::gameplayTick(float delta)
         }
     }
     // Look through all body components and setup any new bodies.
-    Query<std::shared_ptr<CollisionObject>> allBodies = getWorld()->queryComponents()
-        .filter([](std::shared_ptr<Component> ptr){
-            return ptr->getTypeId() == get_id(RigidBody)
-                || ptr->getTypeId() == get_id(StaticBody)
-                || ptr->getTypeId() == get_id(KinematicBody)
-                || ptr->getTypeId() == get_id(Trigger);
-        })
+    Query<std::shared_ptr<CollisionObject>> allBodies = (
+        getWorld()->queryComponents(get_id(RigidBody))
+        | getWorld()->queryComponents(get_id(StaticBody))
+        | getWorld()->queryComponents(get_id(KinematicBody))
+        | getWorld()->queryComponents(get_id(Trigger))
+        )
         .cast_ptr<CollisionObject>()
         .filter([](std::shared_ptr<CollisionObject> ptr) {
             return ptr->colliders.size() > 0;

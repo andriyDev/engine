@@ -74,8 +74,8 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
     glCompileShader(shaderId);
 
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLength);
-    if(infoLength > 0) {
+    if(Result == GL_TRUE) {
+        glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLength);
         std::vector<char> errorMsg(infoLength + 1);
         glGetShaderInfoLog(shaderId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Shader Compilation):\n%s\n", &errorMsg[0]);
@@ -147,8 +147,9 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
     int infoLength;
 
     glGetShaderiv(ProgramId, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
-    if(infoLength > 0) {
+
+    if(Result == GL_TRUE) {
+        glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
         std::vector<char> errorMsg(infoLength + 1);
         glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);

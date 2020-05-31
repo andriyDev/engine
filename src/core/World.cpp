@@ -2,6 +2,7 @@
 #include "core/World.h"
 #include "core/Query.h"
 #include "core/Entity.h"
+#include "core/Component.h"
 #include "core/System.h"
 
 Query<std::shared_ptr<Entity>> World::queryEntities()
@@ -9,13 +10,11 @@ Query<std::shared_ptr<Entity>> World::queryEntities()
     return Query<std::shared_ptr<Entity>>(entities);
 }
 
-Query<std::shared_ptr<Component>> World::queryComponents()
+Query<std::shared_ptr<Component>> World::queryComponents(uint type)
 {
-    std::set<std::shared_ptr<Component>> s;
-    for(std::shared_ptr<Entity> e : entities) {
-        s.insert(e->components.begin(), e->components.end());
-    }
-    return Query<std::shared_ptr<Component>>(s);
+    auto it = components.find(type);
+    return Query<std::shared_ptr<Component>>(
+        it == components.end() ? std::unordered_set<std::shared_ptr<Component>>() : it->second);
 }
 
 std::shared_ptr<Entity> World::addEntity()
@@ -28,12 +27,19 @@ std::shared_ptr<Entity> World::addEntity()
 void World::removeEntity(std::shared_ptr<Entity> entity)
 {
     entities.erase(entity);
+    entity->world = std::shared_ptr<World>();
+    for(const std::shared_ptr<Component>& child : entity->components) {
+        removeComponent(child);
+    }
 }
 
 void World::addEntity(std::shared_ptr<Entity> entity)
 {
     entities.insert(entity);
     entity->world = shared_from_this();
+    for(const std::shared_ptr<Component>& child : entity->components) {
+        addComponent(child);
+    }
 }
 
 void World::addSystem(std::shared_ptr<System> system)
@@ -67,5 +73,20 @@ void World::gameplayTick(float delta)
             system->init();
         }
         system->gameplayTick(delta);
+    }
+}
+
+void World::addComponent(std::shared_ptr<Component> component)
+{
+    auto pair = components.insert(std::make_pair(component->getTypeId(),
+        std::unordered_set<std::shared_ptr<Component>>()));
+    pair.first->second.insert(component);
+}
+
+void World::removeComponent(std::shared_ptr<Component> component)
+{
+    auto it = components.find(component->getTypeId());
+    if(it != components.end()) {
+        it->second.erase(component);
     }
 }

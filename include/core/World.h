@@ -13,7 +13,7 @@ public:
     // Returns a query that can filter down entities in the world.
     Query<std::shared_ptr<Entity>> queryEntities();
     // Returns a query that can filter down components in the world.
-    Query<std::shared_ptr<Component>> queryComponents();
+    Query<std::shared_ptr<Component>> queryComponents(uint type);
     
     /*
     Constructs an empty entity and returns a pointer to it.
@@ -52,15 +52,20 @@ public:
     */
     void gameplayTick(float delta);
 
-    inline std::set<std::shared_ptr<Entity>> getEntities() const {
+    void addComponent(std::shared_ptr<Component> component);
+    void removeComponent(std::shared_ptr<Component> component);
+
+    inline std::unordered_set<std::shared_ptr<Entity>> getEntities() const {
         return entities;
     }
     inline std::vector<std::shared_ptr<System>> getSystems() const {
         return systems;
     }
 private:
-    std::set<std::shared_ptr<Entity>> entities;
+    std::unordered_set<std::shared_ptr<Entity>> entities;
+    std::unordered_map<uint, std::unordered_set<std::shared_ptr<Component>>> components;
     std::vector<std::shared_ptr<System>> systems;
 
     friend class Universe;
+    friend class Entity;
 };

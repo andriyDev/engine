@@ -66,12 +66,12 @@ public:
     inline std::shared_ptr<World> getWorld() const {
         return world.lock();
     }
-    inline std::set<std::shared_ptr<Component>> getComponents() const {
+    inline std::unordered_set<std::shared_ptr<Component>> getComponents() const {
         return components;
     }
 private:
     std::weak_ptr<World> world; // The world this entity is in.
-    std::set<std::shared_ptr<Component>> components; // The components attached to this entity.
+    std::unordered_set<std::shared_ptr<Component>> components; // The components attached to this entity.
 
     friend class Universe;
     friend class World;
