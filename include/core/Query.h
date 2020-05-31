@@ -51,6 +51,49 @@ public:
     }
 
     template<typename U>
+    Query<std::shared_ptr<U>> map_ptr(std::function<std::shared_ptr<U> (T)> fcn) {
+        if(!filters.empty()) {
+            apply();
+        }
+        Query<std::shared_ptr<U>> result;
+        for(T t : *this) {
+            std::shared_ptr<U> u = fcn(t);
+            if(u) {
+                result.items.insert(u);
+            }
+        }
+        return result;
+    }
+
+    template<typename U>
+    Query<U> map_group(std::function<std::vector<U> (T)> fcn)
+    {
+        if(!filters.empty()) {
+            apply();
+        }
+        Query<U> result;
+        for(T t : *this) {
+            std::vector<U> u = fcn(t);
+            result.items.insert(u.begin(), u.end());
+        }
+        return result;
+    }
+
+    template<typename U>
+    Query<std::shared_ptr<U>> map_group_ptr(std::function<std::vector<std::shared_ptr<U>> (T)> fcn)
+    {
+        if(!filters.empty()) {
+            apply();
+        }
+        Query<std::shared_ptr<U>> result;
+        for(T t : *this) {
+            std::vector<std::shared_ptr<U>> u = fcn(t);
+            result.items.insert(u.begin(), u.end());
+        }
+        return result;
+    }
+
+    template<typename U>
     Query<U> cast() {
         if(!filters.empty()) {
             apply();
@@ -64,6 +107,10 @@ public:
             apply();
         }
         return map<std::shared_ptr<U>>([](T t){ return std::static_pointer_cast<U>(t); });
+    }
+
+    bool contains(T t) {
+        return items.find(t) != items.end();
     }
 
     // Takes the union of the two queries (mutating the left Query).
@@ -132,4 +179,22 @@ private:
     friend class Query;
 };
 
-std::function<bool(std::shared_ptr<Component>)> filterByTypeId(uint typeId);
+template<typename T>
+bool filterByType(std::shared_ptr<Component> component) {
+    return component->getTypeId() == get_id(T);
+}
+
+std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component);
+
+template<typename T>
+std::shared_ptr<T> mapToComponent(std::shared_ptr<Entity> entity)
+{
+    return entity ? entity->findComponent<T>() : nullptr;
+}
+
+template<typename T>
+std::shared_ptr<T> mapToSibling(std::shared_ptr<Component> component)
+{
+    std::shared_ptr<Entity> owner = component->getOwner();
+    return owner ? owner->findComponent<T>() : nullptr;
+}

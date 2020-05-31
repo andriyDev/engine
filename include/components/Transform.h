@@ -25,18 +25,22 @@ struct TransformData
     {}
 
     // Computes the inverse of this transformation.
-    TransformData inverse();
+    TransformData inverse() const;
 
     // Applies translation, rotation and scaling to the point so it is relative to the transform's reference frame.
-    glm::vec3 transformPoint(const glm::vec3& point);
+    glm::vec3 transformPoint(const glm::vec3& point) const;
     // Applies rotation to the direction so it is relative to the transform's reference frame.
-    glm::vec3 transformDirection(const glm::vec3& direction);
+    glm::vec3 transformDirection(const glm::vec3& direction) const;
     // Applies rotation and scaling to the direction so it is relative to the transform's reference frame.
-    glm::vec3 transformDirectionWithScale(const glm::vec3& direction);
+    glm::vec3 transformDirectionWithScale(const glm::vec3& direction) const;
+
+    glm::vec3 forward() const { return transformDirection(glm::vec3(0, 0, -1)); }
+    glm::vec3 right() const { return transformDirection(glm::vec3(1, 0, 0)); }
+    glm::vec3 up() const { return transformDirection(glm::vec3(0, 1, 0)); }
 
     TransformData lerp(TransformData other, float alpha) const;
 
-    glm::mat4 toMat4();
+    glm::mat4 toMat4() const;
 
     TransformData& operator*=(const TransformData& rhs);
     friend TransformData& operator*(TransformData lhs, const TransformData& rhs) {
@@ -50,6 +54,7 @@ class Transform : public Component
 {
 public:
     Transform() : Component(get_id(Transform)) {}
+    virtual ~Transform();
 
     // Gets the relative transform.
     TransformData getRelativeTransform() const {
@@ -61,6 +66,10 @@ public:
     TransformData getGlobalTransform() const;
     // Sets the relative transform so that it matches globally.
     void setGlobalTransform(const TransformData& globalTransform);
+    // Gets the transform of this component relative to the provided transform.
+    TransformData getTransformRelativeTo(std::shared_ptr<Transform> relative) const;
+    // Sets the transform of this component relative to the provided transform. Only this transform will be moved.
+    void setTransformRelativeTo(const TransformData& transform, std::shared_ptr<Transform> relative);
 
     /*
     Replaces the current parent with the newParent (can be null to attach to world).
@@ -71,9 +80,23 @@ public:
     // Gets the parent of this transform.
     std::shared_ptr<Transform> getParent() const;
 
+    // Gets the children of this transform.
+    std::vector<std::shared_ptr<Transform>> getChildren() const;
+
+    inline uint getUpdateId() const { return updateId; }
+
+    uint sumUpdatesRelativeTo(std::shared_ptr<Transform> relative) const;
+    uint sumUpdates() const { return sumUpdatesRelativeTo(nullptr); }
+protected:
+    void incrementUpdateId();
 private:
     TransformData relativeTransform; // The transform data relative to this transform's parent.
+    /*
+    Stores a number to identify this value of the transform. If the transform is changed, this value is changed.
+    */
+    uint updateId = 0;
     std::weak_ptr<Transform> parent; // The parent of this transform.
+    std::vector<std::weak_ptr<Transform>> children; // The children of this transform.
 };
 
 class Transformable : public Component
@@ -87,3 +110,5 @@ public:
         return transform.lock();
     }
 };
+
+std::shared_ptr<Transform> mapToTransform(std::shared_ptr<Transformable> component);

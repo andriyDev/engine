@@ -7,6 +7,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLM REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(GLFW3 REQUIRED)
+find_package(Bullet REQUIRED)
 
 set(OPENGL_INCLUDE "")
 set(OPENGL_LIB ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
@@ -20,9 +21,15 @@ set(GLEW_LIB ${GLEW_STATIC_LIBRARY_RELEASE})
 set(GLFW_INCLUDE "")
 set(GLFW_LIB glfw)
 
+set(BULLET_INCLUDE ${BULLET_INCLUDE_DIR})
+set(BULLET_LIB_RELEASE ${BULLET_COLLISION_LIBRARY} ${BULLET_DYNAMICS_LIBRARY} ${BULLET_MATH_LIBRARY})
+set(BULLET_LIB_DEBUG ${BULLET_COLLISION_LIBRARY_DEBUG} ${BULLET_DYNAMICS_LIBRARY_DEBUG} ${BULLET_MATH_LIBRARY_DEBUG})
 
-set(MAIN_INCLUDE ${OPENGL_INCLUDE} ${GLM_INCLUDE} ${GLEW_INCLUDE} ${GLFW_INCLUDE})
+
+set(MAIN_INCLUDE ${OPENGL_INCLUDE} ${GLM_INCLUDE} ${GLEW_INCLUDE} ${GLFW_INCLUDE} ${BULLET_INCLUDE})
 set(MAIN_LIB ${OPENGL_LIB} ${GLM_LIB} ${GLEW_LIB} ${GLFW_LIB})
+set(MAIN_LIB_RELEASE ${BULLET_LIB_RELEASE})
+set(MAIN_LIB_DEBUG ${BULLET_LIB_DEBUG})
 
 set(MAIN_SRC src/main.cpp
     src/Window.cpp
@@ -36,6 +43,19 @@ set(MAIN_SRC ${MAIN_SRC}
     src/components/Transform.cpp
     src/components/MeshRenderer.cpp
     src/components/Camera.cpp)
+set(MAIN_SRC ${MAIN_SRC}
+    src/physics/StaticBody.cpp
+    src/physics/CollisionObject.cpp
+    src/physics/Collider.cpp
+    src/physics/RigidBody.cpp
+    src/physics/KinematicBody.cpp
+    src/physics/Trigger.cpp
+    src/physics/ConvexHull.cpp
+    src/physics/ConvexCollider.cpp
+    src/physics/BoxCollider.cpp
+    src/physics/SphereCollider.cpp
+    src/physics/PhysicsSystem.cpp
+    src/physics/PhysicsSystemQueries.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/resources/FileResource.cpp
     src/resources/ResourceLoader.cpp
@@ -56,6 +76,8 @@ add_executable(engine ${MAIN_SRC})
 
 target_include_directories(engine PRIVATE ${MAIN_INCLUDE} include/)
 target_link_libraries(engine ${MAIN_LIB})
+target_link_libraries(engine debug ${MAIN_LIB_DEBUG})
+target_link_libraries(engine optimized ${MAIN_LIB_RELEASE})
 
 if(WIN32)
 target_link_libraries(engine Ws2_32.lib)

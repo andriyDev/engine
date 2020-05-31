@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <iterator>
 
-std::function<bool(std::shared_ptr<Component>)> filterByTypeId(uint typeId)
+std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component)
 {
-    return [typeId](std::shared_ptr<Component> C) { return C->getTypeId() == typeId; };
+    return component ? component->getOwner() : nullptr;
 }
