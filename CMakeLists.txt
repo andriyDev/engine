@@ -54,7 +54,8 @@ set(MAIN_SRC ${MAIN_SRC}
     src/physics/ConvexCollider.cpp
     src/physics/BoxCollider.cpp
     src/physics/SphereCollider.cpp
-    src/physics/PhysicsSystem.cpp)
+    src/physics/PhysicsSystem.cpp
+    src/physics/PhysicsSystemQueries.cpp)
 set(MAIN_SRC ${MAIN_SRC}
     src/resources/FileResource.cpp
     src/resources/ResourceLoader.cpp
