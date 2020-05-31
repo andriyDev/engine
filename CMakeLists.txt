@@ -50,6 +50,8 @@ set(MAIN_SRC ${MAIN_SRC}
     src/physics/RigidBody.cpp
     src/physics/KinematicBody.cpp
     src/physics/Trigger.cpp
+    src/physics/ConvexHull.cpp
+    src/physics/ConvexCollider.cpp
     src/physics/BoxCollider.cpp
     src/physics/SphereCollider.cpp
     src/physics/PhysicsSystem.cpp)
