@@ -42,7 +42,7 @@ void Universe::tick(float deltaTime)
         }
     }
 
-    float currentSkippedTime = (desiredGameplayFrames - issuedGameplayFrames) * gameplayRate;
+    float currentSkippedTime = (desiredGameplayFrames - issuedGameplayFrames) * gameplayDelta;
     skippedTime += currentSkippedTime;
     gameplayTime += currentSkippedTime;
 
