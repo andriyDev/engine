@@ -440,6 +440,7 @@ RaycastHit PhysicsSystem::rayCast(const glm::vec3& source, const glm::vec3& dire
     FilterRaysCallback filter(&closestRay, &reverseObjects);
     filter.ignoredBodies = &ignoredBodies;
     filter.ignoreEntities = &ignoredEntities;
+    filter.hitTriggers = hitTriggers;
 
     physicsWorld->rayTest(from, to, filter);
 
@@ -481,6 +482,7 @@ std::vector<RaycastHit> PhysicsSystem::rayCastAll(const glm::vec3& source, const
     FilterRaysCallback filter(&allRays, &reverseObjects);
     filter.ignoredBodies = &ignoredBodies;
     filter.ignoreEntities = &ignoredEntities;
+    filter.hitTriggers = hitTriggers;
 
     physicsWorld->rayTest(from, to, filter);
 
@@ -606,6 +608,7 @@ RaycastHit PhysicsSystem::shapeCast(const class btConvexShape* shape,
     FilterConvexCallback filter(&closestConvex, &reverseObjects);
     filter.ignoredBodies = &ignoredBodies;
     filter.ignoreEntities = &ignoredEntities;
+    filter.hitTriggers = hitTriggers;
 
     physicsWorld->convexSweepTest(shape, from, to, filter);
 
@@ -651,6 +654,7 @@ std::vector<RaycastHit> PhysicsSystem::shapeCastAll(const class btConvexShape* s
     FilterConvexCallback filter(&allConvex, &reverseObjects);
     filter.ignoredBodies = &ignoredBodies;
     filter.ignoreEntities = &ignoredEntities;
+    filter.hitTriggers = hitTriggers;
 
     physicsWorld->convexSweepTest(shape, from, to, filter);
 
