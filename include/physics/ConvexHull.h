@@ -42,6 +42,8 @@ protected:
     virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
 
     class btConvexHullShape* shape = nullptr;
+
+    friend class PhysicsSystem;
 private:
     static std::shared_ptr<ConvexHull> build(std::shared_ptr<BuildData> data);
 };
