@@ -322,7 +322,7 @@ std::vector<RaycastHit> PhysicsSystem::shapeCastAll(const class btConvexShape* s
 RaycastHit PhysicsSystem::boxCast(const glm::vec3& extents,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
-    std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     btBoxShape shape(convert(extents));
     return shapeCast(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -333,7 +333,7 @@ RaycastHit PhysicsSystem::boxCast(const glm::vec3& extents,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const
+    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers) const
 {
     btBoxShape shape(convert(extents));
     return shapeCast(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -343,7 +343,7 @@ RaycastHit PhysicsSystem::boxCast(const glm::vec3& extents,
 std::vector<RaycastHit> PhysicsSystem::boxCastAll(const glm::vec3& extents,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
-    std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     btBoxShape shape(convert(extents));
     return shapeCastAll(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -355,7 +355,7 @@ std::vector<RaycastHit> PhysicsSystem::boxCastAll(const glm::vec3& extents,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
     const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
-    bool hitTriggers = false) const
+    bool hitTriggers) const
 {
     btBoxShape shape(convert(extents));
     return shapeCastAll(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -365,7 +365,7 @@ std::vector<RaycastHit> PhysicsSystem::boxCastAll(const glm::vec3& extents,
 RaycastHit PhysicsSystem::sphereCast(float radius,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
-    std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     btSphereShape shape(radius);
     return shapeCast(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -376,7 +376,7 @@ RaycastHit PhysicsSystem::sphereCast(float radius,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const
+    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers) const
 {
     btSphereShape shape(radius);
     return shapeCast(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -386,7 +386,7 @@ RaycastHit PhysicsSystem::sphereCast(float radius,
 std::vector<RaycastHit> PhysicsSystem::sphereCastAll(float radius,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
-    std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     btSphereShape shape(radius);
     return shapeCastAll(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -398,7 +398,7 @@ std::vector<RaycastHit> PhysicsSystem::sphereCastAll(float radius,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
     const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
-    bool hitTriggers = false) const
+    bool hitTriggers) const
 {
     btSphereShape shape(radius);
     return shapeCastAll(&shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -408,7 +408,7 @@ std::vector<RaycastHit> PhysicsSystem::sphereCastAll(float radius,
 RaycastHit PhysicsSystem::convexCast(std::shared_ptr<ConvexHull> convex,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
-    std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     assert(convex->shape);
     return shapeCast(convex->shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -419,7 +419,7 @@ RaycastHit PhysicsSystem::convexCast(std::shared_ptr<ConvexHull> convex,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const
+    const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers) const
 {
     assert(convex->shape);
     return shapeCast(convex->shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -429,7 +429,7 @@ RaycastHit PhysicsSystem::convexCast(std::shared_ptr<ConvexHull> convex,
 std::vector<RaycastHit> PhysicsSystem::convexCastAll(std::shared_ptr<ConvexHull> convex,
     const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
-    std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const
+    std::shared_ptr<Entity> ignoredEntity, bool hitTriggers) const
 {
     assert(convex->shape);
     return shapeCastAll(convex->shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
@@ -441,7 +441,7 @@ std::vector<RaycastHit> PhysicsSystem::convexCastAll(std::shared_ptr<ConvexHull>
     const glm::vec3& targetPosition, const glm::quat& targetRotation,
     const std::set<std::shared_ptr<Entity>>& ignoredEntities,
     const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
-    bool hitTriggers = false) const
+    bool hitTriggers) const
 {
     assert(convex->shape);
     return shapeCastAll(convex->shape, sourcePosition, sourceRotation, targetPosition, targetRotation,
