@@ -179,11 +179,7 @@ void PhysicsSystem::gameplayTick(float delta)
 void PhysicsSystem::cleanUpCollisionObject(PhysicsSystem::CollisionObjectData& body)
 {
     if(physicsWorld) {
-        if(body.type == CollisionObjectData::RigidBody) {
-            physicsWorld->removeRigidBody(btRigidBody::upcast(body.collisionObject));
-        } else {
-            physicsWorld->removeCollisionObject(body.collisionObject);
-        }
+        removeBody(body);
     }
     delete body.collisionObject;
     delete body.compoundShape;
@@ -202,9 +198,12 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
     {
         btCollisionShape* shape = collider->constructShape();
         std::shared_ptr<Transform> transform = collider->getTransform();
-        TransformData td = transform->getTransformRelativeTo(bodyComponent->getTransform());
         uint updateId = transform->sumUpdatesRelativeTo(bodyTransform);
-        data.compoundShape->addChildShape(convert(td), shape);
+        if(shape) {
+            TransformData td = transform->getTransformRelativeTo(bodyComponent->getTransform());
+            shape->setLocalScaling(convert(td.scale));
+            data.compoundShape->addChildShape(convert(td), shape);
+        }
         data.shapeMap.insert(std::make_pair(collider, std::make_pair(shape, updateId)));
         collider->shapeUpdated = false;
     }
@@ -227,12 +226,12 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
         tms->body = asRB;
     }
     if(asRB) {
-        physicsWorld->addRigidBody(asRB);
         data.type = CollisionObjectData::RigidBody;
     } else {
-        physicsWorld->addCollisionObject(data.collisionObject);
         data.type = CollisionObjectData::Generic;
     }
+    addBody(data);
+
     collisionObjects.insert(std::make_pair(bodyComponent, data));
     reverseObjects.insert(std::make_pair(data.collisionObject, bodyComponent));
 }
@@ -267,26 +266,52 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
         uint updateId = transform->sumUpdatesRelativeTo(bodyTransform);
 
         // Check if this collider needs an update.
-        bool colliderUpdated = it == bodyData.shapeMap.end() || collider->shapeUpdated || it->second.second != updateId;
+        bool colliderUpdated = it == bodyData.shapeMap.end() || !it->second.first
+            || collider->shapeUpdated || it->second.second != updateId;
         if(!colliderUpdated) { // Move on if it doesn't
             continue;
         }
+
+        // We need to handle the special case of the collision shape being null.
+        // We only want to update the shape if the new shape is not null.
+        if(it != bodyData.shapeMap.end() && !it->second.first) {
+            btCollisionShape* shape = collider->constructShape();
+            if(shape) {
+                // The first collider that is updated needs to remove the object from the world.
+                if(!shapeUpdated) {
+                    shapeUpdated = true;
+                    removeBody(bodyData);
+                }
+
+                shape->setLocalScaling(convert(td.scale));
+                bodyData.compoundShape->addChildShape(convert(td), shape);
+
+                it->second.first = shape;
+                it->second.second = updateId;
+                // Update the child map.
+                childMap = getChildMap(bodyData.compoundShape);
+            }
+        }
+        
         // The first collider that is updated needs to remove the object from the world.
         if(!shapeUpdated) {
             shapeUpdated = true;
-            if(bodyData.type == CollisionObjectData::RigidBody) {
-                physicsWorld->removeRigidBody(btRigidBody::upcast(bodyData.collisionObject));
-            } else {
-                physicsWorld->removeCollisionObject(bodyData.collisionObject);
-            }
+            removeBody(bodyData);
         }
 
         // If the collider is not part of the rigidbody, we need to create its shape.
         if(it == bodyData.shapeMap.end()) {
             btCollisionShape* shape = collider->constructShape();
-            shape->setLocalScaling(convert(td.scale));
-            bodyData.compoundShape->addChildShape(convert(td), shape);
-            bodyData.shapeMap.insert(std::make_pair(collider, std::make_pair(shape, updateId)));
+            if(shape) {
+                shape->setLocalScaling(convert(td.scale));
+                bodyData.compoundShape->addChildShape(convert(td), shape);
+            }
+            if(it == bodyData.shapeMap.end()) {
+                bodyData.shapeMap.insert(std::make_pair(collider, std::make_pair(shape, updateId)));
+            } else {
+                it->second.first = shape;
+                it->second.second = updateId;
+            }
             // Update the child map.
             childMap = getChildMap(bodyData.compoundShape);
         } else if(collider->shapeUpdated) {
@@ -294,8 +319,10 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
             bodyData.compoundShape->removeChildShape(it->second.first);
             delete it->second.first;
             btCollisionShape* shape = collider->constructShape();
-            shape->setLocalScaling(convert(td.scale));
-            bodyData.compoundShape->addChildShape(convert(td), shape);
+            if(shape) {
+                shape->setLocalScaling(convert(td.scale));
+                bodyData.compoundShape->addChildShape(convert(td), shape);
+            }
             it->second.first = shape;
             it->second.second = updateId;
             // Reset the updated flag.
@@ -318,11 +345,7 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
     for(std::weak_ptr<Collider> collider : eraseTgts) {
         if(!shapeUpdated) {
             shapeUpdated = true;
-            if(bodyData.type == CollisionObjectData::RigidBody) {
-                physicsWorld->removeRigidBody(btRigidBody::upcast(bodyData.collisionObject));
-            } else {
-                physicsWorld->removeCollisionObject(bodyData.collisionObject);
-            }
+            removeBody(bodyData);
         }
 
         auto it = bodyData.shapeMap.find(collider);
@@ -333,13 +356,9 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
 
     if(shapeUpdated) {
         bodyData.compoundShape->recalculateLocalAabb();
-        if(bodyData.type == CollisionObjectData::RigidBody) {
-            btRigidBody* rb = btRigidBody::upcast(bodyData.collisionObject);
-            rb->updateInertiaTensor();
-            physicsWorld->addRigidBody(rb);
-        } else {
-            physicsWorld->addCollisionObject(bodyData.collisionObject);
-        }
+        btRigidBody* rb = btRigidBody::upcast(bodyData.collisionObject);
+        rb->updateInertiaTensor();
+        addBody(bodyData);
     }
 }
 
@@ -357,6 +376,24 @@ void PhysicsSystem::updateStateOfObject(std::shared_ptr<CollisionObject>& bodyCo
     if(!(bodyData.collisionObject->getCollisionFlags() & btCollisionObject::CF_KINEMATIC_OBJECT))
     {
         bodyData.collisionObject->setWorldTransform(convert(globalTransform));
+    }
+}
+
+void PhysicsSystem::addBody(CollisionObjectData& body)
+{
+    if(body.type == CollisionObjectData::RigidBody) {
+        physicsWorld->addRigidBody(btRigidBody::upcast(body.collisionObject));
+    } else {
+        physicsWorld->addCollisionObject(body.collisionObject);
+    }
+}
+
+void PhysicsSystem::removeBody(CollisionObjectData& body)
+{
+    if(body.type == CollisionObjectData::RigidBody) {
+        physicsWorld->removeRigidBody(btRigidBody::upcast(body.collisionObject));
+    } else {
+        physicsWorld->removeCollisionObject(body.collisionObject);
     }
 }
 
