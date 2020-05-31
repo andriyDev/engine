@@ -114,4 +114,7 @@ protected:
     void updateCollidersOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData);
     // Updates the existing collision object to match the components (applying forces).
     void updateStateOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData);
+
+    void addBody(CollisionObjectData& body);
+    void removeBody(CollisionObjectData& body);
 };
