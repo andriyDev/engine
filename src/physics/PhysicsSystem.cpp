@@ -15,6 +15,8 @@
 
 #include "physics/BulletUtil.h"
 
+// PhysicsSystemQueries.cpp contains the rest of the implementation for PhysicsSystem
+
 class TransformMotionState : public btMotionState
 {
 public:
