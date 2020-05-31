@@ -20,14 +20,12 @@ void RenderSystem::init()
 
 void RenderSystem::frameTick(float delta)
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    Query<std::shared_ptr<Camera>> cameras = getWorld()->queryComponents()
-        .filter(filterByType<Camera>)
+    Query<std::shared_ptr<Camera>> cameras = getWorld()->queryComponents(get_id(Camera))
         .cast_ptr<Camera>();
-    Query<std::shared_ptr<MeshRenderer>> meshes = getWorld()->queryComponents()
-        .filter(filterByType<MeshRenderer>)
+    Query<std::shared_ptr<MeshRenderer>> meshes = getWorld()->queryComponents(get_id(MeshRenderer))
         .cast_ptr<MeshRenderer>();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     float screenAspect = 1280.f / 720.f; // TODO
 

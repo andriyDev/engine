@@ -14,7 +14,7 @@ class Query
 {
 public:
     // Constructs a query initially containing all items T in the provided world.
-    Query<T>(const std::set<T>& _items) : items(_items) {}
+    Query<T>(const std::unordered_set<T>& _items) : items(_items) {}
 
     Query<T>& filter(std::function<bool(T)> predicate) {
         filters.push_back(predicate);
@@ -22,7 +22,7 @@ public:
     }
 
     Query<T>& apply() {
-        std::set<T> result;
+        std::unordered_set<T> result;
         for(T t : *this) {
             bool pass = true;
             for(std::function<bool(T)> predicate : filters) {
@@ -95,22 +95,20 @@ public:
 
     template<typename U>
     Query<U> cast() {
-        if(!filters.empty()) {
-            apply();
-        }
         return map<U>([](T t){ return static_cast<U>(t); });
     }
 
     template<typename U>
     Query<std::shared_ptr<U>> cast_ptr() {
-        if(!filters.empty()) {
-            apply();
-        }
         return map<std::shared_ptr<U>>([](T t){ return std::static_pointer_cast<U>(t); });
     }
 
-    bool contains(T t) {
+    bool contains(T t) const {
         return items.find(t) != items.end();
+    }
+
+    size_t size() const {
+        return items.size();
     }
 
     // Takes the union of the two queries (mutating the left Query).
@@ -130,7 +128,7 @@ public:
         if(!filters.empty()) {
             apply();
         }
-        set<T> result;
+        std::unordered_set<T> result;
 
         std::set_intersection(
             items.begin(), items.end(),
@@ -149,7 +147,7 @@ public:
         if(!filters.empty()) {
             apply();
         }
-        std::set<T> result;
+        std::unordered_set<T> result;
 
         std::set_difference(
             items.begin(), items.end(),
@@ -164,14 +162,14 @@ public:
         return left -= right;
     }
 
-    typename std::set<T>::iterator begin() const {
+    typename std::unordered_set<T>::iterator begin() const {
         return items.begin();
     }
-    typename std::set<T>::iterator end() const {
+    typename std::unordered_set<T>::iterator end() const {
         return items.end();
     }
 private:
-    std::set<T> items; // The set of items currently in the query
+    std::unordered_set<T> items; // The set of items currently in the query
     std::vector<std::function<bool(T)>> filters; // The filters that are queued to be applied to the vector.
 
     Query<T>() {}

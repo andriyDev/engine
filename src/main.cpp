@@ -78,12 +78,10 @@ class GravitySystem : public System
 {
 public:
     virtual void gameplayTick(float delta) override {
-        auto regionQuery = getWorld()->queryComponents()
-            .filter(filterByType<GravityRegion>)
+        auto regionQuery = getWorld()->queryComponents(get_id(GravityRegion))
             .map_ptr<Trigger>(mapToSibling<Trigger>)
             .map_group_ptr<CollisionObject>([](std::shared_ptr<Trigger> t){ return t->getOverlaps(); });
-        auto bodyQuery = getWorld()->queryComponents()
-            .filter(filterByType<ApplyGravity>)
+        auto bodyQuery = getWorld()->queryComponents(get_id(ApplyGravity))
             .map_ptr<RigidBody>(mapToSibling<RigidBody>);
         for(std::shared_ptr<RigidBody> body : bodyQuery) {
             if(regionQuery.contains(body)) {
@@ -138,8 +136,7 @@ public:
                 ISptr->setTargetWindow(nullptr);
             }
         }
-        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents()
-            .filter(filterByType<ControlledEntity>)
+        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents(get_id(ControlledEntity))
             .map_ptr<Camera>(mapToSibling<Camera>)
             .map_ptr<Transform>(mapToTransform);
         for(std::shared_ptr<Transform> transform : c) {
@@ -156,8 +153,7 @@ public:
     }
     virtual void gameplayTick(float delta) override {
         std::shared_ptr<InputSystem> ISptr = IS.lock();
-        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents()
-            .filter(filterByType<ControlledEntity>)
+        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents(get_id(ControlledEntity))
             .map_ptr<Camera>(mapToSibling<Camera>)
             .map_ptr<Transform>(mapToTransform);
         for(std::shared_ptr<Transform> transform : c) {
@@ -191,8 +187,7 @@ public:
                 return;
             }
             lmb_down = true;
-            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents()
-                .filter(filterByType<ControlledEntity>)
+            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents(get_id(ControlledEntity))
                 .map_ptr<Camera>(mapToSibling<Camera>)
                 .map_ptr<Transform>(mapToTransform);
             for(std::shared_ptr<Transform> transform : t) {
@@ -209,8 +204,7 @@ public:
                 return;
             }
             rmb_down = true;
-            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents()
-                .filter(filterByType<ControlledEntity>)
+            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents(get_id(ControlledEntity))
                 .map_ptr<Camera>(mapToSibling<Camera>)
                 .map_ptr<Transform>(mapToTransform);
             for(std::shared_ptr<Transform> transform : t) {
@@ -242,8 +236,7 @@ public:
     float impulse = 2.5f;
 
     virtual void gameplayTick(float delta) override {
-        auto query = getWorld()->queryComponents()
-            .filter(filterByType<Bounce>)
+        auto query = getWorld()->queryComponents(get_id(Bounce))
             .map_ptr<RigidBody>(mapToSibling<RigidBody>);
         for(std::shared_ptr<RigidBody> body : query) {
             for(CollisionObject::Hit& hit : body->getHits()) {
@@ -349,7 +342,7 @@ int main()
         std::shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
         Physics->setGravity(glm::vec3(0,0,0));
 
-        w->addSystem<BoxBouncer>(-5);
+        //w->addSystem<BoxBouncer>(-5);
 
         std::shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
         spawner->IS = IS;
@@ -361,7 +354,7 @@ int main()
         glm::vec3 camPos(0,5,5);
         glm::vec3 boxPos(0,5,0);
         glm::vec3 gravPos(0, 3, -7.5);
-        glm::vec3 gravSize(15, 5, 7.5);
+        glm::vec3 gravSize(100,100,100);//(15, 5, 7.5);
 
         std::shared_ptr<Entity> floor = w->addEntity();
         {
@@ -391,8 +384,14 @@ int main()
             trig->colliders.push_back(collider);
             gravRegion->addComponent<GravityRegion>();
         }
-
-        spawnBox(w, boxPos);
+        
+        for(int i = 0; i < 100; i++) {
+            glm::vec3 point(
+                rand() * 1.f / RAND_MAX * 10 - 5.f,
+                rand() * 1.f / RAND_MAX * 5,
+                rand() * 1.f / RAND_MAX * 10 - 5.f);
+            spawnBox(w, point);
+        }
         
         std::shared_ptr<Entity> camera = w->addEntity();
         {
