@@ -178,16 +178,19 @@ class BoxSpawner : public System
 {
 public:
     std::weak_ptr<InputSystem> IS;
-    bool down = false;
+    std::weak_ptr<PhysicsSystem> PS;
+    bool lmb_down = false;
+    bool rmb_down = false;
 
     virtual void gameplayTick(float delta) override {
         std::shared_ptr<InputSystem> ISptr = IS.lock();
+        std::shared_ptr<PhysicsSystem> PSptr = PS.lock();
         if(ISptr->isActionDown(0, "lmb", true)) {
             // Workaround until we get isActionPressed working properly.
-            if(down) {
+            if(lmb_down) {
                 return;
             }
-            down = true;
+            lmb_down = true;
             Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents()
                 .filter(filterByType<ControlledEntity>)
                 .map_ptr<Camera>(mapToSibling<Camera>)
@@ -198,7 +201,31 @@ public:
             }
         }
         else {
-            down = false;
+            lmb_down = false;
+        }
+        if(ISptr->isActionDown(0, "rmb", true)) {
+            // Workaround until we get isActionPressed working properly.
+            if(rmb_down) {
+                return;
+            }
+            rmb_down = true;
+            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents()
+                .filter(filterByType<ControlledEntity>)
+                .map_ptr<Camera>(mapToSibling<Camera>)
+                .map_ptr<Transform>(mapToTransform);
+            for(std::shared_ptr<Transform> transform : t) {
+                TransformData td = transform->getGlobalTransform();
+                RaycastHit hit = PSptr->rayCast(td.translation, td.forward(), 10000, transform->getOwner());
+                if(hit) {
+                    std::shared_ptr<CollisionObject> obj = hit.obj.lock();
+                    if(obj->getTypeId() == get_id(RigidBody)) {
+                        getWorld()->removeEntity(obj->getOwner());
+                    }
+                }
+            }
+        }
+        else {
+            rmb_down = false;
         }
     }
 };
@@ -324,7 +351,9 @@ int main()
 
         w->addSystem<BoxBouncer>(-5);
 
-        w->addSystem<BoxSpawner>(6)->IS = IS;
+        std::shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
+        spawner->IS = IS;
+        spawner->PS = Physics;
 
         w->addEntity();
 
