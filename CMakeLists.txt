@@ -32,6 +32,7 @@ set(MAIN_LIB_RELEASE ${BULLET_LIB_RELEASE})
 set(MAIN_LIB_DEBUG ${BULLET_LIB_DEBUG})
 
 set(MAIN_SRC src/main.cpp
+    src/debug.cpp
     src/Window.cpp
     src/InputSystem.cpp)
 set(MAIN_SRC ${MAIN_SRC}
