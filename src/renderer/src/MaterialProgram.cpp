@@ -74,7 +74,7 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
     glCompileShader(shaderId);
 
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &Result);
-    if(Result == GL_TRUE) {
+    if(Result == GL_FALSE) {
         glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLength);
         std::vector<char> errorMsg(infoLength + 1);
         glGetShaderInfoLog(shaderId, infoLength, NULL, &errorMsg[0]);
