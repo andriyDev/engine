@@ -1,6 +1,4 @@
 
-project(base_resources VERSION 0.1)
-
 set(SRC)
 list(APPEND SRC src/Colour.cpp)
 list(APPEND SRC src/Mesh.cpp)

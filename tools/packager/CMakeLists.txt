@@ -1,4 +1,5 @@
 
+project(packager VERSION 0.1)
 
 find_package(zlib REQUIRED)
 find_package(IrrXML REQUIRED)

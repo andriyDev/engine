@@ -1,6 +1,4 @@
 
-project(resource_system VERSION 0.1)
-
 set(SRC)
 list(APPEND SRC src/FileResource.cpp)
 list(APPEND SRC src/ResourceLoader.cpp)

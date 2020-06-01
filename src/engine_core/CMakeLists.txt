@@ -1,6 +1,4 @@
 
-project(engine_core VERSION 0.1)
-
 set(SRC)
 list(APPEND SRC src/Entity.cpp)
 list(APPEND SRC src/Query.cpp)

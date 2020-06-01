@@ -1,6 +1,4 @@
 
-project(physics VERSION 0.1)
-
 set(SRC)
 list(APPEND SRC src/BoxCollider.cpp)
 list(APPEND SRC src/Collider.cpp)
