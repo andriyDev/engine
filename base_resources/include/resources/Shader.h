@@ -2,7 +2,7 @@
 #pragma once
 
 #include "std.h"
-#include "FileResource.h"
+#include "resources/FileResource.h"
 
 class Shader : public FileResource
 {

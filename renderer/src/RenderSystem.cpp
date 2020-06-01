@@ -7,8 +7,8 @@
 #include "core/Component.h"
 
 #include "components/Transform.h"
-#include "components/MeshRenderer.h"
-#include "components/Camera.h"
+#include "renderer/MeshRenderer.h"
+#include "renderer/Camera.h"
 
 void RenderSystem::init()
 {
@@ -27,7 +27,8 @@ void RenderSystem::frameTick(float delta)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    float screenAspect = 1280.f / 720.f; // TODO
+    glm::vec2 surfaceSize = targetSurface->getSize();
+    float screenAspect = surfaceSize.y == 0 ? 1 : (surfaceSize.x / surfaceSize.y);
 
     for(std::shared_ptr<Camera> camera : cameras) {
         glm::mat4 vpMatrix = camera->getVPMatrix(screenAspect);
@@ -47,5 +48,5 @@ void RenderSystem::frameTick(float delta)
             mesh->render();
         }
     }
-    targetWindow->swapBuffers();
+    targetSurface->swapBuffers();
 }

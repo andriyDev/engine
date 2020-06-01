@@ -6,6 +6,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+
+#include <renderer/RenderSurface.h>
 
 class WindowEventHandler
 {
@@ -22,7 +25,7 @@ public:
     virtual void mouseScroll(double xScroll, double yScroll) = 0;
 };
 
-class Window
+class Window : public RenderSurface
 {
 public:
     virtual ~Window();
@@ -44,7 +47,7 @@ public:
     void setTitle(std::string _windowTitle);
 
     /* Gets the size of the current window. */
-    std::pair<uint, uint> getSize() const;
+    virtual glm::vec2 getSize() const override;
 
     /* Sets the size of the current window. This is a request and may not be satisfied. */
     void setSize(uint _width, uint _height);
@@ -68,7 +71,7 @@ public:
     void bindContext();
 
     /* Swaps buffers so we see the results of drawing. */
-    void swapBuffers();
+    virtual void swapBuffers() override;
 
     /* Polls for events. */
     void poll();

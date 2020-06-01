@@ -3,7 +3,7 @@
 
 #include "std.h"
 
-#include "FileResource.h"
+#include "resources/FileResource.h"
 
 #include "Colour.h"
 

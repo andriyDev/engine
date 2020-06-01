@@ -4,8 +4,8 @@
 #include "std.h"
 
 #include "utility/Serializer.h"
-#include "ResourceLoader.h"
-#include "FileResource.h"
+#include "resources/ResourceLoader.h"
+#include "resources/FileResource.h"
 
 #include <glm/glm.hpp>
 

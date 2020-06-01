@@ -8,14 +8,15 @@
 #include "core/System.h"
 #include "core/World.h"
 #include "core/Entity.h"
+#include "core/Component.h"
 
 #include "std.h"
 
 #include "resources/ResourceLoader.h"
 #include "resources/FileResource.h"
 #include "components/Transform.h"
-#include "components/MeshRenderer.h"
-#include "components/Camera.h"
+#include "renderer/MeshRenderer.h"
+#include "renderer/Camera.h"
 #include "renderer/RenderSystem.h"
 #include "renderer/Material.h"
 #include "renderer/RenderableTexture.h"
@@ -306,7 +307,7 @@ int main()
     {
         std::shared_ptr<World> w = U.addWorld();
         std::shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
-        RS->targetWindow = &window;
+        RS->targetSurface = &window;
         std::shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
         IS->setTargetWindow(&window);
         IS->setControlSetCount(1);

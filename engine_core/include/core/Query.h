@@ -174,6 +174,7 @@ private:
 
     Query<T>() {}
 
+    template<typename U>
     friend class Query;
 };
 

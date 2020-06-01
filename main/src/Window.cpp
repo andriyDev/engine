@@ -135,9 +135,9 @@ void Window::setTitle(std::string _windowTitle)
     }
 }
 
-std::pair<uint, uint> Window::getSize() const
+glm::vec2 Window::getSize() const
 {
-    return std::make_pair(width, height);
+    return glm::vec2(width, height);
 }
 
 void Window::setSize(uint _width, uint _height)

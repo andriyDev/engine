@@ -1,5 +1,5 @@
 
-#include "components/Camera.h"
+#include "renderer/Camera.h"
 
 #include "core/Universe.h"
 #include "core/Entity.h"
