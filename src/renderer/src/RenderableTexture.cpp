@@ -35,7 +35,7 @@ bool RenderableTexture::load(std::shared_ptr<Resource::BuildData> data)
     std::shared_ptr<BuildData> bd = std::dynamic_pointer_cast<BuildData>(data);
     std::shared_ptr<Texture> texture = sourceTextureRef.resolve(Immediate); // Make sure this is loaded.
     if(!texture || texture->getMode() == Texture::INVALID) {
-        throw "Bad Texture!";
+        return false;
     }
 
     glCreateTextures(GL_TEXTURE_2D, 1, &textureId);

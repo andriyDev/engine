@@ -66,10 +66,12 @@ void read(Serializer& ser, Texture& texture)
         Colour3* data = new Colour3[w * h];
         ser.read_raw((char*)data, w * h * sizeof(Colour3));
         texture.fromColour3(data, w, h);
-    } else if(texture.getMode() == Texture::RGBA_8) {
+    } else if(mode == Texture::RGBA_8) {
         Colour4* data = new Colour4[w * h];
         ser.read_raw((char*)data, w * h * sizeof(Colour4));
         texture.fromColour4(data, w, h);
+    } else {
+        throw "Invalid mode";
     }
 }
 
