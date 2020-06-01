@@ -1,28 +1,23 @@
 
+project(packager VERSION 0.1)
 
 find_package(zlib REQUIRED)
 find_package(IrrXML REQUIRED)
 find_package(ASSIMP REQUIRED)
 find_package(libpng REQUIRED)
 
-set(ASSIMP_INCLUDE ${ASSIMP_INCLUDE_DIRS})
-set(ASSIMP_LIB ${IRRXML_LIBRARY} ${ZLIB_LIBRARY} assimp::assimp png_static)
+set(SRC)
+list(APPEND SRC src/main.cpp)
 
-set(INCLUDE "")
-set(LIB ${ASSIMP_LIB})
-set(SRC src/main.cpp
-    ${CMAKE_SOURCE_DIR}/src/resources/Mesh.cpp
-    ${CMAKE_SOURCE_DIR}/src/resources/FileResource.cpp
-    ${CMAKE_SOURCE_DIR}/src/resources/Shader.cpp
-    ${CMAKE_SOURCE_DIR}/src/resources/Colour.cpp
-    ${CMAKE_SOURCE_DIR}/src/resources/Texture.cpp
-    ${CMAKE_SOURCE_DIR}/src/utility/Serializer.cpp)
+add_library(IrrXML STATIC IMPORTED)
+set_property(TARGET IrrXML PROPERTY INCLUDE_DIRECTORIES ${IRRXML_INCLUDE_DIR})
+set_property(TARGET IrrXML PROPERTY IMPORTED_LOCATION_DEBUG ${IRRXML_LIBRARY_DEBUG})
+set_property(TARGET IrrXML PROPERTY IMPORTED_LOCATION_RELEASE ${IRRXML_LIBRARY})
 
 add_executable(packager ${SRC})
 
-target_include_directories(packager PRIVATE ${INCLUDE} ${CMAKE_SOURCE_DIR}/include/ ${CMAKE_CURRENT_SOURCE_DIR}/include/)
-target_link_libraries(packager ${LIB})
+target_include_directories(packager
+    PRIVATE src)
 
-if(WIN32)
-target_link_libraries(packager Ws2_32.lib)
-endif (WIN32)
+target_link_libraries(packager
+    PRIVATE resource_system base_resources assimp::assimp png_static IrrXML)
