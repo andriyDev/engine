@@ -16,15 +16,11 @@ public:
     virtual ~MaterialProgram();
 
     void bind();
-    void useUBO(GLuint ubo);
 
     void setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix);
 
-    GLuint createUBO();
-
-    GLuint getUniformId(const std::string& uniformName) const;
+    GLint getUniformId(const std::string& uniformName) const;
     GLuint getProgramId() const;
-    const std::map<std::string, std::pair<GLenum, GLuint>>& getUniformInfo() const;
 
     static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
@@ -50,11 +46,6 @@ private:
     static std::shared_ptr<MaterialProgram> build(std::shared_ptr<BuildData> data);
 
     GLuint ProgramId = 0;
-
-    std::map<std::string, std::pair<GLenum, GLuint>> uniforms;
-    std::map<std::string, GLuint> textureIdMap;
-    GLuint uboSize;
-    GLuint uboLocation;
     GLuint mvpLocation;
     GLuint modelMatrixLocation;
 
