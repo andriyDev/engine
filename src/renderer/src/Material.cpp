@@ -1,51 +1,85 @@
 
 #include "renderer/Material.h"
 
+void Material::PropInfo::use(uint uniformLocation)
+{
+    switch (matchType)
+    {
+    case GL_FLOAT:
+        glUniform1f(uniformLocation, data_float);
+        break;
+    case GL_INT:
+        glUniform1i(uniformLocation, data_int);
+        break;
+    case GL_FLOAT_VEC2:
+        glUniform2fv(uniformLocation, 1, &data_vec2[0]);
+        break;
+    case GL_FLOAT_VEC3:
+        glUniform3fv(uniformLocation, 1, &data_vec3[0]);
+        break;
+    case GL_FLOAT_VEC4:
+        glUniform4fv(uniformLocation, 1, &data_vec4[0]);
+        break;
+    }
+}
+
 Material::Material(ResourceRef<MaterialProgram> _program)
     : program(_program)
 {
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
     assert(prog);
-    ubo = prog->createUBO();
 }
 
 Material::Material(std::shared_ptr<Material> sourceMaterial)
 {
     assert(sourceMaterial);
     program = sourceMaterial->program;
-    propValues = sourceMaterial->propValues;
+    propMap = sourceMaterial->propMap;
+    values = sourceMaterial->values;
     textures = sourceMaterial->textures;
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
-    ubo = prog->createUBO();
 }
 
 Material::~Material()
 {
-    if(ubo) {
-        glDeleteBuffers(1, &ubo);
-    }
+
 }
 
 void Material::use()
 {
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
     prog->bind();
-    prog->useUBO(ubo);
-    for(auto& tex_pair : textures) {
-        std::shared_ptr<RenderableTexture> tex = tex_pair.second.resolve(Immediate);
-        tex->bind(tex_pair.first);
+    for(auto& val_pair : values) {
+        val_pair.second.use(val_pair.first);
+    }
+    for(int i = 0; i < textures.size(); i++) {
+        std::shared_ptr<RenderableTexture> tex = textures[i].resolve(Immediate);
+        tex->bind(i);
     }
 }
 
 void Material::setTexture(const std::string& textureName, const ResourceRef<RenderableTexture>& texture)
 {
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
-    auto it = prog->textureIdMap.find(textureName);
-    if(it == prog->textureIdMap.end()) {
-        return; // Cannot set texture.
+    auto it = propMap.find(textureName);
+    if(it == propMap.end()) {
+        GLint id = prog->getUniformId(textureName);
+        if(id == -1) {
+            return;
+        }
+        it = propMap.insert(std::make_pair(textureName, id)).first;
     }
-    GLuint id = it->second;
-    textures.insert_or_assign(id, texture);
+
+    auto jt = values.find(it->second);
+    if(jt == values.end()) {
+        int textureUnit = (int)textures.size();
+        values.insert_or_assign(it->second, PropInfo(textureUnit));
+        textures.push_back(texture);
+    } else {
+        if(jt->second.data_int < textures.size()) {
+            textures[jt->second.data_int] = texture;
+        }
+    }
 }
 
 void Material::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
@@ -54,79 +88,57 @@ void Material::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
     prog->setMVP(modelMatrix, vpMatrix);
 }
 
-void Material::setBoolProperty(const std::string& name, bool value)
+void Material::setIntProperty(const std::string& name, int value, bool temporary)
 {
-    PropInfo info(value);
-    // Only store the value if we were able to set it in the shader.
-    if(setProperty(name, &info.data_float, info.dataSize, info.matchType)) {
-        propValues.insert_or_assign(name, info);
-    }
+    setProperty(name, PropInfo(value), temporary);
 }
 
-void Material::setIntProperty(const std::string& name, int value)
+void Material::setFloatProperty(const std::string& name, float value, bool temporary)
 {
-    PropInfo info(value);
-    // Only store the value if we were able to set it in the shader.
-    if(setProperty(name, &info.data_float, info.dataSize, info.matchType)) {
-        propValues.insert_or_assign(name, info);
-    }
+    setProperty(name, PropInfo(value), temporary);
 }
 
-void Material::setFloatProperty(const std::string& name, float value)
+void Material::setVec2Property(const std::string& name, const glm::vec2& value, bool temporary)
 {
-    PropInfo info(value);
-    // Only store the value if we were able to set it in the shader.
-    if(setProperty(name, &info.data_float, info.dataSize, info.matchType)) {
-        propValues.insert_or_assign(name, info);
-    }
+    setProperty(name, PropInfo(value), temporary);
 }
 
-void Material::setVec2Property(const std::string& name, const glm::vec2& value)
+void Material::setVec3Property(const std::string& name, const glm::vec3& value, bool temporary)
 {
-    PropInfo info(value);
-    // Only store the value if we were able to set it in the shader.
-    if(setProperty(name, &info.data_float, info.dataSize, info.matchType)) {
-        propValues.insert_or_assign(name, info);
-    }
+    setProperty(name, PropInfo(value), temporary);
 }
 
-void Material::setVec3Property(const std::string& name, const glm::vec3& value)
+void Material::setVec4Property(const std::string& name, const glm::vec4& value, bool temporary)
 {
-    PropInfo info(value);
-    // Only store the value if we were able to set it in the shader.
-    if(setProperty(name, &info.data_float, info.dataSize, info.matchType)) {
-        propValues.insert_or_assign(name, info);
-    }
+    setProperty(name, PropInfo(value), temporary);
 }
 
-void Material::setVec4Property(const std::string& name, const glm::vec4& value)
-{
-    PropInfo info(value);
-    // Only store the value if we were able to set it in the shader.
-    if(setProperty(name, &info.data_float, info.dataSize, info.matchType)) {
-        propValues.insert_or_assign(name, info);
-    }
-}
-
-bool Material::setProperty(const std::string& name, const void* data, uint size, GLenum matchType)
+void Material::setProperty(const std::string& name, PropInfo& value, bool temporary)
 {
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
-    const auto& uniforms = prog->getUniformInfo();
-    auto it = uniforms.find(name);
-    if(it == uniforms.end() || matchType != 0 && it->second.first != matchType) {
-        return true; // Cannot set uniform.
+    PropInfo info(value);
+    auto it = propMap.find(name);
+    if(it == propMap.end()) {
+        GLint id = prog->getUniformId(name);
+        if(id == -1) {
+            return;
+        }
+        it = propMap.insert(std::make_pair(name, id)).first;
     }
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferSubData(GL_UNIFORM_BUFFER, it->second.second, size, data);
-    return false;
+    
+    if(temporary) {
+        value.use(it->second);
+    } else {
+        values.insert_or_assign(it->second, value);
+    }
 }
 
 std::vector<uint> Material::getDependencies()
 {
     std::vector<uint> out;
     out.push_back(program);
-    for(auto p : textures) {
-        out.push_back(p.second);
+    for(auto& tex : textures) {
+        out.push_back(tex);
     }
     return out;
 }
@@ -134,8 +146,8 @@ std::vector<uint> Material::getDependencies()
 void Material::resolveDependencies(ResolveMethod method)
 {
     program.resolve(method);
-    for(auto& p : textures) {
-        p.second.resolve(method);
+    for(auto& tex : textures) {
+        tex.resolve(method);
     }
 }
 
@@ -143,15 +155,16 @@ bool Material::load(std::shared_ptr<Resource::BuildData> data)
 {
     std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
     std::shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
-    ubo = prog->createUBO();
 
-    std::map<uint, ResourceRef<RenderableTexture>> resolvedTextures = textures;
+    std::vector<ResourceRef<RenderableTexture>> resolvedTextures = textures;
+    std::unordered_map<GLuint, PropInfo> texMap = values;
     textures.clear();
+    values.clear();
     for(auto props : buildData->values) {
-        setProperty(props.first, &props.second.data_float, props.second.dataSize, props.second.matchType);
+        setProperty(props.first, props.second, false);
     }
     for(auto tex : buildData->textures) {
-        setTexture(tex.first, resolvedTextures.find(tex.second)->second);
+        setTexture(tex.first, resolvedTextures[texMap.find(tex.second)->second.data_int]);
     }
     return true;
 }
@@ -160,9 +173,13 @@ std::shared_ptr<Material> Material::build(std::shared_ptr<BuildData> data)
 {
     std::shared_ptr<Material> mat(new Material());
     mat->program = data->program;
-    // We will use the material's texture map as a cache to hold the references waiting to be filled.
-    for(auto p : data->textures) {
-        mat->textures.insert(std::make_pair(p.second, p.second));
+    // We will use the material's texture array to store texture dependencies,
+    // and the value map to map texture ids to their index.
+    int index = 0;
+    for(auto texId : data->textures) {
+        mat->values.insert(std::make_pair(texId.second, PropInfo(index)));
+        mat->textures.push_back(index);
+        index++;
     }
     return mat;
 }
@@ -177,11 +194,6 @@ std::shared_ptr<Material::BuildData> Material::createAssetData(uint programId)
 void Material::BuildData::setTexture(const std::string& textureName, uint textureId)
 {
     textures.insert_or_assign(textureName, textureId);
-}
-
-void Material::BuildData::setBoolProperty(const std::string& name, bool value)
-{
-    values.insert_or_assign(name, Material::PropInfo(value));
 }
 
 void Material::BuildData::setIntProperty(const std::string& name, int value)

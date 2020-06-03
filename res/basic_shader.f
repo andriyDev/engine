@@ -1,9 +1,6 @@
 #version 330 core
 
-uniform MaterialProps
-{
-    vec3 albedo;
-};
+uniform vec3 albedo;
 uniform sampler2D tex;
 
 in vec2 uv;

@@ -20,13 +20,11 @@ public:
 
     void setTexture(const std::string& textureName, const ResourceRef<RenderableTexture>& texture);
 
-    void setBoolProperty(const std::string& name, bool value);
-    void setIntProperty(const std::string& name, int value);
-    void setFloatProperty(const std::string& name, float value);
-    void setVec2Property(const std::string& name, const glm::vec2& value);
-    void setVec3Property(const std::string& name, const glm::vec3& value);
-    void setVec4Property(const std::string& name, const glm::vec4& value);
-    bool setProperty(const std::string& name, const void* data, uint size, GLenum matchType = 0);
+    void setIntProperty(const std::string& name, int value, bool temporary = false);
+    void setFloatProperty(const std::string& name, float value, bool temporary = false);
+    void setVec2Property(const std::string& name, const glm::vec2& value, bool temporary = false);
+    void setVec3Property(const std::string& name, const glm::vec3& value, bool temporary = false);
+    void setVec4Property(const std::string& name, const glm::vec4& value, bool temporary = false);
 
     static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
         std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
@@ -34,7 +32,6 @@ public:
     }
 
     struct PropInfo {
-        PropInfo(bool value) : matchType(GL_BOOL), dataSize(1), data_bool(value) { }
         PropInfo(int value) : matchType(GL_INT), dataSize(sizeof(int)), data_int(value) { }
         PropInfo(float value) : matchType(GL_FLOAT), dataSize(sizeof(float)), data_float(value) { }
         PropInfo(const glm::vec2& value) : matchType(GL_FLOAT_VEC2), dataSize(sizeof(float) * 2), data_vec2(value) { }
@@ -44,13 +41,14 @@ public:
         GLenum matchType;
         uint dataSize;
         union {
-            bool data_bool;
             int data_int;
             float data_float;
             glm::vec2 data_vec2;
             glm::vec3 data_vec3;
             glm::vec4 data_vec4;
         };
+        
+        void use(uint uniformLocation);
 
         friend class Material;
     };
@@ -62,15 +60,14 @@ public:
 
         void setTexture(const std::string& textureName, uint textureId);
 
-        void setBoolProperty(const std::string& name, bool value);
         void setIntProperty(const std::string& name, int value);
         void setFloatProperty(const std::string& name, float value);
         void setVec2Property(const std::string& name, const glm::vec2& value);
         void setVec3Property(const std::string& name, const glm::vec3& value);
         void setVec4Property(const std::string& name, const glm::vec4& value);
     private:
-        std::map<std::string, PropInfo> values;
-        std::map<std::string, uint> textures;
+        std::unordered_map<std::string, PropInfo> values;
+        std::unordered_map<std::string, uint> textures;
 
         friend class Material;
     };
@@ -82,11 +79,13 @@ protected:
     virtual std::vector<uint> getDependencies() override;
     virtual void resolveDependencies(ResolveMethod method) override;
     virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
+
+    void setProperty(const std::string& name, PropInfo& value, bool temporary = false);
 private:
     ResourceRef<MaterialProgram> program;
-    std::map<std::string, PropInfo> propValues;
-    std::map<GLuint, ResourceRef<RenderableTexture>> textures;
-    GLuint ubo = 0;
+    std::unordered_map<std::string, GLuint> propMap;
+    std::unordered_map<GLuint, PropInfo> values;
+    std::vector<ResourceRef<RenderableTexture>> textures;
     
     static std::shared_ptr<Material> build(std::shared_ptr<BuildData> data);
 };
