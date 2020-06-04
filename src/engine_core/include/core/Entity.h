@@ -46,7 +46,7 @@ public:
     // Finds any component attached to this entity with the specified type.
     shared_ptr<Component> findComponentByType(uint typeId);
     // Finds all components attached to this entity with the specified type.
-    uset<shared_ptr<Component>> findComponentsByType(uint typeId);
+    hash_set<shared_ptr<Component>> findComponentsByType(uint typeId);
 
     template<typename T>
     shared_ptr<T> findComponent() {
@@ -54,9 +54,9 @@ public:
     }
 
     template<typename T>
-    uset<shared_ptr<T>> findComponents() {
-        uset<shared_ptr<Component>> components = findComponentsByType(get_id(T));
-        uset<shared_ptr<T>> results;
+    hash_set<shared_ptr<T>> findComponents() {
+        hash_set<shared_ptr<Component>> components = findComponentsByType(get_id(T));
+        hash_set<shared_ptr<T>> results;
         for(shared_ptr<Component>& c : components) {
             results.insert(static_pointer_cast<T>(c));
         }
@@ -66,12 +66,12 @@ public:
     inline shared_ptr<World> getWorld() const {
         return world.lock();
     }
-    inline uset<shared_ptr<Component>> getComponents() const {
+    inline hash_set<shared_ptr<Component>> getComponents() const {
         return components;
     }
 private:
     weak_ptr<World> world; // The world this entity is in.
-    uset<shared_ptr<Component>> components; // The components attached to this entity.
+    hash_set<shared_ptr<Component>> components; // The components attached to this entity.
 
     friend class Universe;
     friend class World;

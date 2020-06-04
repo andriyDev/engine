@@ -22,8 +22,8 @@ typedef unsigned short ushort;
 typedef unsigned char uchar;
 
 template<typename K, typename V>
-using umap = unordered_map<K, V>;
+using hash_map = unordered_map<K, V>;
 template<typename T>
-using uset = unordered_set<T>;
+using hash_set = unordered_set<T>;
 
 #define get_id(x) (uint)(typeid(x).hash_code())

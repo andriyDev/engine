@@ -55,15 +55,15 @@ public:
     void addComponent(shared_ptr<Component> component);
     void removeComponent(shared_ptr<Component> component);
 
-    inline uset<shared_ptr<Entity>> getEntities() const {
+    inline hash_set<shared_ptr<Entity>> getEntities() const {
         return entities;
     }
     inline vector<shared_ptr<System>> getSystems() const {
         return systems;
     }
 private:
-    uset<shared_ptr<Entity>> entities;
-    umap<uint, uset<shared_ptr<Component>>> components;
+    hash_set<shared_ptr<Entity>> entities;
+    hash_map<uint, hash_set<shared_ptr<Component>>> components;
     vector<shared_ptr<System>> systems;
 
     friend class Universe;

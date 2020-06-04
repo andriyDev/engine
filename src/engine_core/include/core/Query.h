@@ -14,7 +14,7 @@ class Query
 {
 public:
     // Constructs a query initially containing all items T in the provided world.
-    Query<T>(const uset<T>& _items) : items(_items) {}
+    Query<T>(const hash_set<T>& _items) : items(_items) {}
 
     Query<T>& filter(function<bool(T)> predicate) {
         filters.push_back(predicate);
@@ -22,7 +22,7 @@ public:
     }
 
     Query<T>& apply() {
-        uset<T> result;
+        hash_set<T> result;
         for(T t : *this) {
             bool pass = true;
             for(function<bool(T)> predicate : filters) {
@@ -128,7 +128,7 @@ public:
         if(!filters.empty()) {
             apply();
         }
-        uset<T> result;
+        hash_set<T> result;
 
         set_intersection(
             items.begin(), items.end(),
@@ -147,7 +147,7 @@ public:
         if(!filters.empty()) {
             apply();
         }
-        uset<T> result;
+        hash_set<T> result;
 
         set_difference(
             items.begin(), items.end(),
@@ -162,14 +162,14 @@ public:
         return left -= right;
     }
 
-    typename uset<T>::iterator begin() const {
+    typename hash_set<T>::iterator begin() const {
         return items.begin();
     }
-    typename uset<T>::iterator end() const {
+    typename hash_set<T>::iterator end() const {
         return items.end();
     }
 private:
-    uset<T> items; // The set of items currently in the query
+    hash_set<T> items; // The set of items currently in the query
     vector<function<bool(T)>> filters; // The filters that are queued to be applied to the vector.
 
     Query<T>() {}

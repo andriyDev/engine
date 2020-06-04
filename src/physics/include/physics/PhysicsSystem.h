@@ -40,16 +40,16 @@ public:
         shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
     RaycastHit rayCast(const vec3& source, const vec3& direction, float range,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
         
     vector<RaycastHit> rayCastAll(const vec3& source, const vec3& direction, float range,
         shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
     vector<RaycastHit> rayCastAll(const vec3& source, const vec3& direction, float range,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
     RaycastHit boxCast(const vec3& extents,
@@ -60,8 +60,8 @@ public:
     RaycastHit boxCast(const vec3& extents,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
     vector<RaycastHit> boxCastAll(const vec3& extents,
         const vec3& sourcePosition, const quat& sourceRotation,
@@ -71,8 +71,8 @@ public:
     vector<RaycastHit> boxCastAll(const vec3& extents,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
     RaycastHit sphereCast(float radius,
@@ -83,8 +83,8 @@ public:
     RaycastHit sphereCast(float radius,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
     vector<RaycastHit> sphereCastAll(float radius,
         const vec3& sourcePosition, const quat& sourceRotation,
@@ -94,8 +94,8 @@ public:
     vector<RaycastHit> sphereCastAll(float radius,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
     RaycastHit convexCast(shared_ptr<ConvexHull> convex,
@@ -106,8 +106,8 @@ public:
     RaycastHit convexCast(shared_ptr<ConvexHull> convex,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
     vector<RaycastHit> convexCastAll(shared_ptr<ConvexHull> convex,
         const vec3& sourcePosition, const quat& sourceRotation,
@@ -117,8 +117,8 @@ public:
     vector<RaycastHit> convexCastAll(shared_ptr<ConvexHull> convex,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 protected:
 
@@ -130,8 +130,8 @@ protected:
     RaycastHit shapeCast(const class btConvexShape* shape,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
     vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
         const vec3& sourcePosition, const quat& sourceRotation,
@@ -141,8 +141,8 @@ protected:
     vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
         const vec3& sourcePosition, const quat& sourceRotation,
         const vec3& targetPosition, const quat& targetRotation,
-        const uset<shared_ptr<Entity>>& ignoredEntities,
-        const uset<shared_ptr<CollisionObject>>& ignoredBodies,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
     vec3 gravity = vec3(0,-9.81f,0);

@@ -76,7 +76,7 @@ private:
             vector<tuple<float, uint, int>> controls;
         };
 
-        umap<string, Action> actions;
+        hash_map<string, Action> actions;
 
         friend class InputSystem;
     };

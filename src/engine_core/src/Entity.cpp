@@ -52,7 +52,7 @@ shared_ptr<Component> Entity::removeComponentByType(uint typeId)
 void Entity::removeComponentsByType(uint typeId)
 {
     shared_ptr<World> worldPtr = world.lock();
-    uset<shared_ptr<Component>> newComponents;
+    hash_set<shared_ptr<Component>> newComponents;
     for(auto it = components.begin(); it != components.end(); ++it) {
         if((*it)->getTypeId() != typeId) {
             newComponents.insert(*it);
@@ -75,9 +75,9 @@ shared_ptr<Component> Entity::findComponentByType(uint typeId)
     return nullptr;
 }
 
-uset<shared_ptr<Component>> Entity::findComponentsByType(uint typeId)
+hash_set<shared_ptr<Component>> Entity::findComponentsByType(uint typeId)
 {
-    uset<shared_ptr<Component>> typedComponents;
+    hash_set<shared_ptr<Component>> typedComponents;
     for(shared_ptr<Component> component : components) {
         if(component->getTypeId() == typeId) {
             typedComponents.insert(component);

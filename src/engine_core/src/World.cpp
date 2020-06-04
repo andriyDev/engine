@@ -14,7 +14,7 @@ Query<shared_ptr<Component>> World::queryComponents(uint type)
 {
     auto it = components.find(type);
     return Query<shared_ptr<Component>>(
-        it == components.end() ? uset<shared_ptr<Component>>() : it->second);
+        it == components.end() ? hash_set<shared_ptr<Component>>() : it->second);
 }
 
 shared_ptr<Entity> World::addEntity()
@@ -78,7 +78,7 @@ void World::gameplayTick(float delta)
 
 void World::addComponent(shared_ptr<Component> component)
 {
-    auto pair = components.insert(make_pair(component->getTypeId(), uset<shared_ptr<Component>>()));
+    auto pair = components.insert(make_pair(component->getTypeId(), hash_set<shared_ptr<Component>>()));
     pair.first->second.insert(component);
 }
 

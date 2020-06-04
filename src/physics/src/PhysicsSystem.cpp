@@ -88,7 +88,7 @@ void PhysicsSystem::init()
 
 void PhysicsSystem::gameplayTick(float delta)
 {
-    uset<shared_ptr<CollisionObject>> validBodies;
+    hash_set<shared_ptr<CollisionObject>> validBodies;
     // Copy component data to bullet DSs.
     for(auto it = collisionObjects.begin(); it != collisionObjects.end(); ) {
         shared_ptr<CollisionObject> col = it->first.lock();
@@ -103,7 +103,7 @@ void PhysicsSystem::gameplayTick(float delta)
             ++it;
         }
     }
-    uset<CollisionObject*> invalidBodies;
+    hash_set<CollisionObject*> invalidBodies;
     // Look through all body components and setup any new bodies.
     Query<shared_ptr<CollisionObject>> allBodies = (
         getWorld()->queryComponents(get_id(RigidBody))
@@ -238,11 +238,11 @@ void PhysicsSystem::setUpCollisionObject(shared_ptr<CollisionObject>& bodyCompon
     reverseObjects.insert(make_pair(data.collisionObject, bodyComponent));
 }
 
-umap<btCollisionShape*, int> getChildMap(btCompoundShape* shape)
+hash_map<btCollisionShape*, int> getChildMap(btCompoundShape* shape)
 {
     btCompoundShapeChild* children = shape->getChildList();
     int childCount = shape->getNumChildShapes();
-    umap<btCollisionShape*, int> childMap;
+    hash_map<btCollisionShape*, int> childMap;
     for(int i = 0; i < childCount; i++) {
         childMap.insert(make_pair(children[i].m_childShape, i));
     }
@@ -253,9 +253,9 @@ void PhysicsSystem::updateCollidersOfObject(shared_ptr<CollisionObject>& bodyCom
     PhysicsSystem::CollisionObjectData& bodyData)
 {
     shared_ptr<Transform> bodyTransform = bodyComponent->getTransform();
-    umap<btCollisionShape*, int> childMap = getChildMap(bodyData.compoundShape);
+    hash_map<btCollisionShape*, int> childMap = getChildMap(bodyData.compoundShape);
     bool shapeUpdated = false;
-    uset<shared_ptr<Collider>> colliders;
+    hash_set<shared_ptr<Collider>> colliders;
     // Go through each collider and ensure it exists and isn't updated.
     for(shared_ptr<Collider>& collider : bodyComponent->getColliders()) {
         if(!collider) {
