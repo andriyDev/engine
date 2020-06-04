@@ -360,11 +360,13 @@ int main()
             element = layout;
             shared_ptr<Box> box = make_shared<Box>();
             AnchorOffsetLayout::AnchorOffset slot;
-            slot.anchorMin = vec2(0,0);
-            slot.anchorMax = vec2(0.25f,0.25f);
-            slot.offsetMin = vec2(0,0);
-            slot.offsetMax = vec2(0,0);
-            slot.origin = vec2(0,0);
+            slot.anchorMin = vec2(0,0.25f);
+            slot.anchorMax = vec2(0,0.35f);
+            slot.offsetMin.y = 0;
+            slot.offsetMax.y = 0;
+            slot.position.x = 0;
+            slot.size.x = 0.25f;
+            slot.origin = vec2(0,0.5f);
             layout->addChild(slot, box);
             box->colour = vec3(1,0,0);
         }

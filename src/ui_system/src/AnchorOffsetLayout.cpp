@@ -58,7 +58,7 @@ void AnchorOffsetLayout::render(vec4 rect, vec4 mask,
             }
             
             min.x -= desiredWidth * child.first.origin.x;
-            max.x -= desiredWidth * (1.f - child.first.origin.x);
+            max.x += desiredWidth * (1.f - child.first.origin.x);
 
             min.x += child.first.position.x;
             max.x += child.first.position.x;
@@ -77,8 +77,8 @@ void AnchorOffsetLayout::render(vec4 rect, vec4 mask,
                 desiredHeight = child.first.size.y;
             }
             
-            min.x -= desiredHeight * child.first.origin.y;
-            max.x -= desiredHeight * (1.f - child.first.origin.y);
+            min.y -= desiredHeight * child.first.origin.y;
+            max.y += desiredHeight * (1.f - child.first.origin.y);
 
             min.y += child.first.position.y;
             max.y += child.first.position.y;
