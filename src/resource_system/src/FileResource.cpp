@@ -1,10 +1,10 @@
 
 #include "resources/FileResource.h"
 
-bool FileResource::load(std::shared_ptr<Resource::BuildData> data)
+bool FileResource::load(shared_ptr<Resource::BuildData> data)
 {
-    std::shared_ptr<FileData> fileData = std::dynamic_pointer_cast<FileData>(data);
-    std::ifstream file(fileData->fileName, std::ios_base::binary | std::ios_base::in);
+    shared_ptr<FileData> fileData = dynamic_pointer_cast<FileData>(data);
+    ifstream file(fileData->fileName, ios_base::binary | ios_base::in);
     if(!file.is_open()) {
         return false;
     }
@@ -13,9 +13,9 @@ bool FileResource::load(std::shared_ptr<Resource::BuildData> data)
     return true;
 }
 
-bool FileResource::save(std::string fileName)
+bool FileResource::save(string fileName)
 {
-    std::ofstream file(fileName, std::ios_base::binary | std::ios_base::out);
+    ofstream file(fileName, ios_base::binary | ios_base::out);
     if(!file.is_open()) {
         return false;
     }
@@ -24,9 +24,9 @@ bool FileResource::save(std::string fileName)
     return true;
 }
 
-std::shared_ptr<FileResource::FileData> FileResource::createAssetData(std::string fileName)
+shared_ptr<FileResource::FileData> FileResource::createAssetData(string fileName)
 {
-    std::shared_ptr<FileData> data = std::make_shared<FileData>();
+    shared_ptr<FileData> data = make_shared<FileData>();
     data->fileName = fileName;
     return data;
 }

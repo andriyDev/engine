@@ -8,25 +8,25 @@
 class FileResource : public Resource
 {
 public:
-    bool save(std::string fileName);
+    bool save(string fileName);
 
     template<typename T>
-    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
-        return std::shared_ptr<T>(new T());
+    static shared_ptr<Resource> build(shared_ptr<Resource::BuildData> data) {
+        return shared_ptr<T>(new T());
     }
 
     class FileData : public Resource::BuildData
     {
     public:
-        std::string fileName;
+        string fileName;
     };
 
-    static std::shared_ptr<FileData> createAssetData(std::string fileName);
+    static shared_ptr<FileData> createAssetData(string fileName);
 protected:
-    virtual std::vector<uint> getDependencies() override { return {}; }
+    virtual vector<uint> getDependencies() override { return {}; }
     virtual void resolveDependencies(ResolveMethod method) override {}
-    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
+    virtual bool load(shared_ptr<Resource::BuildData> data) override;
     
-    virtual void loadFromFile(std::ifstream& file) = 0;
-    virtual void saveToFile(std::ofstream& file) = 0;
+    virtual void loadFromFile(ifstream& file) = 0;
+    virtual void saveToFile(ofstream& file) = 0;
 };

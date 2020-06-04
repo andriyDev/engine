@@ -11,11 +11,11 @@ Serializer::Serializer()
     : src(nullptr), dst(nullptr)
 { }
 
-Serializer::Serializer(std::istream* _src)
+Serializer::Serializer(istream* _src)
     : src(_src), dst(nullptr)
 { }
 
-Serializer::Serializer(std::ostream* _dst)
+Serializer::Serializer(ostream* _dst)
     : dst(_dst), src(nullptr)
 { }
 
@@ -34,13 +34,13 @@ void Serializer::read_raw(char* buffer, int bytes)
 void Serializer::seek(uint offset, uint relativeTo)
 {
     assert(relativeTo < 3);
-    std::ios_base::seekdir base;
+    ios_base::seekdir base;
     if(relativeTo == SER_START) {
-        base = std::ios_base::beg;
+        base = ios_base::beg;
     } else if(relativeTo == SER_END) {
-        base = std::ios_base::end;
+        base = ios_base::end;
     } else {
-        base = std::ios_base::cur;
+        base = ios_base::cur;
     }
 
     if(dst) {

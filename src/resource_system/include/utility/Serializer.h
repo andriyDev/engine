@@ -16,8 +16,8 @@ class Serializer
 {
 public:
     Serializer();
-    Serializer(std::istream* _src);
-    Serializer(std::ostream* _dst);
+    Serializer(istream* _src);
+    Serializer(ostream* _dst);
 
     void write_raw(char* buffer, int bytes);
     void read_raw(char* buffer, int bytes);
@@ -29,8 +29,8 @@ public:
         return dst;
     }
 private:
-    std::istream* src;
-    std::ostream* dst;
+    istream* src;
+    ostream* dst;
 };
 
 template<typename T>
@@ -51,7 +51,7 @@ void write_array(Serializer& pkg, T const* data, lengthType len, bool omitLen = 
 }
 
 template<typename lengthType, typename T>
-void read_array(Serializer& pkg, std::vector<T>& data, lengthType len=0, bool omitLen = false)
+void read_array(Serializer& pkg, vector<T>& data, lengthType len=0, bool omitLen = false)
 {
     if(!omitLen) {
         read(pkg, len);
@@ -92,15 +92,15 @@ void read_array_alloc(Serializer& pkg, T*& data, lengthType& len, bool omitLen =
 }
 
 template<typename lengthType>
-void write_string(Serializer& pkg, const std::string& data, bool omitLen=false)
+void write_string(Serializer& pkg, const string& data, bool omitLen=false)
 {
     write_array<lengthType>(pkg, data.c_str(), (lengthType)data.size(), omitLen);
 }
 
 template<typename lengthType>
-void read_string(Serializer& pkg, std::string& data, int len=0, bool omitLen=false)
+void read_string(Serializer& pkg, string& data, int len=0, bool omitLen=false)
 {
-    std::vector<char> raw_data;
+    vector<char> raw_data;
     read_array<lengthType>(pkg, raw_data, len, omitLen);
-    data = std::string(raw_data.begin(), raw_data.end());
+    data = string(raw_data.begin(), raw_data.end());
 }
