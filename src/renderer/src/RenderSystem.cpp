@@ -48,5 +48,7 @@ void RenderSystem::frameTick(float delta)
             mesh->render();
         }
     }
-    targetSurface->swapBuffers();
+    if(swapBuffers) {
+        targetSurface->swapBuffers();
+    }
 }
