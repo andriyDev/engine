@@ -25,7 +25,7 @@ target_include_directories(engine_example
     PRIVATE src)
 
 target_link_libraries(engine_example
-    PRIVATE engine_core resource_system base_resources physics renderer glfw glew)
+    PRIVATE engine_core resource_system base_resources physics renderer glfw glew ui_system)
 
 add_custom_command(TARGET engine_example POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

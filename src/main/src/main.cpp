@@ -35,6 +35,10 @@
 #include "physics/Trigger.h"
 #include "physics/RigidBody.h"
 
+#include "ui/UISystem.h"
+#include "ui/AnchorOffsetLayout.h"
+#include "ui/Box.h"
+
 #include <glm/gtx/string_cast.hpp>
 
 namespace glm
@@ -308,6 +312,7 @@ int main()
         shared_ptr<World> w = U.addWorld();
         shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
         RS->targetSurface = &window;
+        RS->swapBuffers = false;
         shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
         IS->setTargetWindow(&window);
         IS->setControlSetCount(1);
@@ -348,6 +353,25 @@ int main()
         shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
         spawner->IS = IS;
         spawner->PS = Physics;
+
+        shared_ptr<UIElement> element;
+        {
+            shared_ptr<AnchorOffsetLayout> layout = make_shared<AnchorOffsetLayout>();
+            element = layout;
+            shared_ptr<Box> box = make_shared<Box>();
+            AnchorOffsetLayout::AnchorOffset slot;
+            slot.anchorMin = vec2(0,0);
+            slot.anchorMax = vec2(0.25f,0.25f);
+            slot.offsetMin = vec2(0,0);
+            slot.offsetMax = vec2(0,0);
+            slot.origin = vec2(0,0);
+            layout->addChild(slot, box);
+            box->colour = vec3(1,0,0);
+        }
+
+        shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
+        ui->addElement(element);
+        ui->targetSurface = &window;
 
         w->addEntity();
 
