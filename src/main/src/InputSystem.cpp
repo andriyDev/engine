@@ -193,37 +193,37 @@ void InputSystem::setControlSetCount(uint count)
     controlSets.resize(count);
 }
 
-void InputSystem::createAction(uint controlSet, const std::string& actionName)
+void InputSystem::createAction(uint controlSet, const string& actionName)
 {
     controlSets[controlSet].actions.insert_or_assign(actionName, ControlSet::Action());
 }
 
-void InputSystem::addActionKeyBind(uint controlSet, const std::string& actionName,
+void InputSystem::addActionKeyBind(uint controlSet, const string& actionName,
     int key, bool ctrl, bool alt, bool shift, float weight)
 {
     auto it = controlSets[controlSet].actions.find(actionName);
     assert(it != controlSets[controlSet].actions.end());
     int mods = (ctrl ? GLFW_MOD_CONTROL : 0) | (alt ? GLFW_MOD_ALT : 0) | (shift ? GLFW_MOD_SHIFT : 0);
-    it->second.controls.push_back(std::make_tuple(weight, (uint)key, mods));
+    it->second.controls.push_back(make_tuple(weight, (uint)key, mods));
 }
     
-void InputSystem::addActionMouseBind(uint controlSet, const std::string& actionName, int mouseButton, float weight)
+void InputSystem::addActionMouseBind(uint controlSet, const string& actionName, int mouseButton, float weight)
 {
     auto it = controlSets[controlSet].actions.find(actionName);
     assert(it != controlSets[controlSet].actions.end());
-    it->second.controls.push_back(std::make_tuple(weight, (uint)(MOUSE_BTNS + mouseButton), 0));
+    it->second.controls.push_back(make_tuple(weight, (uint)(MOUSE_BTNS + mouseButton), 0));
 }
 
-void InputSystem::addActionSpecialMouseBind(uint controlSet, const std::string& actionName,
+void InputSystem::addActionSpecialMouseBind(uint controlSet, const string& actionName,
     int specialMouseId, float weight)
 {
     auto it = controlSets[controlSet].actions.find(actionName);
     assert(it != controlSets[controlSet].actions.end());
-    it->second.controls.push_back(std::make_tuple(weight, (uint)specialMouseId, 0));
+    it->second.controls.push_back(make_tuple(weight, (uint)specialMouseId, 0));
 }
     
 
-float InputSystem::getActionValue(uint controlSet, const std::string& actionName, bool isGameplayTick)
+float InputSystem::getActionValue(uint controlSet, const string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
@@ -233,7 +233,7 @@ float InputSystem::getActionValue(uint controlSet, const std::string& actionName
     return it->second.getValue(*this, isGameplayTick);
 }
 
-bool InputSystem::isActionPressed(uint controlSet, const std::string& actionName, bool isGameplayTick)
+bool InputSystem::isActionPressed(uint controlSet, const string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
@@ -243,7 +243,7 @@ bool InputSystem::isActionPressed(uint controlSet, const std::string& actionName
     return it->second.isPressed(*this, isGameplayTick);
 }
 
-bool InputSystem::isActionReleased(uint controlSet, const std::string& actionName, bool isGameplayTick)
+bool InputSystem::isActionReleased(uint controlSet, const string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
@@ -253,7 +253,7 @@ bool InputSystem::isActionReleased(uint controlSet, const std::string& actionNam
     return it->second.isReleased(*this, isGameplayTick);
 }
 
-bool InputSystem::isActionDown(uint controlSet, const std::string& actionName, bool isGameplayTick)
+bool InputSystem::isActionDown(uint controlSet, const string& actionName, bool isGameplayTick)
 {
     assert(controlSets.size() > controlSet);
     auto it = controlSets[controlSet].actions.find(actionName);
@@ -286,9 +286,9 @@ float InputSystem::ControlSet::Action::getValue(InputSystem& IS, bool isGameplay
 {
     float value = 0;
     for(auto control : controls) {
-        value += std::get<0>(control)
-            * (isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].value
-            * (IS.areModsDown(std::get<2>(control), isGameplayTick) ? 1 : 0);
+        value += get<0>(control)
+            * (isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[get<1>(control)].value
+            * (IS.areModsDown(get<2>(control), isGameplayTick) ? 1 : 0);
     }
     return value;
 }
@@ -296,8 +296,8 @@ float InputSystem::ControlSet::Action::getValue(InputSystem& IS, bool isGameplay
 bool InputSystem::ControlSet::Action::isPressed(const InputSystem& IS, bool isGameplayTick) const
 {
     for(auto control : controls) {
-        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].pressed
-            && IS.areModsDown(std::get<2>(control), isGameplayTick)) {
+        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[get<1>(control)].pressed
+            && IS.areModsDown(get<2>(control), isGameplayTick)) {
             return true;
         }
     }
@@ -307,8 +307,8 @@ bool InputSystem::ControlSet::Action::isPressed(const InputSystem& IS, bool isGa
 bool InputSystem::ControlSet::Action::isReleased(const InputSystem& IS, bool isGameplayTick) const
 {
     for(auto control : controls) {
-        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].released
-            && IS.areModsDown(std::get<2>(control), isGameplayTick)) {
+        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[get<1>(control)].released
+            && IS.areModsDown(get<2>(control), isGameplayTick)) {
             return true;
         }
     }
@@ -318,8 +318,8 @@ bool InputSystem::ControlSet::Action::isReleased(const InputSystem& IS, bool isG
 bool InputSystem::ControlSet::Action::isDown(const InputSystem& IS, bool isGameplayTick) const
 {
     for(auto control : controls) {
-        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[std::get<1>(control)].value > 0
-            && IS.areModsDown(std::get<2>(control), isGameplayTick)) {
+        if((isGameplayTick ? IS.keys_gameplay : IS.keys_frame)[get<1>(control)].value > 0
+            && IS.areModsDown(get<2>(control), isGameplayTick)) {
             return true;
         }
     }

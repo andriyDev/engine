@@ -5,8 +5,6 @@
 #include "core/System.h"
 #include "Window.h"
 
-#include <glm/glm.hpp>
-
 #define SCROLL_X_POS 24
 #define SCROLL_X_NEG 25
 #define SCROLL_Y_POS 26
@@ -34,27 +32,27 @@ public:
     virtual void mouseScroll(double xScroll, double yScroll) override;
 
     void setControlSetCount(uint count);
-    void createAction(uint controlSet, const std::string& actionName);
-    void addActionKeyBind(uint controlSet, const std::string& actionName,
+    void createAction(uint controlSet, const string& actionName);
+    void addActionKeyBind(uint controlSet, const string& actionName,
         int key, bool ctrl, bool alt, bool shift, float weight = 1);
-    void addActionMouseBind(uint controlSet, const std::string& actionName, int mouseButton, float weight = 1);
-    void addActionSpecialMouseBind(uint controlSet, const std::string& actionName,
+    void addActionMouseBind(uint controlSet, const string& actionName, int mouseButton, float weight = 1);
+    void addActionSpecialMouseBind(uint controlSet, const string& actionName,
         int specialMouseId, float weight = 1);
 
-    float getActionValue(uint controlSet, const std::string& actionName, bool useGameplayTick);
-    bool isActionPressed(uint controlSet, const std::string& actionName, bool useGameplayTick);
-    bool isActionReleased(uint controlSet, const std::string& actionName, bool useGameplayTick);
-    bool isActionDown(uint controlSet, const std::string& actionName, bool useGameplayTick);
+    float getActionValue(uint controlSet, const string& actionName, bool useGameplayTick);
+    bool isActionPressed(uint controlSet, const string& actionName, bool useGameplayTick);
+    bool isActionReleased(uint controlSet, const string& actionName, bool useGameplayTick);
+    bool isActionDown(uint controlSet, const string& actionName, bool useGameplayTick);
 
     void setCursor(bool lock, bool hidden);
 
     void setTargetWindow(Window* _target);
     uint consumeCharTyped();
-    glm::vec2 consumeMouseDelta();
+    vec2 consumeMouseDelta();
     float consumeScrollDeltaX();
     float consumeScrollDeltaY();
 
-    inline glm::vec2 getMousePosition() const { return mousePosition; }
+    inline vec2 getMousePosition() const { return mousePosition; }
     inline bool isMouseOnWindow() const { return mouseOnWindow; }
 private:
     struct KeyState
@@ -75,10 +73,10 @@ private:
             bool isDown(const InputSystem& IS, bool isGameplayTick) const;
 
             /* The controls for this action stored as (weight, key, modifiers). */
-            std::vector<std::tuple<float, uint, int>> controls;
+            vector<tuple<float, uint, int>> controls;
         };
 
-        std::map<std::string, Action> actions;
+        umap<string, Action> actions;
 
         friend class InputSystem;
     };
@@ -89,9 +87,9 @@ private:
     KeyState keys_gameplay[GLFW_KEY_LAST + 1];
     KeyState keys_frame[GLFW_KEY_LAST + 1];
     uint lastCharTyped = 0;
-    glm::vec2 mousePosition;
-    glm::vec2 mouseDelta;
-    glm::vec2 scrollDelta;
-    std::vector<ControlSet> controlSets;
+    vec2 mousePosition;
+    vec2 mouseDelta;
+    vec2 scrollDelta;
+    vector<ControlSet> controlSets;
     Window* targetWindow;
 };
