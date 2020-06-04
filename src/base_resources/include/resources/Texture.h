@@ -29,8 +29,8 @@ public:
     inline Colour3* asRGB_8() const { return data.rgb_8; }
     inline Colour4* asRGBA_8() const { return data.rgba_8; }
 protected:
-    virtual void loadFromFile(std::ifstream& file) override;
-    virtual void saveToFile(std::ofstream& file) override;
+    virtual void loadFromFile(ifstream& file) override;
+    virtual void saveToFile(ofstream& file) override;
 private:
     Mode mode = INVALID;
     uint width;

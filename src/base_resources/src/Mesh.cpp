@@ -8,10 +8,10 @@ Mesh::~Mesh()
     clearData();
 }
 
-void makeBoxFace(Mesh::Vertex* data, glm::vec3 extents, glm::vec3 normal, bool vert)
+void makeBoxFace(Mesh::Vertex* data, vec3 extents, vec3 normal, bool vert)
 {
-    glm::vec3 tangent = -glm::normalize(glm::cross(normal, vert ? glm::vec3(0, 0, -1) : glm::vec3(0, 1, 0)));
-    glm::vec3 bitangent = glm::cross(normal, tangent);
+    vec3 tangent = -normalize(cross(normal, vert ? vec3(0, 0, -1) : vec3(0, 1, 0)));
+    vec3 bitangent = cross(normal, tangent);
     data[0].position = normal * extents.z - tangent * extents.x - bitangent * extents.y;
     data[1].position = normal * extents.z + tangent * extents.x - bitangent * extents.y;
     data[2].position = normal * extents.z + tangent * extents.x + bitangent * extents.y;
@@ -28,32 +28,32 @@ void makeBoxFace(Mesh::Vertex* data, glm::vec3 extents, glm::vec3 normal, bool v
     data[1].bitangent = bitangent;
     data[2].bitangent = bitangent;
     data[3].bitangent = bitangent;
-    data[0].colour = glm::vec4(1,1,1,1);
-    data[1].colour = glm::vec4(1,1,1,1);
-    data[2].colour = glm::vec4(1,1,1,1);
-    data[3].colour = glm::vec4(1,1,1,1);
-    data[0].texCoord = glm::vec2(0,0);
-    data[1].texCoord = glm::vec2(1,0);
-    data[2].texCoord = glm::vec2(1,1);
-    data[3].texCoord = glm::vec2(0,1);
+    data[0].colour = vec4(1,1,1,1);
+    data[1].colour = vec4(1,1,1,1);
+    data[2].colour = vec4(1,1,1,1);
+    data[3].colour = vec4(1,1,1,1);
+    data[0].texCoord = vec2(0,0);
+    data[1].texCoord = vec2(1,0);
+    data[2].texCoord = vec2(1,1);
+    data[3].texCoord = vec2(0,1);
 }
 
-std::shared_ptr<Mesh> Mesh::makeBox(glm::vec3 extents)
+shared_ptr<Mesh> Mesh::makeBox(vec3 extents)
 {
-    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+    shared_ptr<Mesh> mesh = make_shared<Mesh>();
     mesh->vertCount = 24;
     mesh->indexCount = 36;
     mesh->vertData = new Vertex[24];
     mesh->indexData = new uint[36];
 
-    makeBoxFace(mesh->vertData    , glm::vec3(extents.x, extents.y, extents.z), glm::vec3(0,0,-1), false);
-    makeBoxFace(mesh->vertData + 4, glm::vec3(extents.x, extents.y, extents.z), glm::vec3(0,0,1), false);
+    makeBoxFace(mesh->vertData    , vec3(extents.x, extents.y, extents.z), vec3(0,0,-1), false);
+    makeBoxFace(mesh->vertData + 4, vec3(extents.x, extents.y, extents.z), vec3(0,0,1), false);
 
-    makeBoxFace(mesh->vertData + 8, glm::vec3(extents.z, extents.y, extents.x), glm::vec3(-1,0,0), false);
-    makeBoxFace(mesh->vertData + 12, glm::vec3(extents.z, extents.y, extents.x), glm::vec3(1,0,0), false);
+    makeBoxFace(mesh->vertData + 8, vec3(extents.z, extents.y, extents.x), vec3(-1,0,0), false);
+    makeBoxFace(mesh->vertData + 12, vec3(extents.z, extents.y, extents.x), vec3(1,0,0), false);
 
-    makeBoxFace(mesh->vertData + 16, glm::vec3(extents.x, extents.z, extents.y), glm::vec3(0,-1,0), true);
-    makeBoxFace(mesh->vertData + 20, glm::vec3(extents.x, extents.z, extents.y), glm::vec3(0,1,0), true);
+    makeBoxFace(mesh->vertData + 16, vec3(extents.x, extents.z, extents.y), vec3(0,-1,0), true);
+    makeBoxFace(mesh->vertData + 20, vec3(extents.x, extents.z, extents.y), vec3(0,1,0), true);
 
     for(int i = 0; i < 6; i++) {
         mesh->indexData[i*6    ] = i*4;
@@ -100,13 +100,13 @@ void read(Serializer& ser, Mesh& mesh)
     read_array_alloc(ser, mesh.indexData, mesh.indexCount);
 }
 
-void Mesh::loadFromFile(std::ifstream& file)
+void Mesh::loadFromFile(ifstream& file)
 {
     Serializer ser(&file);
     read(ser, *this);
 }
 
-void Mesh::saveToFile(std::ofstream& file)
+void Mesh::saveToFile(ofstream& file)
 {
     Serializer ser(&file);
     write(ser, *this);

@@ -7,8 +7,8 @@
 class Shader : public FileResource
 {
 public:
-    std::string code;
+    string code;
 protected:
-    virtual void loadFromFile(std::ifstream& file) override;
-    virtual void saveToFile(std::ofstream& file) override;
+    virtual void loadFromFile(ifstream& file) override;
+    virtual void saveToFile(ofstream& file) override;
 };
