@@ -100,7 +100,7 @@ Mesh* convertMesh(aiMesh* srcMesh)
 }
 
 vector<pair<Mesh*, string>> extractMeshes(const string& fileName,
-    vector<string> desiredMeshes, unordered_map<string, string> meshNameMap, Assimp::Importer& importer)
+    vector<string> desiredMeshes, hash_map<string, string> meshNameMap, Assimp::Importer& importer)
 {
     vector<pair<Mesh*, string>> resources;
 
@@ -246,7 +246,7 @@ void processResourceCommand(vector<string> command)
     {
         string fileName = command[1];
         vector<string> meshNames;
-        unordered_map<string, string> meshFiles;
+        hash_map<string, string> meshFiles;
         if(command.size() % 2 != 0) {
             cerr << "Mesh command improperly formatted." << endl;
             return;
