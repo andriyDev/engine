@@ -18,8 +18,6 @@
 #include <png.h>
 #include <stdio.h>
 
-using namespace std;
-
 vector<string> splitByDelimiter(string str, char delim)
 {
     vector<string> result;
@@ -81,12 +79,12 @@ Mesh* convertMesh(aiMesh* srcMesh)
     aiColor4D* c = srcMesh->mColors[0];
 
     for(uint i = 0; i < mesh->vertCount; i++) {
-        mesh->vertData[i].position  = glm::vec3(p[i].x, p[i].y, p[i].z);
-        mesh->vertData[i].normal    = n ? glm::vec3(n[i].x, n[i].y, n[i].z) : glm::vec3(1,0,0);
-        mesh->vertData[i].tangent   = t ? glm::vec3(t[i].x, t[i].y, t[i].z) : glm::vec3(0,1,0);
-        mesh->vertData[i].bitangent = b ? glm::vec3(b[i].x, b[i].y, b[i].z) : glm::vec3(0,0,1);
-        mesh->vertData[i].texCoord  = u ? glm::vec2(u[i].x, u[i].y) : glm::vec2(0, 0);
-        mesh->vertData[i].colour    = c ? glm::vec4(c[i].r, c[i].g, c[i].b, c[i].a) : glm::vec4(1, 1, 1, 1);
+        mesh->vertData[i].position  = vec3(p[i].x, p[i].y, p[i].z);
+        mesh->vertData[i].normal    = n ? vec3(n[i].x, n[i].y, n[i].z) : vec3(1,0,0);
+        mesh->vertData[i].tangent   = t ? vec3(t[i].x, t[i].y, t[i].z) : vec3(0,1,0);
+        mesh->vertData[i].bitangent = b ? vec3(b[i].x, b[i].y, b[i].z) : vec3(0,0,1);
+        mesh->vertData[i].texCoord  = u ? vec2(u[i].x, u[i].y) : vec2(0, 0);
+        mesh->vertData[i].colour    = c ? vec4(c[i].r, c[i].g, c[i].b, c[i].a) : vec4(1, 1, 1, 1);
     }
     mesh->indexCount = srcMesh->mNumFaces * 3;
     mesh->indexData = new uint[mesh->indexCount];
@@ -222,21 +220,21 @@ string toLower(const string& str)
 }
 
 // trim from left
-inline std::string& ltrim(std::string& s, const char* t = " \t\n\r\f\v")
+inline string& ltrim(string& s, const char* t = " \t\n\r\f\v")
 {
     s.erase(0, s.find_first_not_of(t));
     return s;
 }
 
 // trim from right
-inline std::string& rtrim(std::string& s, const char* t = " \t\n\r\f\v")
+inline string& rtrim(string& s, const char* t = " \t\n\r\f\v")
 {
     s.erase(s.find_last_not_of(t) + 1);
     return s;
 }
 
 // trim from left & right
-inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+inline string& trim(string& s, const char* t = " \t\n\r\f\v")
 {
     return ltrim(rtrim(s, t), t);
 }
