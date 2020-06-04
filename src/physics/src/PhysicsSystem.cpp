@@ -20,27 +20,27 @@
 class TransformMotionState : public btMotionState
 {
 public:
-    std::weak_ptr<CollisionObject> target;
-    std::map<std::weak_ptr<CollisionObject>, PhysicsSystem::CollisionObjectData, std::owner_less<>>* collisionObjects;
+    weak_ptr<CollisionObject> target;
+    map<weak_ptr<CollisionObject>, PhysicsSystem::CollisionObjectData, owner_less<>>* collisionObjects;
     btRigidBody* body = nullptr;
 
-    TransformMotionState(std::shared_ptr<CollisionObject> _target, 
-        std::map<std::weak_ptr<CollisionObject>,
-            PhysicsSystem::CollisionObjectData, std::owner_less<>>* _collisionObjects)
+    TransformMotionState(shared_ptr<CollisionObject> _target, 
+        map<weak_ptr<CollisionObject>,
+            PhysicsSystem::CollisionObjectData, owner_less<>>* _collisionObjects)
         : target(_target), collisionObjects(_collisionObjects)
     { }
 
     virtual void getWorldTransform(btTransform& worldTransform) const override
     {
-        std::shared_ptr<CollisionObject> obj = target.lock();
-        std::shared_ptr<Transform> transform = obj->getTransform();
+        shared_ptr<CollisionObject> obj = target.lock();
+        shared_ptr<Transform> transform = obj->getTransform();
         worldTransform = convert(transform ? transform->getGlobalTransform() : TransformData());
     }
 
     virtual void setWorldTransform(const btTransform& worldTransform) override
     {
-        std::shared_ptr<CollisionObject> obj = target.lock();
-        std::shared_ptr<Transform> transform = obj->getTransform();
+        shared_ptr<CollisionObject> obj = target.lock();
+        shared_ptr<Transform> transform = obj->getTransform();
         if(transform) {
             TransformData td = convert(body ? body->getWorldTransform() : worldTransform);
             td.scale = transform->getGlobalTransform().scale;
@@ -66,7 +66,7 @@ PhysicsSystem::~PhysicsSystem()
     }
 }
 
-void PhysicsSystem::setGravity(const glm::vec3& _gravity)
+void PhysicsSystem::setGravity(const vec3& _gravity)
 {
     gravity = _gravity;
     if(physicsWorld) {
@@ -88,10 +88,10 @@ void PhysicsSystem::init()
 
 void PhysicsSystem::gameplayTick(float delta)
 {
-    std::set<std::shared_ptr<CollisionObject>> validBodies;
+    uset<shared_ptr<CollisionObject>> validBodies;
     // Copy component data to bullet DSs.
     for(auto it = collisionObjects.begin(); it != collisionObjects.end(); ) {
-        std::shared_ptr<CollisionObject> col = it->first.lock();
+        shared_ptr<CollisionObject> col = it->first.lock();
         if(!col) {
             reverseObjects.erase(it->second.collisionObject);
             cleanUpCollisionObject(it->second);
@@ -103,18 +103,19 @@ void PhysicsSystem::gameplayTick(float delta)
             ++it;
         }
     }
+    uset<CollisionObject*> invalidBodies;
     // Look through all body components and setup any new bodies.
-    Query<std::shared_ptr<CollisionObject>> allBodies = (
+    Query<shared_ptr<CollisionObject>> allBodies = (
         getWorld()->queryComponents(get_id(RigidBody))
         | getWorld()->queryComponents(get_id(StaticBody))
         | getWorld()->queryComponents(get_id(KinematicBody))
         | getWorld()->queryComponents(get_id(Trigger))
         )
         .cast_ptr<CollisionObject>()
-        .filter([](std::shared_ptr<CollisionObject> ptr) {
+        .filter([](shared_ptr<CollisionObject> ptr) {
             return ptr->colliders.size() > 0;
         });
-    for(std::shared_ptr<CollisionObject> body : allBodies) {
+    for(shared_ptr<CollisionObject> body : allBodies) {
         auto p = validBodies.insert(body);
         if(!p.second) {
             continue;
@@ -127,11 +128,11 @@ void PhysicsSystem::gameplayTick(float delta)
 
     // Go through all triggers we know about, clear their overlaps, and copy over their new overlaps.
     for(auto& pair : collisionObjects) {
-        std::shared_ptr<CollisionObject> col = pair.first.lock();
+        shared_ptr<CollisionObject> col = pair.first.lock();
         if(!col || col->getTypeId() != get_id(Trigger)) {
             continue;
         }
-        std::shared_ptr<Trigger> trigger = std::static_pointer_cast<Trigger>(col);
+        shared_ptr<Trigger> trigger = static_pointer_cast<Trigger>(col);
         btGhostObject* btTrigger = static_cast<btGhostObject*>(pair.second.collisionObject);
         trigger->overlaps.clear();
         int overlaps = btTrigger->getNumOverlappingObjects();
@@ -155,9 +156,9 @@ void PhysicsSystem::gameplayTick(float delta)
         CollisionObject* objectB = static_cast<CollisionObject*>(btObjectB->getUserPointer());
 
         CollisionObject::Hit* hitA = objectA->findOrCreateHit(
-            std::static_pointer_cast<CollisionObject>(objectB->shared_from_this()));
+            static_pointer_cast<CollisionObject>(objectB->shared_from_this()));
         CollisionObject::Hit* hitB = objectB->findOrCreateHit(
-            std::static_pointer_cast<CollisionObject>(objectA->shared_from_this()));
+            static_pointer_cast<CollisionObject>(objectA->shared_from_this()));
         
         int contacts = manifold->getNumContacts();
         for(int j = 0; j < contacts; j++) {
@@ -190,22 +191,22 @@ void PhysicsSystem::cleanUpCollisionObject(PhysicsSystem::CollisionObjectData& b
     }
 }
 
-void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyComponent)
+void PhysicsSystem::setUpCollisionObject(shared_ptr<CollisionObject>& bodyComponent)
 {
     CollisionObjectData data; 
     data.compoundShape = new btCompoundShape();
-    std::shared_ptr<Transform> bodyTransform = bodyComponent->getTransform();
-    for(std::shared_ptr<Collider>& collider : bodyComponent->getColliders())
+    shared_ptr<Transform> bodyTransform = bodyComponent->getTransform();
+    for(shared_ptr<Collider>& collider : bodyComponent->getColliders())
     {
         btCollisionShape* shape = collider->constructShape();
-        std::shared_ptr<Transform> transform = collider->getTransform();
+        shared_ptr<Transform> transform = collider->getTransform();
         uint updateId = transform->sumUpdatesRelativeTo(bodyTransform);
         if(shape) {
             TransformData td = transform->getTransformRelativeTo(bodyComponent->getTransform());
             shape->setLocalScaling(convert(td.scale));
             data.compoundShape->addChildShape(convert(td), shape);
         }
-        data.shapeMap.insert(std::make_pair(collider, std::make_pair(shape, updateId)));
+        data.shapeMap.insert(make_pair(collider, make_pair(shape, updateId)));
         collider->shapeUpdated = false;
     }
     // No point in constructing the motion state if we won't use it.
@@ -233,35 +234,35 @@ void PhysicsSystem::setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyC
     }
     addBody(data);
 
-    collisionObjects.insert(std::make_pair(bodyComponent, data));
-    reverseObjects.insert(std::make_pair(data.collisionObject, bodyComponent));
+    collisionObjects.insert(make_pair(bodyComponent, data));
+    reverseObjects.insert(make_pair(data.collisionObject, bodyComponent));
 }
 
-std::map<btCollisionShape*, int> getChildMap(btCompoundShape* shape)
+umap<btCollisionShape*, int> getChildMap(btCompoundShape* shape)
 {
     btCompoundShapeChild* children = shape->getChildList();
     int childCount = shape->getNumChildShapes();
-    std::map<btCollisionShape*, int> childMap;
+    umap<btCollisionShape*, int> childMap;
     for(int i = 0; i < childCount; i++) {
-        childMap.insert(std::make_pair(children[i].m_childShape, i));
+        childMap.insert(make_pair(children[i].m_childShape, i));
     }
     return childMap;
 }
 
-void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bodyComponent,
+void PhysicsSystem::updateCollidersOfObject(shared_ptr<CollisionObject>& bodyComponent,
     PhysicsSystem::CollisionObjectData& bodyData)
 {
-    std::shared_ptr<Transform> bodyTransform = bodyComponent->getTransform();
-    std::map<btCollisionShape*, int> childMap = getChildMap(bodyData.compoundShape);
+    shared_ptr<Transform> bodyTransform = bodyComponent->getTransform();
+    umap<btCollisionShape*, int> childMap = getChildMap(bodyData.compoundShape);
     bool shapeUpdated = false;
-    std::set<std::shared_ptr<Collider>> colliders;
+    uset<shared_ptr<Collider>> colliders;
     // Go through each collider and ensure it exists and isn't updated.
-    for(std::shared_ptr<Collider>& collider : bodyComponent->getColliders()) {
+    for(shared_ptr<Collider>& collider : bodyComponent->getColliders()) {
         if(!collider) {
             continue;
         }
         colliders.insert(collider);
-        std::shared_ptr<Transform> transform = collider->getTransform();
+        shared_ptr<Transform> transform = collider->getTransform();
         auto it = bodyData.shapeMap.find(collider);
         TransformData td = transform->getTransformRelativeTo(bodyComponent->getTransform());
         uint updateId = transform->sumUpdatesRelativeTo(bodyTransform);
@@ -308,7 +309,7 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
                 bodyData.compoundShape->addChildShape(convert(td), shape);
             }
             if(it == bodyData.shapeMap.end()) {
-                bodyData.shapeMap.insert(std::make_pair(collider, std::make_pair(shape, updateId)));
+                bodyData.shapeMap.insert(make_pair(collider, make_pair(shape, updateId)));
             } else {
                 it->second.first = shape;
                 it->second.second = updateId;
@@ -337,13 +338,13 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
         }
     }
     
-    std::set<std::weak_ptr<Collider>, std::owner_less<>> eraseTgts;
+    set<weak_ptr<Collider>, owner_less<>> eraseTgts;
     for(auto p : bodyData.shapeMap) {
         if(colliders.find(p.first.lock()) == colliders.end()) {
             eraseTgts.insert(p.first);
         }
     }
-    for(std::weak_ptr<Collider> collider : eraseTgts) {
+    for(weak_ptr<Collider> collider : eraseTgts) {
         if(!shapeUpdated) {
             shapeUpdated = true;
             removeBody(bodyData);
@@ -363,12 +364,12 @@ void PhysicsSystem::updateCollidersOfObject(std::shared_ptr<CollisionObject>& bo
     }
 }
 
-void PhysicsSystem::updateStateOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData)
+void PhysicsSystem::updateStateOfObject(shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData)
 {
     // Clear any hit info.
     bodyComponent->hits.clear();
 
-    std::shared_ptr<Transform> transform = bodyComponent->getTransform();
+    shared_ptr<Transform> transform = bodyComponent->getTransform();
     if(transform->sumUpdates() == bodyData.updateId) {
         return;
     }

@@ -5,7 +5,7 @@
 
 #include "physics/BulletUtil.h"
 
-void RigidBody::addForce(const glm::vec3& force)
+void RigidBody::addForce(const vec3& force)
 {
     if(getBody()) {
         btRigidBody* rbbody = static_cast<btRigidBody*>(getBody());
@@ -13,21 +13,21 @@ void RigidBody::addForce(const glm::vec3& force)
     }
 }
 
-void RigidBody::addPointForce(const glm::vec3& force, glm::vec3 worldPoint)
+void RigidBody::addPointForce(const vec3& force, vec3 worldPoint)
 {
     if(getBody()) {
         btRigidBody* rbbody = static_cast<btRigidBody*>(getBody());
-        std::shared_ptr<Transform> transform = getTransform();
+        shared_ptr<Transform> transform = getTransform();
         if(transform) {
             TransformData td = transform->getGlobalTransform();
-            td.scale = glm::vec3(1,1,1);
+            td.scale = vec3(1,1,1);
             worldPoint = td.inverse().transformPoint(worldPoint);
         }
         rbbody->applyForce(convert(force), convert(worldPoint));
     }
 }
 
-void RigidBody::addImpulse(const glm::vec3& impulse)
+void RigidBody::addImpulse(const vec3& impulse)
 {
     if(getBody()) {
         btRigidBody* rbbody = static_cast<btRigidBody*>(getBody());
@@ -35,21 +35,21 @@ void RigidBody::addImpulse(const glm::vec3& impulse)
     }
 }
 
-void RigidBody::addPointImpulse(const glm::vec3& impulse, glm::vec3 worldPoint)
+void RigidBody::addPointImpulse(const vec3& impulse, vec3 worldPoint)
 {
     if(getBody()) {
         btRigidBody* rbbody = static_cast<btRigidBody*>(getBody());
-        std::shared_ptr<Transform> transform = getTransform();
+        shared_ptr<Transform> transform = getTransform();
         if(transform) {
             TransformData td = transform->getGlobalTransform();
-            td.scale = glm::vec3(1,1,1);
+            td.scale = vec3(1,1,1);
             worldPoint = td.inverse().transformPoint(worldPoint);
         }
         rbbody->applyImpulse(convert(impulse), convert(worldPoint));
     }
 }
 
-void RigidBody::addTorque(const glm::vec3& torque)
+void RigidBody::addTorque(const vec3& torque)
 {
     if(getBody()) {
         btRigidBody* rbbody = static_cast<btRigidBody*>(getBody());
@@ -57,7 +57,7 @@ void RigidBody::addTorque(const glm::vec3& torque)
     }
 }
 
-void RigidBody::addTorqueImpulse(const glm::vec3& torque)
+void RigidBody::addTorqueImpulse(const vec3& torque)
 {
     if(getBody()) {
         btRigidBody* rbbody = static_cast<btRigidBody*>(getBody());

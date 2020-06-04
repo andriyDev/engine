@@ -10,7 +10,7 @@ void ConvexCollider::setConvexHull(ResourceRef<ConvexHull> newHull)
 
 btCollisionShape* ConvexCollider::constructShape()
 {
-    std::shared_ptr<ConvexHull> hull = convexHull.resolve(Immediate);
+    shared_ptr<ConvexHull> hull = convexHull.resolve(Immediate);
     if(!hull) {
         return nullptr;
     }

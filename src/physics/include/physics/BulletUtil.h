@@ -5,17 +5,17 @@
 #include <glm/glm.hpp>
 #include "components/Transform.h"
 
-inline btVector3 convert(const glm::vec3& v) {
+inline btVector3 convert(const vec3& v) {
     return btVector3(btScalar(v.x), btScalar(v.y), btScalar(v.z));
 }
-inline glm::vec3 convert(const btVector3& v) {
-    return glm::vec3(v.getX(), v.getY(), v.getZ());
+inline vec3 convert(const btVector3& v) {
+    return vec3(v.getX(), v.getY(), v.getZ());
 }
-inline btQuaternion convert(const glm::quat& q) {
+inline btQuaternion convert(const quat& q) {
     return btQuaternion(btScalar(q.x), btScalar(q.y), btScalar(q.z), btScalar(q.w));
 }
-inline glm::quat convert(const btQuaternion& q) {
-    return glm::quat(q.getW(), q.getX(), q.getY(), q.getZ());
+inline quat convert(const btQuaternion& q) {
+    return quat(q.getW(), q.getX(), q.getY(), q.getZ());
 }
 inline btTransform convert(const TransformData& t) {
     return btTransform(convert(t.rotation), convert(t.translation));
