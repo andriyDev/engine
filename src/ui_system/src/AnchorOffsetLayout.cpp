@@ -39,7 +39,7 @@ vec2 AnchorOffsetLayout::layout(hash_map<const UIElement*, vec2>& desiredSizes) 
     return vec2(0,0);
 }
 
-void AnchorOffsetLayout::render(vec4 rect, vec4 mask,
+void AnchorOffsetLayout::render(vec4 rect, vec4 mask, vec2 surfaceSize,
     const hash_map<const UIElement*, vec2>& desiredSizes)
 {
     vec2 rectMin(rect.x, rect.y);
@@ -89,6 +89,6 @@ void AnchorOffsetLayout::render(vec4 rect, vec4 mask,
             max.y -= child.first.offsetMax.y;
         }
 
-        child.second->render(vec4(min, max), mask, desiredSizes);
+        child.second->render(vec4(min, max), mask, surfaceSize, desiredSizes);
     }
 }

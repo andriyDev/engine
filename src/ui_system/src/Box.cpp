@@ -42,9 +42,10 @@ vec2 Box::layout(hash_map<const UIElement*, vec2>& desiredSizes) const
     return vec2(0,0);
 }
 
-void Box::render(vec4 rect, vec4 mask, const hash_map<const UIElement*, vec2>& desiredSizes)
+void Box::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, vec2>& desiredSizes)
 {
     boxMaterial->use();
+    boxMaterial->setVec2Property("surface_size", surfaceSize, true);
     boxMaterial->setVec4Property("rect", rect, true);
     boxMaterial->setVec4Property("mask", mask, true);
     boxMaterial->setVec3Property("colour_tint", colour, true);

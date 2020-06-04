@@ -11,8 +11,12 @@ void UISystem::frameTick(float delta)
     for(const shared_ptr<UIElement>& element : elements) {
         element->layout(desiredSizes);
     }
+    vec2 surfaceSize = targetSurface->getSize();
     for(const shared_ptr<UIElement>& element : elements) {
-        element->render(glm::vec4(0,0,1,1), glm::vec4(0,0,1,1), desiredSizes);
+        element->render(
+            vec4(0,0,surfaceSize.x, surfaceSize.y),
+            vec4(0,0,surfaceSize.x,surfaceSize.y),
+            surfaceSize, desiredSizes);
     }
     glEnable(GL_DEPTH_TEST);
     if(swapBuffers) {

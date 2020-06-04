@@ -365,7 +365,7 @@ int main()
             slot.offsetMin.y = 0;
             slot.offsetMax.y = 0;
             slot.position.x = 0;
-            slot.size.x = 0.25f;
+            slot.size.x = 200;
             slot.origin = vec2(0,0.5f);
             layout->addChild(slot, box);
             box->colour = vec3(1,0,0);

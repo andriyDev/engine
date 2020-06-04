@@ -8,8 +8,9 @@ vec2 transform_rect(vec2 point, vec4 rect)
     return point;
 }
 
-vec4 normalize_point(vec2 point)
+vec4 normalize_point(vec2 point, vec2 surface_size)
 {
+    point /= surface_size;
     point.y = 1.0 - point.y;
     return vec4(point * 2.0 - 1.0, 0.0, 1.0);
 }
