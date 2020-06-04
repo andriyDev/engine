@@ -103,7 +103,7 @@ TransformData TransformData::inverse() const
 {
     TransformData inv;
     inv.rotation = glm::inverse(rotation);
-    inv.scale = glm::vec3(
+    inv.scale = vec3(
         scale.x == 0 ? 0 : (1.0f / scale.x),
         scale.y == 0 ? 0 : (1.0f / scale.y),
         scale.z == 0 ? 0 : (1.0f / scale.z)
@@ -112,17 +112,17 @@ TransformData TransformData::inverse() const
     return inv;
 }
 
-glm::vec3 TransformData::transformPoint(const glm::vec3& point) const
+vec3 TransformData::transformPoint(const vec3& point) const
 {
     return rotation * (scale * point) + translation;
 }
 
-glm::vec3 TransformData::transformDirection(const glm::vec3& direction) const
+vec3 TransformData::transformDirection(const vec3& direction) const
 {
     return rotation * direction;
 }
 
-glm::vec3 TransformData::transformDirectionWithScale(const glm::vec3& direction) const
+vec3 TransformData::transformDirectionWithScale(const vec3& direction) const
 {
     return rotation * (scale * direction);
 }
@@ -136,11 +136,11 @@ TransformData TransformData::lerp(TransformData other, float alpha) const
     return result;
 }
 
-glm::mat4 TransformData::toMat4() const
+mat4 TransformData::toMat4() const
 {
-    return glm::translate(glm::mat4(1.0f), translation)
-        * glm::mat4_cast(rotation)
-        * glm::scale(glm::mat4(1.0f), scale);
+    return translate(mat4(1.0f), translation)
+        * mat4_cast(rotation)
+        * glm::scale(mat4(1.0f), scale);
 }
 
 void Transform::setRelativeTransform(const TransformData& relativeTransform)
