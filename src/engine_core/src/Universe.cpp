@@ -4,23 +4,23 @@
 #include "core/Component.h"
 #include "core/World.h"
 
-std::shared_ptr<World> Universe::addWorld()
+shared_ptr<World> Universe::addWorld()
 {
-    std::shared_ptr<World> ptr = std::make_shared<World>();
+    shared_ptr<World> ptr = make_shared<World>();
     addWorld(ptr);
     return ptr;
 }
 
-void Universe::addWorld(std::shared_ptr<World> world)
+void Universe::addWorld(shared_ptr<World> world)
 {
     worlds.push_back(world);
 }
 
-std::shared_ptr<World> Universe::removeWorld(std::weak_ptr<World> world)
+shared_ptr<World> Universe::removeWorld(weak_ptr<World> world)
 {
-    std::shared_ptr<World> wptr = world.lock();
+    shared_ptr<World> wptr = world.lock();
     if(wptr) {
-        worlds.erase(std::find(worlds.begin(), worlds.end(), wptr));
+        worlds.erase(find(worlds.begin(), worlds.end(), wptr));
     }
     return wptr;
 }

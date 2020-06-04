@@ -48,7 +48,8 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
     std::vector<const char*> rawStrings;
     rawStrings.reserve(components.size());
     for(std::shared_ptr<Shader> shaderComp : components) {
-        rawStrings.push_back(check(shaderComp)->code.c_str());
+        assert(shaderComp);
+        rawStrings.push_back(shaderComp->code.c_str());
     }
     glShaderSource(shaderId, (GLsizei)rawStrings.size(), &rawStrings[0], NULL);
     glCompileShader(shaderId);
