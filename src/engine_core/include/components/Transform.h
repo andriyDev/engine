@@ -3,22 +3,18 @@
 
 #include "std.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
-
 #include "core/Component.h"
 
 struct TransformData
 {
-    glm::vec3 translation;
-    glm::quat rotation;
-    glm::vec3 scale;
+    vec3 translation;
+    quat rotation;
+    vec3 scale;
 
     TransformData(
-        glm::vec3 _translation = glm::vec3(0,0,0),
-        glm::quat _rotation = glm::quat(1,0,0,0),
-        glm::vec3 _scale = glm::vec3(1,1,1))
+        vec3 _translation = vec3(0,0,0),
+        quat _rotation = quat(1,0,0,0),
+        vec3 _scale = vec3(1,1,1))
         : translation(_translation),
         rotation(_rotation),
         scale(_scale)
@@ -28,19 +24,19 @@ struct TransformData
     TransformData inverse() const;
 
     // Applies translation, rotation and scaling to the point so it is relative to the transform's reference frame.
-    glm::vec3 transformPoint(const glm::vec3& point) const;
+    vec3 transformPoint(const vec3& point) const;
     // Applies rotation to the direction so it is relative to the transform's reference frame.
-    glm::vec3 transformDirection(const glm::vec3& direction) const;
+    vec3 transformDirection(const vec3& direction) const;
     // Applies rotation and scaling to the direction so it is relative to the transform's reference frame.
-    glm::vec3 transformDirectionWithScale(const glm::vec3& direction) const;
+    vec3 transformDirectionWithScale(const vec3& direction) const;
 
-    glm::vec3 forward() const { return transformDirection(glm::vec3(0, 0, -1)); }
-    glm::vec3 right() const { return transformDirection(glm::vec3(1, 0, 0)); }
-    glm::vec3 up() const { return transformDirection(glm::vec3(0, 1, 0)); }
+    vec3 forward() const { return transformDirection(vec3(0, 0, -1)); }
+    vec3 right() const { return transformDirection(vec3(1, 0, 0)); }
+    vec3 up() const { return transformDirection(vec3(0, 1, 0)); }
 
     TransformData lerp(TransformData other, float alpha) const;
 
-    glm::mat4 toMat4() const;
+    mat4 toMat4() const;
 
     TransformData& operator*=(const TransformData& rhs);
     friend TransformData& operator*(TransformData lhs, const TransformData& rhs) {
@@ -48,7 +44,7 @@ struct TransformData
     }
 };
 
-std::string to_string(const TransformData& data);
+string to_string(const TransformData& data);
 
 class Transform : public Component
 {
@@ -67,25 +63,25 @@ public:
     // Sets the relative transform so that it matches globally.
     void setGlobalTransform(const TransformData& globalTransform);
     // Gets the transform of this component relative to the provided transform.
-    TransformData getTransformRelativeTo(std::shared_ptr<Transform> relative) const;
+    TransformData getTransformRelativeTo(shared_ptr<Transform> relative) const;
     // Sets the transform of this component relative to the provided transform. Only this transform will be moved.
-    void setTransformRelativeTo(const TransformData& transform, std::shared_ptr<Transform> relative);
+    void setTransformRelativeTo(const TransformData& transform, shared_ptr<Transform> relative);
 
     /*
     Replaces the current parent with the newParent (can be null to attach to world).
     If keepGlobal = true, then the global transform will not change after parent is set.
     */
-    void setParent(std::shared_ptr<Transform> newParent, bool keepGlobal);
+    void setParent(shared_ptr<Transform> newParent, bool keepGlobal);
 
     // Gets the parent of this transform.
-    std::shared_ptr<Transform> getParent() const;
+    shared_ptr<Transform> getParent() const;
 
     // Gets the children of this transform.
-    std::vector<std::shared_ptr<Transform>> getChildren() const;
+    vector<shared_ptr<Transform>> getChildren() const;
 
     inline uint getUpdateId() const { return updateId; }
 
-    uint sumUpdatesRelativeTo(std::shared_ptr<Transform> relative) const;
+    uint sumUpdatesRelativeTo(shared_ptr<Transform> relative) const;
     uint sumUpdates() const { return sumUpdatesRelativeTo(nullptr); }
 protected:
     void incrementUpdateId();
@@ -95,8 +91,8 @@ private:
     Stores a number to identify this value of the transform. If the transform is changed, this value is changed.
     */
     uint updateId = 0;
-    std::weak_ptr<Transform> parent; // The parent of this transform.
-    std::vector<std::weak_ptr<Transform>> children; // The children of this transform.
+    weak_ptr<Transform> parent; // The parent of this transform.
+    vector<weak_ptr<Transform>> children; // The children of this transform.
 };
 
 class Transformable : public Component
@@ -104,11 +100,11 @@ class Transformable : public Component
 public:
     Transformable(uint typeId) : Component(typeId) {}
 
-    std::weak_ptr<Transform> transform;
+    weak_ptr<Transform> transform;
 
-    inline std::shared_ptr<Transform> getTransform() const {
+    inline shared_ptr<Transform> getTransform() const {
         return transform.lock();
     }
 };
 
-std::shared_ptr<Transform> mapToTransform(std::shared_ptr<Transformable> component);
+shared_ptr<Transform> mapToTransform(shared_ptr<Transformable> component);

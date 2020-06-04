@@ -8,7 +8,7 @@
 class RenderSurface
 {
 public:
-    virtual glm::vec2 getSize() const = 0;
+    virtual vec2 getSize() const = 0;
 
     virtual void swapBuffers() = 0;
 };

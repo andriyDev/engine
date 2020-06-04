@@ -81,12 +81,12 @@ public:
     virtual void gameplayTick(float delta) override {
         auto regionQuery = getWorld()->queryComponents(get_id(GravityRegion))
             .map_ptr<Trigger>(mapToSibling<Trigger>)
-            .map_group_ptr<CollisionObject>([](std::shared_ptr<Trigger> t){ return t->getOverlaps(); });
+            .map_group_ptr<CollisionObject>([](shared_ptr<Trigger> t){ return t->getOverlaps(); });
         auto bodyQuery = getWorld()->queryComponents(get_id(ApplyGravity))
             .map_ptr<RigidBody>(mapToSibling<RigidBody>);
-        for(std::shared_ptr<RigidBody> body : bodyQuery) {
+        for(shared_ptr<RigidBody> body : bodyQuery) {
             if(regionQuery.contains(body)) {
-                body->addForce(glm::vec3(0, -10, 0) * body->mass);
+                body->addForce(vec3(0, -10, 0) * body->mass);
             }
         }
     }
@@ -94,20 +94,20 @@ public:
 
 class Bounce;
 
-void spawnBox(std::shared_ptr<World> world, glm::vec3 point)
+void spawnBox(shared_ptr<World> world, vec3 point)
 {
-    std::shared_ptr<Entity> box = world->addEntity();
+    shared_ptr<Entity> box = world->addEntity();
 
-    std::shared_ptr<MeshRenderer> m = box->addComponent<MeshRenderer>();
+    shared_ptr<MeshRenderer> m = box->addComponent<MeshRenderer>();
     m->mesh = 7;
     m->material = 9;
-    std::shared_ptr<Transform> meshTransform = box->addComponent<Transform>();
+    shared_ptr<Transform> meshTransform = box->addComponent<Transform>();
     m->transform = meshTransform;
-    meshTransform->setGlobalTransform(TransformData(point, glm::quat(0,0,0,1), glm::vec3(1, 1, 1)));
-    std::shared_ptr<BoxCollider> collider = box->addComponent<BoxCollider>();
-    collider->setExtents(glm::vec3(1, 1, 1) * 0.5f);
+    meshTransform->setGlobalTransform(TransformData(point, quat(0,0,0,1), vec3(1, 1, 1)));
+    shared_ptr<BoxCollider> collider = box->addComponent<BoxCollider>();
+    collider->setExtents(vec3(1, 1, 1) * 0.5f);
     collider->transform = meshTransform;
-    std::shared_ptr<RigidBody> body = box->addComponent<RigidBody>();
+    shared_ptr<RigidBody> body = box->addComponent<RigidBody>();
     body->transform = meshTransform;
     body->mass = 10;
     body->colliders.push_back(collider);
@@ -124,48 +124,48 @@ public:
 class CameraLookSystem : public System
 {
 public:
-    std::weak_ptr<InputSystem> IS;
+    weak_ptr<InputSystem> IS;
     bool* running = nullptr;
     float time = 0.f;
 
     virtual void frameTick(float delta) override {
         time += delta;
-        std::shared_ptr<InputSystem> ISptr = IS.lock();
+        shared_ptr<InputSystem> ISptr = IS.lock();
         if(ISptr) {
             if(ISptr->isActionDown(0, "escape", false)) {
                 *running = false;
                 ISptr->setTargetWindow(nullptr);
             }
         }
-        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents(get_id(ControlledEntity))
+        Query<shared_ptr<Transform>> c = getWorld()->queryComponents(get_id(ControlledEntity))
             .map_ptr<Camera>(mapToSibling<Camera>)
             .map_ptr<Transform>(mapToTransform);
-        for(std::shared_ptr<Transform> transform : c) {
+        for(shared_ptr<Transform> transform : c) {
             if(!transform) {
                 continue;
             }
             TransformData td = transform->getRelativeTransform();
-            glm::vec3 eulerRot = glm::toAxisRotator(td.rotation);
+            vec3 eulerRot = toAxisRotator(td.rotation);
             eulerRot.x -= ISptr->getActionValue(0, "lookYaw", false) * 0.1f;
             eulerRot.y = clamp(eulerRot.y - ISptr->getActionValue(0, "lookPitch", false) * 0.1f, -89.f, 89.f);
-            td.rotation = glm::fromAxisRotator(eulerRot);
+            td.rotation = fromAxisRotator(eulerRot);
             transform->setRelativeTransform(td);
         }
     }
     virtual void gameplayTick(float delta) override {
-        std::shared_ptr<InputSystem> ISptr = IS.lock();
-        Query<std::shared_ptr<Transform>> c = getWorld()->queryComponents(get_id(ControlledEntity))
+        shared_ptr<InputSystem> ISptr = IS.lock();
+        Query<shared_ptr<Transform>> c = getWorld()->queryComponents(get_id(ControlledEntity))
             .map_ptr<Camera>(mapToSibling<Camera>)
             .map_ptr<Transform>(mapToTransform);
-        for(std::shared_ptr<Transform> transform : c) {
+        for(shared_ptr<Transform> transform : c) {
             if(!transform) {
                 continue;
             }
             TransformData td = transform->getRelativeTransform();
             
-            td.translation += (td.rotation * glm::vec3(0,0,-1)) * ISptr->getActionValue(0, "forward", true) * delta * 5.f;
-            td.translation += (td.rotation * glm::vec3(-1,0,0)) * ISptr->getActionValue(0, "left", true) * delta * 5.f;
-            td.translation += (td.rotation * glm::vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
+            td.translation += (td.rotation * vec3(0,0,-1)) * ISptr->getActionValue(0, "forward", true) * delta * 5.f;
+            td.translation += (td.rotation * vec3(-1,0,0)) * ISptr->getActionValue(0, "left", true) * delta * 5.f;
+            td.translation += (td.rotation * vec3(0,1,0)) * ISptr->getActionValue(0, "up", true) * delta * 5.f;
             transform->setRelativeTransform(td);
         }
     }
@@ -174,26 +174,26 @@ public:
 class BoxSpawner : public System
 {
 public:
-    std::weak_ptr<InputSystem> IS;
-    std::weak_ptr<PhysicsSystem> PS;
+    weak_ptr<InputSystem> IS;
+    weak_ptr<PhysicsSystem> PS;
     bool lmb_down = false;
     bool rmb_down = false;
 
     virtual void gameplayTick(float delta) override {
-        std::shared_ptr<InputSystem> ISptr = IS.lock();
-        std::shared_ptr<PhysicsSystem> PSptr = PS.lock();
+        shared_ptr<InputSystem> ISptr = IS.lock();
+        shared_ptr<PhysicsSystem> PSptr = PS.lock();
         if(ISptr->isActionDown(0, "lmb", true)) {
             // Workaround until we get isActionPressed working properly.
             if(lmb_down) {
                 return;
             }
             lmb_down = true;
-            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents(get_id(ControlledEntity))
+            Query<shared_ptr<Transform>> t = getWorld()->queryComponents(get_id(ControlledEntity))
                 .map_ptr<Camera>(mapToSibling<Camera>)
                 .map_ptr<Transform>(mapToTransform);
-            for(std::shared_ptr<Transform> transform : t) {
+            for(shared_ptr<Transform> transform : t) {
                 TransformData td = transform->getGlobalTransform();
-                spawnBox(getWorld(), td.transformPoint(glm::vec3(0, 0, -5)));
+                spawnBox(getWorld(), td.transformPoint(vec3(0, 0, -5)));
             }
         }
         else {
@@ -205,14 +205,14 @@ public:
                 return;
             }
             rmb_down = true;
-            Query<std::shared_ptr<Transform>> t = getWorld()->queryComponents(get_id(ControlledEntity))
+            Query<shared_ptr<Transform>> t = getWorld()->queryComponents(get_id(ControlledEntity))
                 .map_ptr<Camera>(mapToSibling<Camera>)
                 .map_ptr<Transform>(mapToTransform);
-            for(std::shared_ptr<Transform> transform : t) {
+            for(shared_ptr<Transform> transform : t) {
                 TransformData td = transform->getGlobalTransform();
                 RaycastHit hit = PSptr->rayCast(td.translation, td.forward(), 10000, transform->getOwner());
                 if(hit) {
-                    std::shared_ptr<CollisionObject> obj = hit.obj.lock();
+                    shared_ptr<CollisionObject> obj = hit.obj.lock();
                     if(obj->getTypeId() == get_id(RigidBody)) {
                         getWorld()->removeEntity(obj->getOwner());
                     }
@@ -239,7 +239,7 @@ public:
     virtual void gameplayTick(float delta) override {
         auto query = getWorld()->queryComponents(get_id(Bounce))
             .map_ptr<RigidBody>(mapToSibling<RigidBody>);
-        for(std::shared_ptr<RigidBody> body : query) {
+        for(shared_ptr<RigidBody> body : query) {
             for(CollisionObject::Hit& hit : body->getHits()) {
                 if(hit.other.lock()->getTypeId() == get_id(Trigger)) {
                     continue;
@@ -276,7 +276,7 @@ int main()
         loader.addAssetType(typeid(MaterialProgram), MaterialProgram::build);
         loader.addAssetType(typeid(Material), Material::build);
     }
-    std::shared_ptr<Mesh> box = Mesh::makeBox(glm::vec3(0.5f, 0.5f, 0.5f));
+    shared_ptr<Mesh> box = Mesh::makeBox(vec3(0.5f, 0.5f, 0.5f));
     {
         loader.addResource(1, box);
 
@@ -295,7 +295,7 @@ int main()
         {
             auto materialData = Material::createAssetData(6);
             materialData->setTexture("tex", 8);
-            materialData->setVec3Property("albedo", glm::vec3(1,1,1));
+            materialData->setVec3Property("albedo", vec3(1,1,1));
             loader.addAssetData(9, typeid(Material), materialData);
         }
     }
@@ -305,10 +305,10 @@ int main()
     bool running = true;
 
     {
-        std::shared_ptr<World> w = U.addWorld();
-        std::shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
+        shared_ptr<World> w = U.addWorld();
+        shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
         RS->targetSurface = &window;
-        std::shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
+        shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
         IS->setTargetWindow(&window);
         IS->setControlSetCount(1);
         IS->createAction(0, "escape");
@@ -334,76 +334,76 @@ int main()
         IS->addActionMouseBind(0, "rmb", GLFW_MOUSE_BUTTON_RIGHT);
         IS->setCursor(true, true);
 
-        std::shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
+        shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
         CLS->IS = IS;
         CLS->running = &running;
 
         w->addSystem<GravitySystem>(5);
 
-        std::shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
-        Physics->setGravity(glm::vec3(0,0,0));
+        shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
+        Physics->setGravity(vec3(0,0,0));
 
         //w->addSystem<BoxBouncer>(-5);
 
-        std::shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
+        shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
         spawner->IS = IS;
         spawner->PS = Physics;
 
         w->addEntity();
 
-        glm::vec3 floorPos(0,0,0);
-        glm::vec3 camPos(0,5,5);
-        glm::vec3 boxPos(0,5,0);
-        glm::vec3 gravPos(0, 3, -7.5);
-        glm::vec3 gravSize(100,100,100);//(15, 5, 7.5);
+        vec3 floorPos(0,0,0);
+        vec3 camPos(0,5,5);
+        vec3 boxPos(0,5,0);
+        vec3 gravPos(0, 3, -7.5);
+        vec3 gravSize(100,100,100);//(15, 5, 7.5);
 
-        std::shared_ptr<Entity> floor = w->addEntity();
+        shared_ptr<Entity> floor = w->addEntity();
         {
-            std::shared_ptr<MeshRenderer> m = floor->addComponent<MeshRenderer>();
+            shared_ptr<MeshRenderer> m = floor->addComponent<MeshRenderer>();
             m->mesh = 7;
             m->material = 9;
-            std::shared_ptr<Transform> meshTransform = floor->addComponent<Transform>();
+            shared_ptr<Transform> meshTransform = floor->addComponent<Transform>();
             m->transform = meshTransform;
-            meshTransform->setGlobalTransform(TransformData(floorPos, glm::quat(0,0,0,1), glm::vec3(15, 1, 15)));
-            std::shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
-            collider->setExtents(glm::vec3(1, 1, 1) * 0.5f);
+            meshTransform->setGlobalTransform(TransformData(floorPos, quat(0,0,0,1), vec3(15, 1, 15)));
+            shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
+            collider->setExtents(vec3(1, 1, 1) * 0.5f);
             collider->transform = meshTransform;
-            std::shared_ptr<StaticBody> body = floor->addComponent<StaticBody>();
+            shared_ptr<StaticBody> body = floor->addComponent<StaticBody>();
             body->transform = meshTransform;
             body->colliders.push_back(collider);
         }
 
-        std::shared_ptr<Entity> gravRegion = w->addEntity();
+        shared_ptr<Entity> gravRegion = w->addEntity();
         {
-            std::shared_ptr<Transform> t = gravRegion->addComponent<Transform>();
-            t->setGlobalTransform(TransformData(gravPos, glm::quat(0,0,0,1), gravSize));
-            std::shared_ptr<BoxCollider> collider = gravRegion->addComponent<BoxCollider>();
-            collider->setExtents(glm::vec3(1,1,1) * 0.5f);
+            shared_ptr<Transform> t = gravRegion->addComponent<Transform>();
+            t->setGlobalTransform(TransformData(gravPos, quat(0,0,0,1), gravSize));
+            shared_ptr<BoxCollider> collider = gravRegion->addComponent<BoxCollider>();
+            collider->setExtents(vec3(1,1,1) * 0.5f);
             collider->transform = t;
-            std::shared_ptr<Trigger> trig = gravRegion->addComponent<Trigger>();
+            shared_ptr<Trigger> trig = gravRegion->addComponent<Trigger>();
             trig->transform = t;
             trig->colliders.push_back(collider);
             gravRegion->addComponent<GravityRegion>();
         }
         
         for(int i = 0; i < 100; i++) {
-            glm::vec3 point(
+            vec3 point(
                 rand() * 1.f / RAND_MAX * 10 - 5.f,
                 rand() * 1.f / RAND_MAX * 5,
                 rand() * 1.f / RAND_MAX * 10 - 5.f);
             spawnBox(w, point);
         }
         
-        std::shared_ptr<Entity> camera = w->addEntity();
+        shared_ptr<Entity> camera = w->addEntity();
         {
-            std::shared_ptr<Transform> camTransform = camera->addComponent<Transform>();
-            std::shared_ptr<Camera> cam = camera->addComponent<Camera>();
+            shared_ptr<Transform> camTransform = camera->addComponent<Transform>();
+            shared_ptr<Camera> cam = camera->addComponent<Camera>();
             cam->transform = camTransform;
             camTransform->setRelativeTransform(TransformData(camPos));
-            std::shared_ptr<SphereCollider> collider = camera->addComponent<SphereCollider>();
+            shared_ptr<SphereCollider> collider = camera->addComponent<SphereCollider>();
             collider->transform = camTransform;
             collider->setRadius(0.5f);
-            std::shared_ptr<KinematicBody> body = camera->addComponent<KinematicBody>();
+            shared_ptr<KinematicBody> body = camera->addComponent<KinematicBody>();
             body->transform = camTransform;
             body->colliders.push_back(collider);
             camera->addComponent<ControlledEntity>();
@@ -423,7 +423,7 @@ int main()
 
         if(fpsTime >= 1) {
             fpsTime -= 1;
-            std::cout << "FPS: " << (1.0f / delta) << std::endl;
+            cout << "FPS: " << (1.0f / delta) << endl;
         }
 
         U.tick(delta);

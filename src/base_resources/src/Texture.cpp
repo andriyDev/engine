@@ -75,13 +75,13 @@ void read(Serializer& ser, Texture& texture)
     }
 }
 
-void Texture::loadFromFile(std::ifstream& file)
+void Texture::loadFromFile(ifstream& file)
 {
     Serializer ser(&file);
     read(ser, *this);
 }
 
-void Texture::saveToFile(std::ofstream& file)
+void Texture::saveToFile(ofstream& file)
 {
     Serializer ser(&file);
     write(ser, *this);

@@ -23,7 +23,7 @@ protected:
     /*
     Returns the list of dependencies for this resource.
     */
-    virtual std::vector<uint> getDependencies() = 0;
+    virtual vector<uint> getDependencies() = 0;
 
     /*
     Call resolve on all of this resource's dependencies to collect their pointers.
@@ -34,7 +34,7 @@ protected:
     Loads the resource. Returns true iff the resource is loaded successfully.
     data is the build data of the resource.
     */
-    virtual bool load(std::shared_ptr<BuildData> data) = 0;
+    virtual bool load(shared_ptr<BuildData> data) = 0;
 
     friend class ResourceLoader;
 };
@@ -49,38 +49,38 @@ class ResourceRef
 {
 public:
     ResourceRef();
-    ResourceRef(std::shared_ptr<T> _resource);
+    ResourceRef(shared_ptr<T> _resource);
     ResourceRef(uint request);
 
     operator uint() {
         return id;
     }
     
-    std::shared_ptr<T> resolve(ResolveMethod method);
+    shared_ptr<T> resolve(ResolveMethod method);
 
     inline ResourceState getState() const {
         return state;
     }
 private:
-    std::shared_ptr<T> resource;
+    shared_ptr<T> resource;
     uint id;
     ResourceState state;
 };
 
-typedef std::shared_ptr<Resource> (*ResourceBuilder)(std::shared_ptr<Resource::BuildData>);
+typedef shared_ptr<Resource> (*ResourceBuilder)(shared_ptr<Resource::BuildData>);
 
 class ResourceLoader
 {
 public:
-    std::pair<std::shared_ptr<Resource>, ResourceState> resolve(uint resourceId, ResolveMethod method);
+    pair<shared_ptr<Resource>, ResourceState> resolve(uint resourceId, ResolveMethod method);
 
     void loadStep();
     bool loadResource(uint resourceId);
 
-    void addResource(uint resourceId, std::shared_ptr<Resource> resource);
+    void addResource(uint resourceId, shared_ptr<Resource> resource);
     void removeResource(uint resourceId);
-    void addAssetType(std::type_index type, ResourceBuilder builder);
-    void addAssetData(uint resourceId, std::type_index type, std::shared_ptr<Resource::BuildData> buildData);
+    void addAssetType(type_index type, ResourceBuilder builder);
+    void addAssetData(uint resourceId, type_index type, shared_ptr<Resource::BuildData> buildData);
 
     static ResourceLoader& get() {
         return loader;
@@ -88,18 +88,18 @@ public:
 private:
     struct ResourceInfo
     {
-        std::weak_ptr<Resource> ptr;
-        std::shared_ptr<Resource::BuildData> data;
-        std::type_index type = std::type_index(typeid(ResourceInfo));
+        weak_ptr<Resource> ptr;
+        shared_ptr<Resource::BuildData> data;
+        type_index type = type_index(typeid(ResourceInfo));
         ResourceState state;
     };
 
-    std::shared_ptr<Resource> buildResource(uint resourceId);
+    shared_ptr<Resource> buildResource(uint resourceId);
 
-    std::unordered_map<std::type_index, ResourceBuilder> builders;
-    std::unordered_map<uint, ResourceInfo> resources;
+    hash_map<type_index, ResourceBuilder> builders;
+    hash_map<uint, ResourceInfo> resources;
 
-    std::vector<std::pair<uint, std::shared_ptr<Resource>>> requests;
+    vector<pair<uint, shared_ptr<Resource>>> requests;
 
     // Private constructor.
     ResourceLoader() {}
@@ -113,7 +113,7 @@ ResourceRef<T>::ResourceRef()
 { }
 
 template<typename T>
-ResourceRef<T>::ResourceRef(std::shared_ptr<T> _resource)
+ResourceRef<T>::ResourceRef(shared_ptr<T> _resource)
     : resource(_resource), id(0), state(_resource ? ResourceState::Ready : ResourceState::Invalid)
 { }
 
@@ -123,7 +123,7 @@ ResourceRef<T>::ResourceRef(uint request)
 { }
 
 template<typename T>
-std::shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
+shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
 {
     // These are all the cases in which we should just used the cached (or null-ed) value.
     if(state != ResourceState::NotRequested && state != ResourceState::InProgress || id == 0) {
@@ -132,7 +132,7 @@ std::shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
 
     // This means we need to collect the resource from the loader.
     auto response = ResourceLoader::get().resolve(id, method);
-    resource = std::dynamic_pointer_cast<T>(response.first);
+    resource = dynamic_pointer_cast<T>(response.first);
     state = response.second;
     // If the loader succeeded in acquiring the resource, but the cast failed,
     // mark it as a failure.

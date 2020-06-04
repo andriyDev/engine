@@ -7,29 +7,29 @@ using ::ResourceState;
 
 ResourceLoader ResourceLoader::loader;
 
-std::pair<std::shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint resourceId, ResolveMethod method)
+pair<shared_ptr<Resource>, ResourceState> ResourceLoader::resolve(uint resourceId, ResolveMethod method)
 {
     auto res_pair = resources.find(resourceId);
     if(res_pair == resources.end() || res_pair->second.state == ResourceState::Failed) {
         // Cannot find resource.
-        return std::make_pair(nullptr, ResourceState::Invalid);
+        return make_pair(nullptr, ResourceState::Invalid);
     }
     
-    std::shared_ptr<Resource> resource = res_pair->second.ptr.lock();
+    shared_ptr<Resource> resource = res_pair->second.ptr.lock();
     if(resource) {
-        return std::make_pair(resource, res_pair->second.state);
+        return make_pair(resource, res_pair->second.state);
     }
 
     resource = buildResource(resourceId);
     if(method == Immediate) {
         loadResource(resourceId);
     } else {
-        requests.push_back(std::make_pair(resourceId, resource));
+        requests.push_back(make_pair(resourceId, resource));
     }
-    return std::make_pair(resource, res_pair->second.state);
+    return make_pair(resource, res_pair->second.state);
 }
 
-std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
+shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
 {
     if(resourceId == 0) {
         return nullptr;
@@ -37,7 +37,7 @@ std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
     // First find the resource. We assume this passes.
     auto res_pair = resources.find(resourceId);
     // If the resource is already built, we assume its children are also built.
-    std::shared_ptr<Resource> resource = res_pair->second.ptr.lock();
+    shared_ptr<Resource> resource = res_pair->second.ptr.lock();
     if(resource) {
         return resource;
     }
@@ -54,7 +54,7 @@ std::shared_ptr<Resource> ResourceLoader::buildResource(uint resourceId)
     res_pair->second.state = ResourceState::InProgress;
 
     // Build all dependencies for this resource as well.
-    std::vector<std::shared_ptr<Resource>> dependencies;
+    vector<shared_ptr<Resource>> dependencies;
     for(uint dependency : resource->getDependencies()) {
         dependencies.push_back(buildResource(dependency));
     }
@@ -85,7 +85,7 @@ bool ResourceLoader::loadResource(uint resourceId)
     }
 
     // Make sure this resource is built.
-    std::shared_ptr<Resource> resource = buildResource(resourceId);
+    shared_ptr<Resource> resource = buildResource(resourceId);
     // It must already be good to go.
     if(res_pair->second.state != ResourceState::InProgress) {
         return res_pair->second.state == ResourceState::Ready;
@@ -109,7 +109,7 @@ bool ResourceLoader::loadResource(uint resourceId)
     }
 }
 
-void ResourceLoader::addResource(uint resourceId, std::shared_ptr<Resource> resource)
+void ResourceLoader::addResource(uint resourceId, shared_ptr<Resource> resource)
 {
     ResourceInfo info;
     info.ptr = resource;
@@ -124,15 +124,15 @@ void ResourceLoader::removeResource(uint resourceId)
     resources.erase(resourceId);
 }
 
-void ResourceLoader::addAssetType(std::type_index type, ResourceBuilder builder)
+void ResourceLoader::addAssetType(type_index type, ResourceBuilder builder)
 {
     builders.insert_or_assign(type, builder);
 }
 
-void ResourceLoader::addAssetData(uint resourceId, std::type_index type, std::shared_ptr<Resource::BuildData> buildData)
+void ResourceLoader::addAssetData(uint resourceId, type_index type, shared_ptr<Resource::BuildData> buildData)
 {
     ResourceInfo info;
-    info.ptr = std::shared_ptr<Resource>(nullptr);
+    info.ptr = shared_ptr<Resource>(nullptr);
     info.data = buildData;
     info.type = type;
     info.state = ResourceState::NotRequested;

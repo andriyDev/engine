@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <iterator>
 
-std::shared_ptr<Entity> mapToOwner(std::shared_ptr<Component> component)
+shared_ptr<Entity> mapToOwner(shared_ptr<Component> component)
 {
     return component ? component->getOwner() : nullptr;
 }

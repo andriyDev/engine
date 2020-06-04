@@ -25,22 +25,22 @@ public:
     Creates and adds a default world to the universe.
     Do not store shared_ptrs to this world afterwards.
     */
-    std::shared_ptr<World> addWorld();
+    shared_ptr<World> addWorld();
 
     /*
     Adds the world to the universe. This should be treated as a transfer of ownership.
     Do not store shared_ptrs to this world afterwards.
     This assumes world is not already owned by this universe.
     */
-    void addWorld(std::shared_ptr<World> world);
+    void addWorld(shared_ptr<World> world);
 
     /*
     Removes the world from this universe. This should be treated as a transfer of ownership.
     After removeWorld, you are free to add this world back to the universe or do whatever.
     */
-    std::shared_ptr<World> removeWorld(std::weak_ptr<World> world);
+    shared_ptr<World> removeWorld(weak_ptr<World> world);
 private:
-    std::vector<std::shared_ptr<World>> worlds; // The worlds that this universe owns.
+    vector<shared_ptr<World>> worlds; // The worlds that this universe owns.
 
     float totalTime = 0; // The total time ticked.
     float gameplayTime = 0; // The gameplay time that has been processed (including skipped time).

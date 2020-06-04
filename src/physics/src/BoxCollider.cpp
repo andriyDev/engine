@@ -10,7 +10,7 @@ btCollisionShape* BoxCollider::constructShape()
     );
 }
 
-void BoxCollider::setExtents(const glm::vec3& _extents)
+void BoxCollider::setExtents(const vec3& _extents)
 {
     extents = _extents;
     shapeUpdated = true;

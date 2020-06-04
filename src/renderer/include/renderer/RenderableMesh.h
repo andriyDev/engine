@@ -17,8 +17,8 @@ public:
     void bind();
     void render();
 
-    static std::shared_ptr<Resource> build(std::shared_ptr<Resource::BuildData> data) {
-        std::shared_ptr<BuildData> buildData = std::dynamic_pointer_cast<BuildData>(data);
+    static shared_ptr<Resource> build(shared_ptr<Resource::BuildData> data) {
+        shared_ptr<BuildData> buildData = dynamic_pointer_cast<BuildData>(data);
         return build(buildData);
     }
 
@@ -28,7 +28,7 @@ public:
         uint sourceMesh;
     };
 
-    static std::shared_ptr<BuildData> createAssetData(uint sourceMesh);
+    static shared_ptr<BuildData> createAssetData(uint sourceMesh);
 
 protected:
     RenderableMesh() {}
@@ -40,14 +40,14 @@ protected:
 
     ResourceRef<Mesh> sourceMeshRef;
 
-    virtual std::vector<uint> getDependencies() override {
+    virtual vector<uint> getDependencies() override {
         return { sourceMeshRef };
     }
     virtual void resolveDependencies(ResolveMethod method) override {
         sourceMeshRef.resolve(method);
     }
-    virtual bool load(std::shared_ptr<Resource::BuildData> data) override;
+    virtual bool load(shared_ptr<Resource::BuildData> data) override;
 
 private:
-    static std::shared_ptr<RenderableMesh> build(std::shared_ptr<BuildData> data);
+    static shared_ptr<RenderableMesh> build(shared_ptr<BuildData> data);
 };

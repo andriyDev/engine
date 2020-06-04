@@ -5,44 +5,44 @@
 #include "core/Component.h"
 #include "core/System.h"
 
-Query<std::shared_ptr<Entity>> World::queryEntities()
+Query<shared_ptr<Entity>> World::queryEntities()
 {
-    return Query<std::shared_ptr<Entity>>(entities);
+    return Query<shared_ptr<Entity>>(entities);
 }
 
-Query<std::shared_ptr<Component>> World::queryComponents(uint type)
+Query<shared_ptr<Component>> World::queryComponents(uint type)
 {
     auto it = components.find(type);
-    return Query<std::shared_ptr<Component>>(
-        it == components.end() ? std::unordered_set<std::shared_ptr<Component>>() : it->second);
+    return Query<shared_ptr<Component>>(
+        it == components.end() ? hash_set<shared_ptr<Component>>() : it->second);
 }
 
-std::shared_ptr<Entity> World::addEntity()
+shared_ptr<Entity> World::addEntity()
 {
-    std::shared_ptr<Entity> ptr = std::make_shared<Entity>();
+    shared_ptr<Entity> ptr = make_shared<Entity>();
     addEntity(ptr);
     return ptr;
 }
 
-void World::removeEntity(std::shared_ptr<Entity> entity)
+void World::removeEntity(shared_ptr<Entity> entity)
 {
     entities.erase(entity);
-    entity->world = std::shared_ptr<World>();
-    for(const std::shared_ptr<Component>& child : entity->components) {
+    entity->world = shared_ptr<World>();
+    for(const shared_ptr<Component>& child : entity->components) {
         removeComponent(child);
     }
 }
 
-void World::addEntity(std::shared_ptr<Entity> entity)
+void World::addEntity(shared_ptr<Entity> entity)
 {
     entities.insert(entity);
     entity->world = shared_from_this();
-    for(const std::shared_ptr<Component>& child : entity->components) {
+    for(const shared_ptr<Component>& child : entity->components) {
         addComponent(child);
     }
 }
 
-void World::addSystem(std::shared_ptr<System> system)
+void World::addSystem(shared_ptr<System> system)
 {
     system->world = shared_from_this();
     for(auto it = systems.begin(); it != systems.end(); it++) {
@@ -56,7 +56,7 @@ void World::addSystem(std::shared_ptr<System> system)
 
 void World::frameTick(float delta)
 {
-    for(std::shared_ptr<System> system : systems) {
+    for(shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();
@@ -67,7 +67,7 @@ void World::frameTick(float delta)
 
 void World::gameplayTick(float delta)
 {
-    for(std::shared_ptr<System> system : systems) {
+    for(shared_ptr<System> system : systems) {
         if(!system->initialized) {
             system->initialized = true;
             system->init();
@@ -76,14 +76,13 @@ void World::gameplayTick(float delta)
     }
 }
 
-void World::addComponent(std::shared_ptr<Component> component)
+void World::addComponent(shared_ptr<Component> component)
 {
-    auto pair = components.insert(std::make_pair(component->getTypeId(),
-        std::unordered_set<std::shared_ptr<Component>>()));
+    auto pair = components.insert(make_pair(component->getTypeId(), hash_set<shared_ptr<Component>>()));
     pair.first->second.insert(component);
 }
 
-void World::removeComponent(std::shared_ptr<Component> component)
+void World::removeComponent(shared_ptr<Component> component)
 {
     auto it = components.find(component->getTypeId());
     if(it != components.end()) {

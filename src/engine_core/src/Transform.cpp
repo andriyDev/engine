@@ -9,11 +9,11 @@
 
 Transform::~Transform()
 {
-    std::shared_ptr<Transform> parentPtr = parent.lock();
+    shared_ptr<Transform> parentPtr = parent.lock();
     if(parentPtr) {
         // Erase one null pointer since that will correspond to us.
-        auto it = std::find_if(parentPtr->children.begin(), parentPtr->children.end(),
-            [](const std::weak_ptr<Transform>& child){
+        auto it = find_if(parentPtr->children.begin(), parentPtr->children.end(),
+            [](const weak_ptr<Transform>& child){
                 return child.lock() == nullptr;
             });
         assert(it != parentPtr->children.end());
@@ -21,9 +21,9 @@ Transform::~Transform()
     }
 }
 
-void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
+void Transform::setParent(shared_ptr<Transform> newParent, bool keepGlobal)
 {
-    std::shared_ptr<Transform> parentPtr = parent.lock();
+    shared_ptr<Transform> parentPtr = parent.lock();
     if(parentPtr == newParent) {
         return;
     }
@@ -31,13 +31,13 @@ void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
     TransformData transform = getRelativeTransform();
     if(keepGlobal) { transform = getGlobalTransform(); }
 
-    std::shared_ptr<Transform> sharedThis = std::static_pointer_cast<Transform>(shared_from_this());
+    shared_ptr<Transform> sharedThis = static_pointer_cast<Transform>(shared_from_this());
 
     if(parentPtr) {
-        parent = std::weak_ptr<Transform>();
+        parent = weak_ptr<Transform>();
 
-        auto it = std::find_if(parentPtr->children.begin(), parentPtr->children.end(),
-            [&sharedThis](const std::weak_ptr<Transform>& child){
+        auto it = find_if(parentPtr->children.begin(), parentPtr->children.end(),
+            [&sharedThis](const weak_ptr<Transform>& child){
                 return sharedThis == child.lock();
             });
         assert(it != parentPtr->children.end());
@@ -45,7 +45,7 @@ void Transform::setParent(std::shared_ptr<Transform> newParent, bool keepGlobal)
     }
 
     // We put this a little higher because otherwise the compiler complains about the goto.
-    std::shared_ptr<Transform> curr = newParent;
+    shared_ptr<Transform> curr = newParent;
     // We already handled this when parent was valid.
     if(!newParent) {
         goto end; // goto here is convenient because we also need to goto in the case of a cycle.
@@ -73,14 +73,14 @@ end:
     }
 }
 
-std::shared_ptr<Transform> Transform::getParent() const
+shared_ptr<Transform> Transform::getParent() const
 {
     return parent.lock();
 }
 
-std::string to_string(const TransformData& data)
+string to_string(const TransformData& data)
 {
-    std::stringstream ss;
+    stringstream ss;
     ss << "T(";
     ss << to_string(data.translation);
     ss << "), R(";
@@ -154,13 +154,13 @@ void Transform::incrementUpdateId()
     updateId++;
 }
 
-uint Transform::sumUpdatesRelativeTo(std::shared_ptr<Transform> relative) const
+uint Transform::sumUpdatesRelativeTo(shared_ptr<Transform> relative) const
 {
     if(relative.get() == this) {
         return 0;
     }
     uint sum = updateId;
-    std::shared_ptr<Transform> curr = parent.lock();
+    shared_ptr<Transform> curr = parent.lock();
 
     while(curr && curr != relative) {
         sum += curr->updateId;
@@ -173,7 +173,7 @@ uint Transform::sumUpdatesRelativeTo(std::shared_ptr<Transform> relative) const
 TransformData Transform::getGlobalTransform() const
 {
     TransformData currTransform = relativeTransform;
-    std::shared_ptr<Transform> curr = parent.lock();
+    shared_ptr<Transform> curr = parent.lock();
 
     while(curr) {
         currTransform = curr->relativeTransform * currTransform;
@@ -186,7 +186,7 @@ TransformData Transform::getGlobalTransform() const
 void Transform::setGlobalTransform(const TransformData& globalTransform)
 {
     TransformData parentGlobal;
-    std::shared_ptr<Transform> par = parent.lock();
+    shared_ptr<Transform> par = parent.lock();
     if(par) {
         parentGlobal = par->getGlobalTransform();
     }
@@ -194,7 +194,7 @@ void Transform::setGlobalTransform(const TransformData& globalTransform)
     // setRelativeTransform changes the updateId for us, so we don't have to.
 }
 
-TransformData Transform::getTransformRelativeTo(std::shared_ptr<Transform> relative) const
+TransformData Transform::getTransformRelativeTo(shared_ptr<Transform> relative) const
 {
     if(!relative) {
         return getGlobalTransform();
@@ -203,7 +203,7 @@ TransformData Transform::getTransformRelativeTo(std::shared_ptr<Transform> relat
         return TransformData();
     }
     TransformData currTransform = relativeTransform;
-    std::shared_ptr<Transform> curr = parent.lock();
+    shared_ptr<Transform> curr = parent.lock();
 
     while(curr) {
         if(curr == relative) {
@@ -216,7 +216,7 @@ TransformData Transform::getTransformRelativeTo(std::shared_ptr<Transform> relat
     return relative->getGlobalTransform().inverse() * currTransform;
 }
 
-void Transform::setTransformRelativeTo(const TransformData& transform, std::shared_ptr<Transform> relative)
+void Transform::setTransformRelativeTo(const TransformData& transform, shared_ptr<Transform> relative)
 {
     if(!relative) {
         setGlobalTransform(transform);
@@ -226,7 +226,7 @@ void Transform::setTransformRelativeTo(const TransformData& transform, std::shar
         return;
     }
     TransformData parentRelative;
-    std::shared_ptr<Transform> par = parent.lock();
+    shared_ptr<Transform> par = parent.lock();
     if(par) {
         parentRelative = par->getTransformRelativeTo(relative).inverse();
     } else {
@@ -236,12 +236,12 @@ void Transform::setTransformRelativeTo(const TransformData& transform, std::shar
     // setRelativeTransform changes the updateId for us, so we don't have to.
 }
 
-std::vector<std::shared_ptr<Transform>> Transform::getChildren() const
+vector<shared_ptr<Transform>> Transform::getChildren() const
 {
-    std::vector<std::shared_ptr<Transform>> out;
+    vector<shared_ptr<Transform>> out;
 
-    for(const std::weak_ptr<Transform>& childPtr : children) {
-        std::shared_ptr<Transform> child = childPtr.lock();
+    for(const weak_ptr<Transform>& childPtr : children) {
+        shared_ptr<Transform> child = childPtr.lock();
         if(child) {
             out.push_back(child);
         }
@@ -250,7 +250,7 @@ std::vector<std::shared_ptr<Transform>> Transform::getChildren() const
     return out;
 }
 
-std::shared_ptr<Transform> mapToTransform(std::shared_ptr<Transformable> component)
+shared_ptr<Transform> mapToTransform(shared_ptr<Transformable> component)
 {
     return component ? component->getTransform() : nullptr;
 }

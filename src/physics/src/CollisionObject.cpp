@@ -1,12 +1,12 @@
 
 #include "physics/CollisionObject.h"
 
-std::vector<std::shared_ptr<Collider>> CollisionObject::getColliders()
+vector<shared_ptr<Collider>> CollisionObject::getColliders()
 {
-    std::vector<std::shared_ptr<Collider>> out;
+    vector<shared_ptr<Collider>> out;
     out.reserve(colliders.size());
-    for(std::weak_ptr<Collider>& wptr : colliders) {
-        std::shared_ptr<Collider> collider = wptr.lock();
+    for(weak_ptr<Collider>& wptr : colliders) {
+        shared_ptr<Collider> collider = wptr.lock();
         if(collider) {
             out.push_back(collider);
         }
@@ -14,7 +14,7 @@ std::vector<std::shared_ptr<Collider>> CollisionObject::getColliders()
     return out;
 }
 
-CollisionObject::Hit* CollisionObject::findHit(std::shared_ptr<CollisionObject> other)
+CollisionObject::Hit* CollisionObject::findHit(shared_ptr<CollisionObject> other)
 {
     for(Hit& hit : hits) {
         if(hit.other.lock() == other) {
@@ -24,7 +24,7 @@ CollisionObject::Hit* CollisionObject::findHit(std::shared_ptr<CollisionObject> 
     return nullptr;
 }
 
-CollisionObject::Hit* CollisionObject::findOrCreateHit(std::shared_ptr<CollisionObject> other)
+CollisionObject::Hit* CollisionObject::findOrCreateHit(shared_ptr<CollisionObject> other)
 {
     Hit* hit = findHit(other);
     if(!hit) {

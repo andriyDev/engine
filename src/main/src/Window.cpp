@@ -122,12 +122,12 @@ void Window::destroy()
     }
 }
 
-std::string Window::getTitle() const
+string Window::getTitle() const
 {
     return windowTitle;
 }
 
-void Window::setTitle(std::string _windowTitle)
+void Window::setTitle(string _windowTitle)
 {
     windowTitle = _windowTitle;
     if(window) {
@@ -135,9 +135,9 @@ void Window::setTitle(std::string _windowTitle)
     }
 }
 
-glm::vec2 Window::getSize() const
+vec2 Window::getSize() const
 {
-    return glm::vec2(width, height);
+    return vec2(width, height);
 }
 
 void Window::setSize(uint _width, uint _height)
@@ -149,24 +149,24 @@ void Window::setSize(uint _width, uint _height)
     }
 }
 
-std::pair<uint, uint> Window::getSurfaceSize() const
+pair<uint, uint> Window::getSurfaceSize() const
 {
     if(!window) {
-        return std::make_pair(0,0);
+        return make_pair(0,0);
     }
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
-    return std::make_pair(width, height);
+    return make_pair(width, height);
 }
 
-std::tuple<uint, uint, uint, uint> Window::getBorderSize() const
+tuple<uint, uint, uint, uint> Window::getBorderSize() const
 {
     if(!window) {
-        return std::make_tuple(0,0,0,0);
+        return make_tuple(0,0,0,0);
     }
     int l, r, u, d;
     glfwGetWindowFrameSize(window, &l, &u, &r, &d);
-    return std::make_tuple(l, u, r, d);
+    return make_tuple(l, u, r, d);
 }
 
 void Window::show()
@@ -222,7 +222,7 @@ void Window::addEventHandler(WindowEventHandler* eventHandler)
 void Window::removeEventHandler(WindowEventHandler* eventHandler)
 {
     assert(eventHandler);
-    eventHandlers.erase(std::find(eventHandlers.begin(), eventHandlers.end(), eventHandler));
+    eventHandlers.erase(find(eventHandlers.begin(), eventHandlers.end(), eventHandler));
 }
 
 void Window::setCursor(bool lock, bool hidden)

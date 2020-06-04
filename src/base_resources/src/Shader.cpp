@@ -2,16 +2,16 @@
 #include "resources/Shader.h"
 #include <sstream>
 
-void Shader::loadFromFile(std::ifstream& file)
+void Shader::loadFromFile(ifstream& file)
 {
-    file.seekg(0, std::ios::end);
+    file.seekg(0, ios::end);
     code.resize(file.tellg());
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, ios::beg);
 
     file.read(&code[0], code.capacity());
 }
 
-void Shader::saveToFile(std::ofstream& file)
+void Shader::saveToFile(ofstream& file)
 {
     file << code;
 }

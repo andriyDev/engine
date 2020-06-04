@@ -41,25 +41,25 @@ public:
     void destroy();
 
     /* Gets the current title of the window. */
-    std::string getTitle() const;
+    string getTitle() const;
     
     /* Sets the title of the window. */
-    void setTitle(std::string _windowTitle);
+    void setTitle(string _windowTitle);
 
     /* Gets the size of the current window. */
-    virtual glm::vec2 getSize() const override;
+    virtual vec2 getSize() const override;
 
     /* Sets the size of the current window. This is a request and may not be satisfied. */
     void setSize(uint _width, uint _height);
 
     /* Gets the size of contents of the current viewport. May return 0,0 if the window is not built. */
-    std::pair<uint, uint> getSurfaceSize() const;
+    pair<uint, uint> getSurfaceSize() const;
 
     /*
     Gets the size of the borders of the window, returned left, up, right, down order.
     May return 0,0,0,0 if the window is not built.
     */
-    std::tuple<uint, uint, uint, uint> getBorderSize() const;
+    tuple<uint, uint, uint, uint> getBorderSize() const;
 
     /* Shows the window. Does nothing if window is shown or has not been constructed. */
     void show();
@@ -101,8 +101,8 @@ private:
     uint width = 0; // Stores the width of the window. Updated whenever the window is resized.
     uint height = 0; // Stores the height of the window. Updated whenever the window is resized.
 
-    std::string windowTitle; // The window title. Only updated by setTitle.
-    std::vector<WindowEventHandler*> eventHandlers;
+    string windowTitle; // The window title. Only updated by setTitle.
+    vector<WindowEventHandler*> eventHandlers;
 
     static void window_resized(GLFWwindow* window, int width, int height);
     static void key_event(GLFWwindow* gwindow, int key, int scancode, int action, int mods);

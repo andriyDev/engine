@@ -1,8 +1,8 @@
 
 #include "renderer/MaterialProgram.h"
 
-MaterialProgram::MaterialProgram(std::vector<ResourceRef<Shader>> _vertexShaders,
-    std::vector<ResourceRef<Shader>> _fragmentShaders)
+MaterialProgram::MaterialProgram(vector<ResourceRef<Shader>> _vertexShaders,
+    vector<ResourceRef<Shader>> _fragmentShaders)
     : vertexShaders(_vertexShaders), fragmentShaders(_fragmentShaders)
 {
     resolveDependencies(Immediate);
@@ -23,14 +23,14 @@ void MaterialProgram::bind()
     glUseProgram(ProgramId);
 }
 
-void MaterialProgram::setMVP(glm::mat4& modelMatrix, glm::mat4& vpMatrix)
+void MaterialProgram::setMVP(mat4& modelMatrix, mat4& vpMatrix)
 {
-    glm::mat4 mvp = vpMatrix * modelMatrix;
+    mat4 mvp = vpMatrix * modelMatrix;
     glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &mvp[0][0]);
     glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, &modelMatrix[0][0]);
 }
 
-GLint MaterialProgram::getUniformId(const std::string& uniformName) const
+GLint MaterialProgram::getUniformId(const string& uniformName) const
 {
     return glGetUniformLocation(ProgramId, uniformName.c_str());
 }
@@ -40,15 +40,16 @@ GLuint MaterialProgram::getProgramId() const
     return ProgramId;
 }
 
-void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& components)
+void compileShader(GLuint shaderId, const vector<shared_ptr<Shader>>& components)
 {
     GLint Result = GL_FALSE;
     int infoLength;
 
-    std::vector<const char*> rawStrings;
+    vector<const char*> rawStrings;
     rawStrings.reserve(components.size());
-    for(std::shared_ptr<Shader> shaderComp : components) {
-        rawStrings.push_back(check(shaderComp)->code.c_str());
+    for(shared_ptr<Shader> shaderComp : components) {
+        assert(shaderComp);
+        rawStrings.push_back(shaderComp->code.c_str());
     }
     glShaderSource(shaderId, (GLsizei)rawStrings.size(), &rawStrings[0], NULL);
     glCompileShader(shaderId);
@@ -56,7 +57,7 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
     glGetShaderiv(shaderId, GL_COMPILE_STATUS, &Result);
     if(Result == GL_FALSE) {
         glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLength);
-        std::vector<char> errorMsg(infoLength + 1);
+        vector<char> errorMsg(infoLength + 1);
         glGetShaderInfoLog(shaderId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Shader Compilation):\n%s\n", &errorMsg[0]);
         return;
@@ -65,9 +66,9 @@ void compileShader(GLuint shaderId, const std::vector<std::shared_ptr<Shader>>& 
 
 #define MAX_UNIFORM_NAME_LEN 256
 
-std::vector<uint> MaterialProgram::getDependencies()
+vector<uint> MaterialProgram::getDependencies()
 {
-    std::vector<uint> out;
+    vector<uint> out;
     out.reserve(vertexShaders.size() + fragmentShaders.size());
     for(ResourceRef<Shader>& ref : vertexShaders) {
         out.push_back(ref);
@@ -89,7 +90,7 @@ void MaterialProgram::resolveDependencies(ResolveMethod method)
 }
 
 
-bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
+bool MaterialProgram::load(shared_ptr<Resource::BuildData> data)
 {
     assert(!vertexShaders.empty());
     assert(!vertexShaders.empty());
@@ -98,9 +99,9 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
     shaders[0] = glCreateShader(GL_VERTEX_SHADER);
     shaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
 
-    std::vector<std::shared_ptr<Shader>> vertexShaderComponents;
+    vector<shared_ptr<Shader>> vertexShaderComponents;
     vertexShaderComponents.reserve(vertexShaders.size());
-    std::vector<std::shared_ptr<Shader>> fragmentShaderComponents;
+    vector<shared_ptr<Shader>> fragmentShaderComponents;
     fragmentShaderComponents.reserve(fragmentShaders.size());
     for(ResourceRef<Shader>& ref : vertexShaders) {
         vertexShaderComponents.push_back(ref.resolve(Immediate)); // Make sure these are all loaded.
@@ -130,7 +131,7 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
 
     if(Result == GL_TRUE) {
         glGetShaderiv(ProgramId, GL_INFO_LOG_LENGTH, &infoLength);
-        std::vector<char> errorMsg(infoLength + 1);
+        vector<char> errorMsg(infoLength + 1);
         glGetProgramInfoLog(ProgramId, infoLength, NULL, &errorMsg[0]);
         fprintf(stderr, "Error (Program Linking):\n%s\n", &errorMsg[0]);
         return false;
@@ -152,9 +153,9 @@ bool MaterialProgram::load(std::shared_ptr<Resource::BuildData> data)
     return true;
 }
 
-std::shared_ptr<MaterialProgram> MaterialProgram::build(std::shared_ptr<BuildData> data)
+shared_ptr<MaterialProgram> MaterialProgram::build(shared_ptr<BuildData> data)
 {
-    std::shared_ptr<MaterialProgram> matProg(new MaterialProgram());
+    shared_ptr<MaterialProgram> matProg(new MaterialProgram());
     matProg->vertexShaders.reserve(data->vertexShaders.size());
     matProg->fragmentShaders.reserve(data->fragmentShaders.size());
     for(uint id : data->vertexShaders) {
@@ -166,10 +167,10 @@ std::shared_ptr<MaterialProgram> MaterialProgram::build(std::shared_ptr<BuildDat
     return matProg;
 }
 
-std::shared_ptr<MaterialProgram::BuildData> MaterialProgram::createAssetData(
-    const std::vector<uint>& vertexShaders, const std::vector<uint>& fragmentShaders)
+shared_ptr<MaterialProgram::BuildData> MaterialProgram::createAssetData(
+    const vector<uint>& vertexShaders, const vector<uint>& fragmentShaders)
 {
-    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    shared_ptr<BuildData> data = make_shared<BuildData>();
     data->vertexShaders = vertexShaders;
     data->fragmentShaders = fragmentShaders;
     return data;

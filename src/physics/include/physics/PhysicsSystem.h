@@ -13,12 +13,12 @@ class ConvexHull;
 struct RaycastHit
 {
     bool valid = false;
-    glm::vec3 point;
+    vec3 point;
     float fraction;
-    glm::vec3 normal;
-    std::weak_ptr<CollisionObject> obj;
+    vec3 normal;
+    weak_ptr<CollisionObject> obj;
 
-    inline std::shared_ptr<CollisionObject> getObj() const { return obj.lock(); }
+    inline shared_ptr<CollisionObject> getObj() const { return obj.lock(); }
 
     operator bool() const {
         return valid;
@@ -33,119 +33,119 @@ public:
     virtual void init() override;
     virtual void gameplayTick(float delta) override;
 
-    void setGravity(const glm::vec3& _gravity);
-    glm::vec3 getGravity() const { return gravity; }
+    void setGravity(const vec3& _gravity);
+    vec3 getGravity() const { return gravity; }
 
-    RaycastHit rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    RaycastHit rayCast(const vec3& source, const vec3& direction, float range,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    RaycastHit rayCast(const glm::vec3& source, const glm::vec3& direction, float range,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    RaycastHit rayCast(const vec3& source, const vec3& direction, float range,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
         
-    std::vector<RaycastHit> rayCastAll(const glm::vec3& source, const glm::vec3& direction, float range,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    vector<RaycastHit> rayCastAll(const vec3& source, const vec3& direction, float range,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    std::vector<RaycastHit> rayCastAll(const glm::vec3& source, const glm::vec3& direction, float range,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    vector<RaycastHit> rayCastAll(const vec3& source, const vec3& direction, float range,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
-    RaycastHit boxCast(const glm::vec3& extents,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    RaycastHit boxCast(const vec3& extents,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    RaycastHit boxCast(const glm::vec3& extents,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+    RaycastHit boxCast(const vec3& extents,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
-    std::vector<RaycastHit> boxCastAll(const glm::vec3& extents,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    vector<RaycastHit> boxCastAll(const vec3& extents,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    std::vector<RaycastHit> boxCastAll(const glm::vec3& extents,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    vector<RaycastHit> boxCastAll(const vec3& extents,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
     RaycastHit sphereCast(float radius,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
     RaycastHit sphereCast(float radius,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
-    std::vector<RaycastHit> sphereCastAll(float radius,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    vector<RaycastHit> sphereCastAll(float radius,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    std::vector<RaycastHit> sphereCastAll(float radius,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    vector<RaycastHit> sphereCastAll(float radius,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
-    RaycastHit convexCast(std::shared_ptr<ConvexHull> convex,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    RaycastHit convexCast(shared_ptr<ConvexHull> convex,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    RaycastHit convexCast(std::shared_ptr<ConvexHull> convex,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+    RaycastHit convexCast(shared_ptr<ConvexHull> convex,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
-    std::vector<RaycastHit> convexCastAll(std::shared_ptr<ConvexHull> convex,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    vector<RaycastHit> convexCastAll(shared_ptr<ConvexHull> convex,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    std::vector<RaycastHit> convexCastAll(std::shared_ptr<ConvexHull> convex,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    vector<RaycastHit> convexCastAll(shared_ptr<ConvexHull> convex,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 protected:
 
     RaycastHit shapeCast(const class btConvexShape* shape,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
     RaycastHit shapeCast(const class btConvexShape* shape,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies, bool hitTriggers = false) const;
         
-    std::vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        std::shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
+    vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        shared_ptr<Entity> ignoredEntity = nullptr, bool hitTriggers = false) const;
 
-    std::vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
-        const glm::vec3& sourcePosition, const glm::quat& sourceRotation,
-        const glm::vec3& targetPosition, const glm::quat& targetRotation,
-        const std::set<std::shared_ptr<Entity>>& ignoredEntities,
-        const std::set<std::shared_ptr<CollisionObject>>& ignoredBodies,
+    vector<RaycastHit> shapeCastAll(const class btConvexShape* shape,
+        const vec3& sourcePosition, const quat& sourceRotation,
+        const vec3& targetPosition, const quat& targetRotation,
+        const hash_set<shared_ptr<Entity>>& ignoredEntities,
+        const hash_set<shared_ptr<CollisionObject>>& ignoredBodies,
         bool hitTriggers = false) const;
 
-    glm::vec3 gravity = glm::vec3(0,-9.81f,0);
+    vec3 gravity = vec3(0,-9.81f,0);
 
     class btCollisionConfiguration* configuration = nullptr;
     class btCollisionDispatcher* dispatcher = nullptr;
@@ -180,11 +180,11 @@ protected:
     // Deletes everything associated with the specified body (does not remove the body from the collisionObjects map).
     void cleanUpCollisionObject(CollisionObjectData& body);
     // Constructs a new collisionObject from its component.
-    void setUpCollisionObject(std::shared_ptr<CollisionObject>& bodyComponent);
+    void setUpCollisionObject(shared_ptr<CollisionObject>& bodyComponent);
     // Updates the existing collision object to match the collider components.
-    void updateCollidersOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData);
+    void updateCollidersOfObject(shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData);
     // Updates the existing collision object to match the components (applying forces).
-    void updateStateOfObject(std::shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData);
+    void updateStateOfObject(shared_ptr<CollisionObject>& bodyComponent, CollisionObjectData& bodyData);
 
     void addBody(CollisionObjectData& body);
     void removeBody(CollisionObjectData& body);

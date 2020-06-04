@@ -10,16 +10,20 @@
 #include <string>
 #include <memory>
 
-#ifdef NDEBUG
-#define assert(x)
-#define check(x) (x)
-#else
-#define assert(x) if(!(x)) { fprintf(stderr, "Assertion failed! Line %d, File: %s\n", __LINE__, __FILE__); throw 1; }
-#define check(x) ((x) ? (x) : throw "Invalid pointer")
-#endif
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+
+using namespace std;
+using namespace glm;
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned char uchar;
+
+template<typename K, typename V>
+using hash_map = unordered_map<K, V>;
+template<typename T>
+using hash_set = unordered_set<T>;
 
 #define get_id(x) (uint)(typeid(x).hash_code())
