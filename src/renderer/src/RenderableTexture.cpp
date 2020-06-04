@@ -5,7 +5,7 @@ RenderableTexture::RenderableTexture(ResourceRef<Texture> sourceTexture, WrapMod
     FilterMode minFilter, FilterMode minFilterMipMap, FilterMode magFilter, uint mipMapLevels)
     : sourceTextureRef(sourceTexture)
 {
-    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    shared_ptr<BuildData> data = make_shared<BuildData>();
     data->wrapU = wrapU;
     data->wrapV = wrapV;
     data->minFilter = minFilter;
@@ -30,10 +30,10 @@ void RenderableTexture::bind(GLuint textureUnit)
     glBindTextureUnit(textureUnit, textureId);
 }
 
-bool RenderableTexture::load(std::shared_ptr<Resource::BuildData> data)
+bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
 {
-    std::shared_ptr<BuildData> bd = std::dynamic_pointer_cast<BuildData>(data);
-    std::shared_ptr<Texture> texture = sourceTextureRef.resolve(Immediate); // Make sure this is loaded.
+    shared_ptr<BuildData> bd = dynamic_pointer_cast<BuildData>(data);
+    shared_ptr<Texture> texture = sourceTextureRef.resolve(Immediate); // Make sure this is loaded.
     if(!texture || texture->getMode() == Texture::INVALID) {
         return false;
     }
@@ -64,16 +64,16 @@ bool RenderableTexture::load(std::shared_ptr<Resource::BuildData> data)
     return true;
 }
 
-std::shared_ptr<RenderableTexture> RenderableTexture::build(std::shared_ptr<BuildData> data)
+shared_ptr<RenderableTexture> RenderableTexture::build(shared_ptr<BuildData> data)
 {
-    std::shared_ptr<RenderableTexture> texture(new RenderableTexture());
+    shared_ptr<RenderableTexture> texture(new RenderableTexture());
     texture->sourceTextureRef = data->sourceTexture;
     return texture;
 }
 
-std::shared_ptr<RenderableTexture::BuildData> RenderableTexture::createAssetData(uint sourceTexture)
+shared_ptr<RenderableTexture::BuildData> RenderableTexture::createAssetData(uint sourceTexture)
 {
-    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    shared_ptr<BuildData> data = make_shared<BuildData>();
     data->sourceTexture = sourceTexture;
     return data;
 }

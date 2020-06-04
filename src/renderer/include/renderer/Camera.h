@@ -16,9 +16,9 @@ public:
 
     Camera() : Transformable(get_id(Camera)) {}
 
-    glm::mat4 getProjectionMatrix(float surfaceAspect) const;
+    mat4 getProjectionMatrix(float surfaceAspect) const;
 
-    glm::mat4 getViewMatrix() const;
+    mat4 getViewMatrix() const;
 
-    glm::mat4 getVPMatrix(float surfaceAspect) const;
+    mat4 getVPMatrix(float surfaceAspect) const;
 };

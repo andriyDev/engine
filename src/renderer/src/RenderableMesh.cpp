@@ -26,9 +26,9 @@ void RenderableMesh::render()
     glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
 }
 
-bool RenderableMesh::load(std::shared_ptr<Resource::BuildData> data)
+bool RenderableMesh::load(shared_ptr<Resource::BuildData> data)
 {
-    std::shared_ptr<Mesh> sourceMesh = sourceMeshRef.resolve(Immediate); // Make sure this is loaded.
+    shared_ptr<Mesh> sourceMesh = sourceMeshRef.resolve(Immediate); // Make sure this is loaded.
     assert(sourceMesh);
     
     bufferCount = 2;
@@ -61,16 +61,16 @@ bool RenderableMesh::load(std::shared_ptr<Resource::BuildData> data)
     return true;
 }
 
-std::shared_ptr<RenderableMesh> RenderableMesh::build(std::shared_ptr<BuildData> data)
+shared_ptr<RenderableMesh> RenderableMesh::build(shared_ptr<BuildData> data)
 {
-    std::shared_ptr<RenderableMesh> mesh(new RenderableMesh());
+    shared_ptr<RenderableMesh> mesh(new RenderableMesh());
     mesh->sourceMeshRef = data->sourceMesh;
     return mesh;
 }
 
-std::shared_ptr<RenderableMesh::BuildData> RenderableMesh::createAssetData(uint sourceMesh)
+shared_ptr<RenderableMesh::BuildData> RenderableMesh::createAssetData(uint sourceMesh)
 {
-    std::shared_ptr<BuildData> data = std::make_shared<BuildData>();
+    shared_ptr<BuildData> data = make_shared<BuildData>();
     data->sourceMesh = sourceMesh;
     return data;
 }
