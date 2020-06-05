@@ -17,4 +17,4 @@ target_include_directories(font_resource
 
 target_link_libraries(font_resource
     PUBLIC engine_core
-    PRIVATE renderer resource_system base_resources Freetype::Freetype)
+    PRIVATE resource_system base_resources Freetype::Freetype)
