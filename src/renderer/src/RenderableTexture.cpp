@@ -58,6 +58,17 @@ bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
         glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
             GL_RGBA, GL_UNSIGNED_BYTE, texture->asRGBA_8());
         glGenerateTextureMipmap(textureId);
+    } else if(texture->getMode() == Texture::GREYSCALE_8) {
+        if(texture->getWidth() % 4 != 0) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        }
+        glTextureStorage2D(textureId, bd->mipMapLevels, GL_R8, texture->getWidth(), texture->getHeight());
+        glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
+            GL_R, GL_UNSIGNED_BYTE, texture->asGreyscale_8());
+        glGenerateTextureMipmap(textureId);
+        if(texture->getWidth() % 4 != 0) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        }
     }
 
     sourceTextureRef = ResourceRef<Texture>();
