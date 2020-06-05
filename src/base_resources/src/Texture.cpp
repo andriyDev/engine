@@ -8,6 +8,16 @@ Texture::~Texture()
     cleanUp();
 }
 
+void Texture::fromGreyscale(uchar* _data, uint _width, uint _height)
+{
+    cleanUp();
+
+    data.greyscale_8 = _data;
+    width = _width;
+    height = _height;
+    mode = GREYSCALE_8;
+}
+
 void Texture::fromColour3(Colour3* _data, uint _width, uint _height)
 {
     cleanUp();
@@ -34,6 +44,8 @@ void Texture::cleanUp()
         delete[] data.rgb_8;
     } else if(mode == RGBA_8) {
         delete[] data.rgba_8;
+    } else if(mode == GREYSCALE_8) {
+        delete[] data.greyscale_8;
     }
 }
 
@@ -50,6 +62,8 @@ void write(Serializer& ser, const Texture& texture)
         ser.write_raw((char*)texture.asRGB_8(), texture.getWidth() * texture.getHeight() * sizeof(Colour3));
     } else if(texture.getMode() == Texture::RGBA_8) {
         ser.write_raw((char*)texture.asRGBA_8(), texture.getWidth() * texture.getHeight() * sizeof(Colour4));
+    } else if(texture.getMode() == Texture::GREYSCALE_8) {
+        ser.write_raw((char*)texture.asGreyscale_8(), texture.getWidth() * texture.getHeight() * sizeof(uchar));
     }
 }
 
@@ -70,6 +84,10 @@ void read(Serializer& ser, Texture& texture)
         Colour4* data = new Colour4[w * h];
         ser.read_raw((char*)data, w * h * sizeof(Colour4));
         texture.fromColour4(data, w, h);
+    } else if(mode == Texture::GREYSCALE_8) {
+        uchar* data = new uchar[w * h];
+        ser.read_raw((char*)data, w * h * sizeof(uchar));
+        texture.fromGreyscale(data, w, h);
     } else {
         throw "Invalid mode";
     }
