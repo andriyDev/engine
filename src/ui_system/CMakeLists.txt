@@ -18,4 +18,4 @@ target_include_directories(ui_system
 
 target_link_libraries(ui_system
     PUBLIC engine_core
-    PRIVATE renderer resource_system base_resources)
+    PRIVATE renderer resource_system base_resources font_resource)
