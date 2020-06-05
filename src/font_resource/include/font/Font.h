@@ -4,8 +4,8 @@
 #include "std.h"
 
 #include "resources/ResourceLoader.h"
-#include "FontFace.h"
-#include "resources/Texture.h"
+#include "font/FontFace.h"
+#include "renderer/RenderableTexture.h"
 
 #define FONT_CHAR_START 33
 #define FONT_CHAR_END 127
@@ -59,5 +59,5 @@ protected:
 
     Character characters[FONT_CHAR_COUNT];
 
-    shared_ptr<Texture> texture;
+    shared_ptr<RenderableTexture> texture;
 };

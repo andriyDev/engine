@@ -4,6 +4,8 @@
 #include <ft2build.h>
 #include <freetype/freetype.h>
 
+#include "resources/Texture.h"
+
 shared_ptr<Resource::BuildData> Font::createAssetData(uint font, uint size)
 {
     shared_ptr<BuildData> data = make_shared<BuildData>();
@@ -110,9 +112,15 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
         }
     }
 
-    // Build the actual texture.
-    texture = shared_ptr<Texture>(new Texture());
-    texture->fromGreyscale(textureData, texDimensions.x, texDimensions.y);
+    // Build the texture.
+    shared_ptr<Texture> textureSrc = shared_ptr<Texture>(new Texture());
+    textureSrc->fromGreyscale(textureData, texDimensions.x, texDimensions.y);
+
+    // Convert it to a RenderableTexture which we will use.
+    texture = shared_ptr<RenderableTexture>(new RenderableTexture(textureSrc,
+        RenderableTexture::Clamp, RenderableTexture::Clamp,
+        RenderableTexture::Linear, RenderableTexture::Linear, RenderableTexture::Linear, 1
+    ));
 
     // Clear the font face reference, we no longer need it.
     fontFace = ResourceRef<FontFace>();
