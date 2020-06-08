@@ -49,10 +49,16 @@ bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
     glTextureParameteri(textureId, GL_TEXTURE_WRAP_T, bd->wrapV == Clamp ? GL_CLAMP : GL_REPEAT);
 
     if(texture->getMode() == Texture::RGB_8) {
+        if(texture->getWidth() % 4 != 0) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        }
         glTextureStorage2D(textureId, bd->mipMapLevels, GL_RGB8, texture->getWidth(), texture->getHeight());
         glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
             GL_RGB, GL_UNSIGNED_BYTE, texture->asRGB_8());
         glGenerateTextureMipmap(textureId);
+        if(texture->getWidth() % 4 != 0) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        }
     } else if(texture->getMode() == Texture::RGBA_8) {
         glTextureStorage2D(textureId, bd->mipMapLevels, GL_RGBA8, texture->getWidth(), texture->getHeight());
         glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
@@ -64,7 +70,7 @@ bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
         }
         glTextureStorage2D(textureId, bd->mipMapLevels, GL_R8, texture->getWidth(), texture->getHeight());
         glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
-            GL_R, GL_UNSIGNED_BYTE, texture->asGreyscale_8());
+            GL_RED, GL_UNSIGNED_BYTE, texture->asGreyscale_8());
         glGenerateTextureMipmap(textureId);
         if(texture->getWidth() % 4 != 0) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
