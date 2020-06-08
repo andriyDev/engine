@@ -10,6 +10,7 @@
 
 class UISystem : public System
 {
+    virtual void init() override;
     virtual void frameTick(float delta) override;
 public:
     RenderSurface* targetSurface = nullptr;

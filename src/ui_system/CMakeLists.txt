@@ -4,6 +4,7 @@ list(APPEND SRC src/AnchorOffsetLayout.cpp)
 list(APPEND SRC src/Box.cpp)
 list(APPEND SRC src/UISystem.cpp)
 list(APPEND SRC src/UIUtil.cpp)
+list(APPEND SRC src/Text.cpp)
 
 list(TRANSFORM SRC PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
 
@@ -17,5 +18,5 @@ target_include_directories(ui_system
     PRIVATE src)
 
 target_link_libraries(ui_system
-    PUBLIC engine_core
-    PRIVATE renderer resource_system base_resources font_resource)
+    PUBLIC engine_core font_resource
+    PRIVATE renderer resource_system base_resources)

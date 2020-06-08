@@ -49,3 +49,8 @@ void UIUtil::renderRectangle()
 {
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
+
+void UIUtil::renderRectangles(uint rectangleCount)
+{
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, rectangleCount);
+}

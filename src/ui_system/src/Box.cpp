@@ -48,7 +48,7 @@ void Box::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UI
     boxMaterial->setVec2Property("surface_size", surfaceSize, true);
     boxMaterial->setVec4Property("rect", rect, true);
     boxMaterial->setVec4Property("mask", mask, true);
-    boxMaterial->setVec3Property("colour_tint", colour, true);
+    boxMaterial->setVec4Property("colour_tint", colour, true);
     UIUtil::bindRectangle();
     UIUtil::renderRectangle();
 }

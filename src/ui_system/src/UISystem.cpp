@@ -4,9 +4,15 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+void UISystem::init()
+{
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
 void UISystem::frameTick(float delta)
 {
     glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
     hash_map<const UIElement*, vec2> desiredSizes;
     for(const shared_ptr<UIElement>& element : elements) {
         element->layout(desiredSizes);
@@ -19,6 +25,7 @@ void UISystem::frameTick(float delta)
             surfaceSize, desiredSizes);
     }
     glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
     if(swapBuffers) {
         targetSurface->swapBuffers();
     }

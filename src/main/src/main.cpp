@@ -38,6 +38,7 @@
 #include "ui/UISystem.h"
 #include "ui/AnchorOffsetLayout.h"
 #include "ui/Box.h"
+#include "ui/Text.h"
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -279,6 +280,8 @@ int main()
         loader.addAssetType(typeid(RenderableTexture), RenderableTexture::build);
         loader.addAssetType(typeid(MaterialProgram), MaterialProgram::build);
         loader.addAssetType(typeid(Material), Material::build);
+        loader.addAssetType(typeid(FontFace), FontFace::build);
+        loader.addAssetType(typeid(Font), Font::build);
     }
     shared_ptr<Mesh> box = Mesh::makeBox(vec3(0.5f, 0.5f, 0.5f));
     {
@@ -302,7 +305,11 @@ int main()
             materialData->setVec3Property("albedo", vec3(1,1,1));
             loader.addAssetData(9, typeid(Material), materialData);
         }
+        loader.addAssetData(11, typeid(FontFace), FontFace::createAssetData(10, "Roboto-Regular.ttf"));
+        loader.addAssetData(12, typeid(Font), Font::createAssetData(11, 15));
     }
+
+    FontLoader::registerLoader(10);
 
     Universe U;
     U.gameplayRate = 60;
@@ -358,17 +365,29 @@ int main()
         {
             shared_ptr<AnchorOffsetLayout> layout = make_shared<AnchorOffsetLayout>();
             element = layout;
-            shared_ptr<Box> box = make_shared<Box>();
+            shared_ptr<AnchorOffsetLayout> boxLayout = make_shared<AnchorOffsetLayout>();
             AnchorOffsetLayout::AnchorOffset slot;
             slot.anchorMin = vec2(0,0.25f);
-            slot.anchorMax = vec2(0,0.35f);
+            slot.anchorMax = vec2(0,0.5f);
             slot.offsetMin.y = 0;
             slot.offsetMax.y = 0;
             slot.position.x = 0;
             slot.size.x = 200;
             slot.origin = vec2(0,0.5f);
-            layout->addChild(slot, box);
-            box->colour = vec3(1,0,0);
+            layout->addChild(slot, boxLayout);
+
+            //shared_ptr<Box> box = make_shared<Box>();
+            //box->colour = vec4(1,0,0,1);
+            slot.anchorMin = vec2(0,0);
+            slot.anchorMax = vec2(1,1);
+            slot.offsetMin = vec2(10,10);
+            slot.offsetMax = vec2(10,10);
+            //boxLayout->addChild(slot, box);
+
+            shared_ptr<Text> text = make_shared<Text>();
+            text->font = 12;
+            text->setText("Hello, world!");
+            boxLayout->addChild(slot, text);
         }
 
         shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
@@ -412,7 +431,7 @@ int main()
             gravRegion->addComponent<GravityRegion>();
         }
         
-        for(int i = 0; i < 100; i++) {
+        for(int i = 0; i < 30; i++) {
             vec3 point(
                 rand() * 1.f / RAND_MAX * 10 - 5.f,
                 rand() * 1.f / RAND_MAX * 5,

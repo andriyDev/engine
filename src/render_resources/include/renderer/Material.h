@@ -17,6 +17,8 @@ public:
 
     void use();
     void setMVP(mat4& modelMatrix, mat4& vpMatrix);
+    
+    GLint getUniformId(const string& uniformName);
 
     void setTexture(const string& textureName, const ResourceRef<RenderableTexture>& texture);
 
@@ -83,7 +85,7 @@ protected:
     void setProperty(const string& name, PropInfo& value, bool temporary = false);
 private:
     ResourceRef<MaterialProgram> program;
-    hash_map<string, GLuint> propMap;
+    hash_map<string, GLint> propMap;
     hash_map<GLuint, PropInfo> values;
     vector<ResourceRef<RenderableTexture>> textures;
     

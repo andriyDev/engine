@@ -28,18 +28,20 @@ public:
         ivec2 charPos;
         ivec2 charSize;
         ivec2 charBearing;
-        unsigned int advance;
+        float advance;
 
         operator bool() const { return valid; }
     };
 
     struct CharacterLayout
     {
-        vec2 textureStart;
-        vec2 textureSize;
-        vec2 shift;
-        vec2 size;
+        vec4 textureLayout;
+        vec4 physicalLayout;
     };
+
+    vector<CharacterLayout> layoutString(const string& text, float pixelUnit, float width, float lineSpacing = 1) const;
+
+    shared_ptr<RenderableTexture> getTextureSheet() const { return texture; }
 
 protected:
     class BuildData : public Resource::BuildData
@@ -58,6 +60,8 @@ protected:
     ResourceRef<FontFace> fontFace;
 
     Character characters[FONT_CHAR_COUNT];
+    float spaceAdvance;
+    float lineHeight;
 
     shared_ptr<RenderableTexture> texture;
 };

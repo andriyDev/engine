@@ -11,7 +11,7 @@ class Box : public UIElement
 public:
     Box();
 
-    vec3 colour;
+    vec4 colour;
 
     virtual vec2 layout(hash_map<const UIElement*, vec2>& desiredSizes) const override;
     virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,

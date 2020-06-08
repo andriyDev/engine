@@ -58,26 +58,38 @@ void Material::use()
     }
 }
 
-void Material::setTexture(const string& textureName, const ResourceRef<RenderableTexture>& texture)
+GLint Material::getUniformId(const string& uniformName)
 {
     shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
-    auto it = propMap.find(textureName);
+    if(!prog) {
+        return -1;
+    }
+    auto it = propMap.find(uniformName);
     if(it == propMap.end()) {
-        GLint id = prog->getUniformId(textureName);
+        GLint id = prog->getUniformId(uniformName);
         if(id == -1) {
-            return;
+            return -1;
         }
-        it = propMap.insert(make_pair(textureName, id)).first;
+        it = propMap.insert(make_pair(uniformName, id)).first;
+    }
+    return it->second;
+}
+
+void Material::setTexture(const string& textureName, const ResourceRef<RenderableTexture>& texture)
+{
+    GLint uniformId = getUniformId(textureName);
+    if(uniformId == -1) {
+        return;
     }
 
-    auto jt = values.find(it->second);
-    if(jt == values.end()) {
+    auto it = values.find(uniformId);
+    if(it == values.end()) {
         int textureUnit = (int)textures.size();
-        values.insert_or_assign(it->second, PropInfo(textureUnit));
+        values.insert_or_assign(uniformId, PropInfo(textureUnit));
         textures.push_back(texture);
     } else {
-        if(jt->second.data_int < textures.size()) {
-            textures[jt->second.data_int] = texture;
+        if(it->second.data_int < textures.size()) {
+            textures[it->second.data_int] = texture;
         }
     }
 }
@@ -115,21 +127,16 @@ void Material::setVec4Property(const string& name, const glm::vec4& value, bool 
 
 void Material::setProperty(const string& name, PropInfo& value, bool temporary)
 {
-    shared_ptr<MaterialProgram> prog = program.resolve(Immediate);
     PropInfo info(value);
-    auto it = propMap.find(name);
-    if(it == propMap.end()) {
-        GLint id = prog->getUniformId(name);
-        if(id == -1) {
-            return;
-        }
-        it = propMap.insert(make_pair(name, id)).first;
+    GLint uniformId = getUniformId(name);
+    if(uniformId == -1) {
+        return;
     }
     
     if(temporary) {
-        value.use(it->second);
+        value.use(uniformId);
     } else {
-        values.insert_or_assign(it->second, value);
+        values.insert_or_assign(uniformId, value);
     }
 }
 

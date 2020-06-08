@@ -11,6 +11,7 @@ class UIUtil
 public:
     static void bindRectangle();
     static void renderRectangle();
+    static void renderRectangles(uint rectangleCount);
 private:
     ~UIUtil();
 
