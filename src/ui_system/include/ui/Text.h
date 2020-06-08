@@ -24,11 +24,23 @@ public:
         textNeedsUpdate = true;
     }
 
+    void setTextScale(float _scale) {
+        scale = _scale;
+        textNeedsUpdate = true;
+    }
+
+    void setLineSpacing(float _lineSpacing) {
+        lineSpacing = _lineSpacing;
+        textNeedsUpdate = true;
+    }
+
     virtual vec2 layout(hash_map<const UIElement*, vec2>& desiredSizes) const override;
     virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
         const hash_map<const UIElement*, vec2>& desiredSizes) override;
 protected:
     string text;
+    float scale = 1.0f;
+    float lineSpacing = 1.0f;
     float layoutWidth = 0;
     bool textNeedsUpdate = true;
 

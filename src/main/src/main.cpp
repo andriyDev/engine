@@ -306,7 +306,7 @@ int main()
             loader.addAssetData(9, typeid(Material), materialData);
         }
         loader.addAssetData(11, typeid(FontFace), FontFace::createAssetData(10, "Roboto-Regular.ttf"));
-        loader.addAssetData(12, typeid(Font), Font::createAssetData(11, 15));
+        loader.addAssetData(12, typeid(Font), Font::createAssetData(11, 30));
     }
 
     FontLoader::registerLoader(10);
@@ -376,17 +376,19 @@ int main()
             slot.origin = vec2(0,0.5f);
             layout->addChild(slot, boxLayout);
 
-            //shared_ptr<Box> box = make_shared<Box>();
-            //box->colour = vec4(1,0,0,1);
+            shared_ptr<Box> box = make_shared<Box>();
+            box->colour = vec4(1,0,0,1);
             slot.anchorMin = vec2(0,0);
             slot.anchorMax = vec2(1,1);
             slot.offsetMin = vec2(10,10);
             slot.offsetMax = vec2(10,10);
-            //boxLayout->addChild(slot, box);
+            boxLayout->addChild(slot, box);
 
             shared_ptr<Text> text = make_shared<Text>();
             text->font = 12;
-            text->setText("Hello, world!");
+            text->setText("Hello, world!\n\tHow are you today?");
+            text->setTextScale(1.0f);
+            text->setLineSpacing(1.0f);
             boxLayout->addChild(slot, text);
         }
 

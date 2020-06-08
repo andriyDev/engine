@@ -270,8 +270,6 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float pixel
 {
     vector<CharacterLayout> layout;
 
-    printf("Font: Line Height: %f\n", lineHeight * lineSpacing * pixelUnit);
-
     vector<Token> tokens = tokenize(text, characters, spaceAdvance);
 
     vec2 offset(0, lineHeight * lineSpacing * pixelUnit);
@@ -300,19 +298,25 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float pixel
             widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * pixelUnit);
         }
 
-        vector<pair<int, int>> lineRanges = splitTokenForLayout(widths, token.width, width - offset.x, width);
+        vector<pair<int, int>> lineRanges = splitTokenForLayout(widths, token.width * pixelUnit,
+            width - offset.x, width);
+        int j = 0;
         for(const pair<int, int>& range : lineRanges) {
             for(int i = range.first; i < range.second; i++) {
-                CharacterLayout charLayout;
-                const Character& info = characters[text[token.start + i] - FONT_CHAR_START];
-                charLayout.textureLayout = vec4(info.textureStart, info.textureSize);
-                vec2 tl = offset + vec2(info.charBearing) * pixelUnit * vec2(1, -1);
-                charLayout.physicalLayout = vec4(tl, tl + vec2(info.charSize) * pixelUnit);
-                offset.x += info.advance * pixelUnit;
-                layout.push_back(charLayout);
+                if(type != WHITESPACE) {
+                    CharacterLayout charLayout;
+                    const Character& info = characters[text[token.start + i] - FONT_CHAR_START];
+                    charLayout.textureLayout = vec4(info.textureStart, info.textureSize);
+                    vec2 tl = offset + vec2(info.charBearing) * pixelUnit * vec2(1, -1);
+                    charLayout.physicalLayout = vec4(tl, tl + vec2(info.charSize) * pixelUnit);
+                    layout.push_back(charLayout);
+                }
+                offset.x += widths[i];
             }
-            offset.x = 0;
-            offset.y += lineHeight * lineSpacing * pixelUnit;
+            if((++j) != lineRanges.size()) {
+                offset.x = 0;
+                offset.y += lineHeight * lineSpacing * pixelUnit;
+            }
         }
     }
     return layout;
