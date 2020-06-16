@@ -36,7 +36,7 @@ Box::Box()
     }
 }
 
-vec2 Box::layout(hash_map<const UIElement*, vec2>& desiredSizes) const
+vec2 Box::layout(hash_map<const UIElement*, vec2>& desiredSizes)
 {
     desiredSizes.insert(make_pair(this, vec2(0,0)));
     return vec2(0,0);

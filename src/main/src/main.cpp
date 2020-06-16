@@ -368,11 +368,13 @@ int main()
             shared_ptr<AnchorOffsetLayout> boxLayout = make_shared<AnchorOffsetLayout>();
             AnchorOffsetLayout::AnchorOffset slot;
             slot.anchorMin = vec2(0,0.25f);
-            slot.anchorMax = vec2(0,0.5f);
+            slot.anchorMax = vec2(0,0.25f);
             slot.offsetMin.y = 0;
             slot.offsetMax.y = 0;
             slot.position.x = 0;
-            slot.size.x = 200;
+            slot.size.x = 0;
+            slot.position.y = 0;
+            slot.size.y = 0;
             slot.origin = vec2(0,0.5f);
             layout->addChild(slot, boxLayout);
 

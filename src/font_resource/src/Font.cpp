@@ -55,6 +55,8 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
     }
     spaceAdvance = (float)(face->glyph->advance.x >> 6) / (float)d->size;
 
+    maxDescent = 0;
+
     for(uint c = 0; c < FONT_CHAR_COUNT; c++) {
         if(FT_Load_Char(face, c + FONT_CHAR_START, FT_LOAD_BITMAP_METRICS_ONLY | FT_LOAD_ADVANCE_ONLY)) {
             characters[c].valid = false;
@@ -72,6 +74,8 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
             texDimensions.x = max<int>(currentOffset.x, texDimensions.x);
             // Take whichever is more down, the current height, or the bottom edge of this glyph.
             texDimensions.y = max<int>(currentOffset.y + characters[c].charSize.y + 2, texDimensions.y);
+
+            maxDescent = max(maxDescent, characters[c].scaledCharSize.y - characters[c].scaledCharBearing.y);
             // Increment the order index.
             orderIndex++;
             // If we've started a new row, shift to the left, and below the current height.
@@ -245,10 +249,16 @@ int splitToken(const vector<float>& widths, int offset, float remainingLineSpace
     return offset;
 }
 
-vector<Font::CharacterLayout> Font::layoutString(const string& text, float desiredFontSize, float width,
-    float lineSpacing) const
+void newLine(vec2& offset, Font::StringLayout& layout, float scaledLineHeight, float lineSpacing, int lines = 1)
 {
-    vector<CharacterLayout> layout;
+    offset.x = 0;
+    offset.y += scaledLineHeight * lineSpacing * lines;
+    layout.bounds = vec2(layout.bounds.x, max(layout.bounds.y, offset.y));
+}
+
+Font::StringLayout Font::layoutString(const string& text, float desiredFontSize, float width, float lineSpacing) const
+{
+    StringLayout layoutData;
 
     float scaledSpaceAdvance = spaceAdvance * desiredFontSize;
     float scaledLineHeight = lineHeight * desiredFontSize;
@@ -256,12 +266,12 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float desir
     vector<Token> tokens = tokenize(text, characters, scaledSpaceAdvance, desiredFontSize);
 
     vec2 offset(0, scaledLineHeight);
+    layoutData.bounds = vec2(0, scaledLineHeight);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            offset.x = 0;
-            offset.y += scaledLineHeight * lineSpacing * token.length;
+            newLine(offset, layoutData, scaledLineHeight, lineSpacing, token.length);
             continue;
         }
 
@@ -287,14 +297,12 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float desir
         while(currentChar != widths.size()) {
             // If the token will overflow to the next line, we should just move directly to the next line.
             if(token.width > width - offset.x && token.width <= width) {
-                offset.x = 0;
-                offset.y += scaledLineHeight * lineSpacing;
+                newLine(offset, layoutData, scaledLineHeight, lineSpacing);
                 currentChar = (int)widths.size();
             } else {
                 // For all iterations except the first, move to the next line.
                 if(currentChar != 0) {
-                    offset.x = 0;
-                    offset.y += scaledLineHeight * lineSpacing;
+                    newLine(offset, layoutData, scaledLineHeight, lineSpacing);
                 }
                 
                 // Split the token.
@@ -303,8 +311,7 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float desir
                 // Since we previously only move to the next line if not on the first iteration,
                 // we have to handle this case.
                 if(currentChar == 0) {
-                    offset.x = 0;
-                    offset.y += scaledLineHeight * lineSpacing;
+                    newLine(offset, layoutData, scaledLineHeight, lineSpacing);
                 }
             }
 
@@ -317,12 +324,69 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float desir
                     charLayout.textureLayout = vec4(info.textureStart, info.textureSize);
                     vec2 tl = offset + vec2(info.scaledCharBearing) * desiredFontSize * vec2(1, -1);
                     charLayout.physicalLayout = vec4(tl, tl + vec2(info.scaledCharSize) * desiredFontSize);
-                    layout.push_back(charLayout);
+                    layoutData.layout.push_back(charLayout);
                 }
                 offset.x += widths[lastChar];
                 token.width -= widths[lastChar];
             }
+            // We only need to update the bounds once this token chunk has been laid out.
+            layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
         }
     }
-    return layout;
+    layoutData.bounds.y += maxDescent * desiredFontSize;
+    return layoutData;
+}
+
+Font::StringLayout Font::layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing) const
+{
+    StringLayout layoutData;
+
+    float scaledSpaceAdvance = spaceAdvance * desiredFontSize;
+    float scaledLineHeight = lineHeight * desiredFontSize;
+
+    vector<Token> tokens = tokenize(text, characters, scaledSpaceAdvance, desiredFontSize);
+
+    vec2 offset(0, scaledLineHeight);
+    layoutData.bounds = vec2(0, scaledLineHeight);
+
+    for(Token& token : tokens) {
+        uchar type = getCharType(text[token.start]);
+        if(type == NEWLINE) {
+            newLine(offset, layoutData, scaledLineHeight, lineSpacing, token.length);
+            continue;
+        }
+
+        vector<float> widths;
+        if(type == WHITESPACE) {
+            // Go through each character and add its width.
+            for(int i = 0; i < token.length; i++) {
+                widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * scaledSpaceAdvance);
+            }
+        } else if(type == ALPHABETIC || type == NUMERIC) {
+            // Go through each character and add its width.
+            for(int i = 0; i < token.length; i++) {
+                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * desiredFontSize);
+            }
+        } else if(type == SPECIAL) {
+            // We know SPECIAL tokens only have one character so just lay it out.
+            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * desiredFontSize);
+        }
+        
+        // Move lastOffset up until it matches with offset.
+        for(int i = 0; i < token.length; i++) {
+            // Only output characters if not whitespace.
+            if(type != WHITESPACE) {
+                CharacterLayout charLayout;
+                const Character& info = characters[text[token.start + i] - FONT_CHAR_START];
+                charLayout.textureLayout = vec4(info.textureStart, info.textureSize);
+                vec2 tl = offset + vec2(info.scaledCharBearing) * desiredFontSize * vec2(1, -1);
+                charLayout.physicalLayout = vec4(tl, tl + vec2(info.scaledCharSize) * desiredFontSize);
+                layoutData.layout.push_back(charLayout);
+            }
+            offset.x += widths[i];
+        }
+        layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
+    }
+    layoutData.bounds.y += maxDescent * desiredFontSize;
+    return layoutData;
 }

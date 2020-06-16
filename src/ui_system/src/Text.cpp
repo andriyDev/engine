@@ -35,10 +35,15 @@ Text::Text()
     }
 }
 
-vec2 Text::layout(hash_map<const UIElement*, vec2>& desiredSizes) const
+vec2 Text::layout(hash_map<const UIElement*, vec2>& desiredSizes)
 {
-    desiredSizes.insert(make_pair(this, vec2(0,0)));
-    return vec2(0,0);
+    shared_ptr<Font> fontPtr = font.resolve(Immediate);
+    if(desiredNeedsUpdate) {
+        desiredNeedsUpdate = false;
+        textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, lineSpacing);
+    }
+    desiredSizes.insert(make_pair(static_cast<UIElement*>(this), textDesiredLayout.bounds));
+    return textDesiredLayout.bounds;
 }
 
 void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, vec2>& desiredSizes)
@@ -58,7 +63,7 @@ void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const U
     textMaterial->setVec4Property("rect", rect, true);
     textMaterial->setVec4Property("mask", mask, true);
     GLint uniformId = textMaterial->getUniformId("character_layout");
-    glUniform4fv(uniformId, (GLsizei)textLayout.size() * 2, (float*)&textLayout[0]);
+    glUniform4fv(uniformId, (GLsizei)textLayout.layout.size() * 2, (float*)&textLayout.layout[0]);
     UIUtil::bindRectangle();
-    UIUtil::renderRectangles((uint)textLayout.size());
+    UIUtil::renderRectangles((uint)textLayout.layout.size());
 }

@@ -30,13 +30,17 @@ AnchorOffsetLayout::AnchorOffset* AnchorOffsetLayout::getSlot(shared_ptr<UIEleme
     return nullptr;
 }
 
-vec2 AnchorOffsetLayout::layout(hash_map<const UIElement*, vec2>& desiredSizes) const
+vec2 AnchorOffsetLayout::layout(hash_map<const UIElement*, vec2>& desiredSizes)
 {
+    vec2 bounds = vec2(0,0);
     for(const auto& child : children) {
         vec2 size = child.second->layout(desiredSizes);
+        vec4 margin = child.first.getMargin();
+        size += vec2(margin.x + margin.z, margin.y + margin.w);
+        bounds = vec2(max(bounds.x, size.x), max(bounds.y, size.y));
     }
-    desiredSizes.insert(make_pair(this, vec2(0,0)));
-    return vec2(0,0);
+    desiredSizes.insert(make_pair(this, bounds));
+    return bounds;
 }
 
 void AnchorOffsetLayout::render(vec4 rect, vec4 mask, vec2 surfaceSize,
@@ -52,7 +56,8 @@ void AnchorOffsetLayout::render(vec4 rect, vec4 mask, vec2 surfaceSize,
         if(min.x == max.x) {
             float desiredWidth;
             if(child.first.size.x == 0) {
-                desiredWidth = desiredSizes.find(child.second.get())->second.x;
+                vec2 bounds = desiredSizes.find(child.second.get())->second;
+                desiredWidth = bounds.x;
             } else {
                 desiredWidth = child.first.size.x;
             }

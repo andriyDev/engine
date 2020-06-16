@@ -40,8 +40,16 @@ public:
         vec4 physicalLayout;
     };
 
-    vector<CharacterLayout> layoutString(const string& text, float desiredFontSize,
+    struct StringLayout
+    {
+        vector<CharacterLayout> layout;
+        vec2 bounds;
+    };
+
+    StringLayout layoutString(const string& text, float desiredFontSize,
         float width, float lineSpacing = 1) const;
+
+    StringLayout layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing = 1) const;
 
     shared_ptr<RenderableTexture> getTextureSheet() const { return texture; }
 
@@ -64,6 +72,7 @@ protected:
     Character characters[FONT_CHAR_COUNT];
     float spaceAdvance;
     float lineHeight;
+    float maxDescent;
 
     shared_ptr<RenderableTexture> texture;
 };
