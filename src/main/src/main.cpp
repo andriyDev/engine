@@ -387,8 +387,8 @@ int main()
             shared_ptr<Text> text = make_shared<Text>();
             text->font = 12;
             text->setText("Hello, world!\n\tHow are you today?");
-            text->setTextScale(1.0f);
-            text->setLineSpacing(1.0f);
+            text->setFontSize(30.0f);
+            text->setLineSpacing(2.0f);
             boxLayout->addChild(slot, text);
         }
 

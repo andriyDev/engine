@@ -24,8 +24,8 @@ public:
         textNeedsUpdate = true;
     }
 
-    void setTextScale(float _scale) {
-        scale = _scale;
+    void setFontSize(float _size) {
+        size = _size;
         textNeedsUpdate = true;
     }
 
@@ -39,7 +39,7 @@ public:
         const hash_map<const UIElement*, vec2>& desiredSizes) override;
 protected:
     string text;
-    float scale = 1.0f;
+    float size = 1.0f;
     float lineSpacing = 1.0f;
     float layoutWidth = 0;
     bool textNeedsUpdate = true;
