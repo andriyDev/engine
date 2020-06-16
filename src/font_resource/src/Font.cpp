@@ -47,13 +47,13 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
 
     int orderIndex = 0;
 
-    lineHeight = (float)d->size * face->height / face->units_per_EM;
+    lineHeight = (float)d->size * face->height / face->units_per_EM / (float)d->size;
 
     if(FT_Load_Char(face, 32, FT_LOAD_ADVANCE_ONLY)) {
         fprintf(stderr, "Could not load space info during Font loading.\n");
         return false;
     }
-    spaceAdvance = (float)(face->glyph->advance.x >> 6);
+    spaceAdvance = (float)(face->glyph->advance.x >> 6) / (float)d->size;
 
     for(uint c = 0; c < FONT_CHAR_COUNT; c++) {
         if(FT_Load_Char(face, c + FONT_CHAR_START, FT_LOAD_BITMAP_METRICS_ONLY | FT_LOAD_ADVANCE_ONLY)) {
@@ -63,8 +63,9 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
             // The position in the texture is the current offset.
             characters[c].charPos = currentOffset + ivec2(1,1); // + 1 for margin.
             characters[c].charSize = ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            characters[c].charBearing = ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top);
-            characters[c].advance = (float)(face->glyph->advance.x >> 6);
+            characters[c].scaledCharSize = vec2(face->glyph->bitmap.width, face->glyph->bitmap.rows) / (float)d->size;
+            characters[c].scaledCharBearing = vec2(face->glyph->bitmap_left, face->glyph->bitmap_top) / (float)d->size;
+            characters[c].advance = (float)(face->glyph->advance.x >> 6) / (float)d->size;
             // Shift the offset to the right. This will be the new right-most edge for this row.
             currentOffset.x += characters[c].charSize.x + 2; // + 2 for margin.
             // Take whichever is more right, the current width, or the right-most edge of this glyph.
@@ -186,7 +187,7 @@ struct Token
     operator bool() const { return length; }
 };
 
-vector<Token> tokenize(const string& text, const Font::Character* characters, float spaceAdvance)
+vector<Token> tokenize(const string& text, const Font::Character* characters, float spaceAdvance, float desiredFontSize)
 {
     vector<Token> tokens;
 
@@ -214,7 +215,7 @@ vector<Token> tokenize(const string& text, const Font::Character* characters, fl
         } else if(type == WHITESPACE) {
             currentToken.width += c == '\t' ? 4 * spaceAdvance : spaceAdvance;
         } else {
-            currentToken.width += characters[c - FONT_CHAR_START].advance;
+            currentToken.width += characters[c - FONT_CHAR_START].advance * desiredFontSize;
         }
     }
     // A token was left over so put in the last one.
@@ -224,61 +225,43 @@ vector<Token> tokenize(const string& text, const Font::Character* characters, fl
     return tokens;
 }
 
-vector<pair<int, int>> splitTokenForLayout(const vector<float>& widths, float sumWidth,
-    float remainingWidthFirstLine, float width)
+int splitToken(const vector<float>& widths, int offset, float remainingLineSpace, float fullLineSpace)
 {
-    vector<pair<int, int>> splits;
-    int i = 0;
-    while(i < widths.size()) {
-        if(sumWidth <= remainingWidthFirstLine) {
-            splits.push_back(make_pair(i, (int)widths.size()));
-            break;
-        }
-        else if(sumWidth <= width) {
-            remainingWidthFirstLine = width;
-            splits.push_back(make_pair(i, i));
-        } else if(widths[i] > remainingWidthFirstLine) { // If the character won't fit on this line.
-            if(widths[i] > width) {
-                // Place this character anyway since it won't fit in the next line either.
-                splits.push_back(make_pair(i, i + 1));
-                ++i;
-            } else { // Skip to the next line.
-                splits.push_back(make_pair(i, i));
-            }
-            remainingWidthFirstLine = width;
-        } else {
-            float sumShift = widths[i]; // We already know the next character won't push us past the limit.
-            // Skip the first character.
-            for(int j = i + 1; j < widths.size(); j++) {
-                // If the next character will tip us over the limit for the line.
-                if(sumShift + widths[j] > remainingWidthFirstLine) {
-                    splits.push_back(make_pair(i, j));
-                    i = j;
-                    break;
-                }
-                sumShift += widths[i];
-            }
-            // Since we've gone to the next line, we need to reset the remaining width.
-            remainingWidthFirstLine = width;
+    // If the next character can't fit here, but it can fit on the next line, just move to the next line.
+    if(widths[offset] > remainingLineSpace && widths[offset] <= fullLineSpace) {
+        return offset;
+    }
+    // We already know the next character must be taken.
+    float sum = widths[offset];
+    // Shift over once.
+    offset++;
+    for(; offset < widths.size(); offset++) {
+        sum += widths[offset];
+        // If adding the next character pushes us to the next line, 
+        if(sum > remainingLineSpace) {
+            return offset;
         }
     }
-    return splits;
+    return offset;
 }
 
-vector<Font::CharacterLayout> Font::layoutString(const string& text, float pixelUnit, float width,
+vector<Font::CharacterLayout> Font::layoutString(const string& text, float desiredFontSize, float width,
     float lineSpacing) const
 {
     vector<CharacterLayout> layout;
 
-    vector<Token> tokens = tokenize(text, characters, spaceAdvance);
+    float scaledSpaceAdvance = spaceAdvance * desiredFontSize;
+    float scaledLineHeight = lineHeight * desiredFontSize;
 
-    vec2 offset(0, lineHeight * lineSpacing * pixelUnit);
+    vector<Token> tokens = tokenize(text, characters, scaledSpaceAdvance, desiredFontSize);
+
+    vec2 offset(0, scaledLineHeight);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
             offset.x = 0;
-            offset.y += lineHeight * lineSpacing * pixelUnit * token.length;
+            offset.y += scaledLineHeight * lineSpacing * token.length;
             continue;
         }
 
@@ -286,36 +269,58 @@ vector<Font::CharacterLayout> Font::layoutString(const string& text, float pixel
         if(type == WHITESPACE) {
             // Go through each character and add its width.
             for(int i = 0; i < token.length; i++) {
-                widths.push_back((text[token.start + i] == '\t' ? 4 * spaceAdvance : spaceAdvance) * pixelUnit);
+                widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * scaledSpaceAdvance);
             }
         } else if(type == ALPHABETIC || type == NUMERIC) {
             // Go through each character and add its width.
             for(int i = 0; i < token.length; i++) {
-                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * pixelUnit);
+                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * desiredFontSize);
             }
         } else if(type == SPECIAL) {
             // We know SPECIAL tokens only have one character so just lay it out.
-            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * pixelUnit);
+            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * desiredFontSize);
         }
 
-        vector<pair<int, int>> lineRanges = splitTokenForLayout(widths, token.width * pixelUnit,
-            width - offset.x, width);
-        int j = 0;
-        for(const pair<int, int>& range : lineRanges) {
-            for(int i = range.first; i < range.second; i++) {
+        int lastChar = 0;
+        int currentChar = 0;
+        // Keep going until offset is done the string.
+        while(currentChar != widths.size()) {
+            // If the token will overflow to the next line, we should just move directly to the next line.
+            if(token.width > width - offset.x && token.width <= width) {
+                offset.x = 0;
+                offset.y += scaledLineHeight * lineSpacing;
+                currentChar = (int)widths.size();
+            } else {
+                // For all iterations except the first, move to the next line.
+                if(currentChar != 0) {
+                    offset.x = 0;
+                    offset.y += scaledLineHeight * lineSpacing;
+                }
+                
+                // Split the token.
+                currentChar = splitToken(widths, lastChar, width - offset.x, width);
+                // There is a special case with splitToken if the first character will not fit on the current line,
+                // Since we previously only move to the next line if not on the first iteration,
+                // we have to handle this case.
+                if(currentChar == 0) {
+                    offset.x = 0;
+                    offset.y += scaledLineHeight * lineSpacing;
+                }
+            }
+
+            // Move lastOffset up until it matches with offset.
+            for(; lastChar < currentChar; lastChar++) {
+                // Only output characters if not whitespace.
                 if(type != WHITESPACE) {
                     CharacterLayout charLayout;
-                    const Character& info = characters[text[token.start + i] - FONT_CHAR_START];
+                    const Character& info = characters[text[token.start + lastChar] - FONT_CHAR_START];
                     charLayout.textureLayout = vec4(info.textureStart, info.textureSize);
-                    vec2 tl = offset + vec2(info.charBearing) * pixelUnit * vec2(1, -1);
-                    charLayout.physicalLayout = vec4(tl, tl + vec2(info.charSize) * pixelUnit);
+                    vec2 tl = offset + vec2(info.scaledCharBearing) * desiredFontSize * vec2(1, -1);
+                    charLayout.physicalLayout = vec4(tl, tl + vec2(info.scaledCharSize) * desiredFontSize);
                     layout.push_back(charLayout);
                 }
-                offset.x += widths[i];
-            }
-            if((++j) != lineRanges.size()) {
-                offset.x = 0;
-                offset.y += lineHeight * lineSpacing * pixelUnit;
+                offset.x += widths[lastChar];
+                token.width -= widths[lastChar];
             }
         }
     }

@@ -27,7 +27,8 @@ public:
         vec2 textureSize;
         ivec2 charPos;
         ivec2 charSize;
-        ivec2 charBearing;
+        vec2 scaledCharSize;
+        vec2 scaledCharBearing;
         float advance;
 
         operator bool() const { return valid; }
@@ -39,7 +40,8 @@ public:
         vec4 physicalLayout;
     };
 
-    vector<CharacterLayout> layoutString(const string& text, float pixelUnit, float width, float lineSpacing = 1) const;
+    vector<CharacterLayout> layoutString(const string& text, float desiredFontSize,
+        float width, float lineSpacing = 1) const;
 
     shared_ptr<RenderableTexture> getTextureSheet() const { return texture; }
 
