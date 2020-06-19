@@ -36,7 +36,7 @@
 #include "physics/RigidBody.h"
 
 #include "ui/UISystem.h"
-#include "ui/AnchorOffsetLayout.h"
+#include "ui/ContainerLayouts.h"
 #include "ui/Box.h"
 #include "ui/Text.h"
 
@@ -363,35 +363,45 @@ int main()
 
         shared_ptr<UIElement> element;
         {
-            shared_ptr<AnchorOffsetLayout> layout = make_shared<AnchorOffsetLayout>();
+            shared_ptr<Container> layout = make_shared<Container>();
+            layout->layoutAlgorithm = new OverlayLayout();
             element = layout;
-            shared_ptr<AnchorOffsetLayout> boxLayout = make_shared<AnchorOffsetLayout>();
-            AnchorOffsetLayout::AnchorOffset slot;
-            slot.anchorMin = vec2(0,0.25f);
-            slot.anchorMax = vec2(0,0.25f);
-            slot.offsetMin.y = 0;
-            slot.offsetMax.y = 0;
-            slot.position.x = 0;
-            slot.size.x = 0;
-            slot.position.y = 0;
-            slot.size.y = 0;
-            slot.origin = vec2(0,0.5f);
-            layout->addChild(slot, boxLayout);
 
             shared_ptr<Box> box = make_shared<Box>();
-            box->colour = vec4(1,0,0,1);
-            slot.anchorMin = vec2(0,0);
-            slot.anchorMax = vec2(1,1);
-            slot.offsetMin = vec2(10,10);
-            slot.offsetMax = vec2(10,10);
-            boxLayout->addChild(slot, box);
+            box->layoutAlgorithm = new ListLayout<ListDirection::Column>(0);
+            box->anchors = vec4(0, 0.25f, 0, 0.25f);
+            box->origin.x = 0;
+            box->origin.y = 0;
+            box->position.x = 20;
+            box->position.y = 20;
+            box->colour = vec4(1, 0, 0, 1);
+            layout->addChild(box);
+
+            shared_ptr<Box> backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(0,1,0,1);
+            backBox->margin = vec4(1,1,1,1) * 30.f;
+            box->addChild(backBox);
 
             shared_ptr<Text> text = make_shared<Text>();
             text->font = 12;
             text->setText("Hello, world!\n\tHow are you today?");
             text->setFontSize(30.0f);
             text->setLineSpacing(2.0f);
-            boxLayout->addChild(slot, text);
+            backBox->addChild(text);
+
+            backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(0,0,1,1);
+            backBox->margin = vec4(1,1,1,1) * 30.f;
+            box->addChild(backBox);
+
+            text = make_shared<Text>();
+            text->font = 12;
+            text->setText("Hello, world 2!\n\tHow are you today?");
+            text->setFontSize(30.0f);
+            text->setLineSpacing(2.0f);
+            backBox->addChild(text);
         }
 
         shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);

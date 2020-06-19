@@ -3,19 +3,17 @@
 
 #include "std.h"
 
-#include "UIElement.h"
+#include "ui/Container.h"
 #include "renderer/Material.h"
 
-class Box : public UIElement
+class Box : public Container
 {
 public:
     Box();
 
     vec4 colour;
 
-    virtual vec2 layout(hash_map<const UIElement*, vec2>& desiredSizes) override;
-    virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
-        const hash_map<const UIElement*, vec2>& desiredSizes) override;
+    virtual void renderSelf(vec4 rect, vec4 mask, vec2 surfaceSize) override;
 protected:
     static shared_ptr<MaterialProgram> boxProgram;
     static shared_ptr<Material> boxMaterial;

@@ -1,7 +1,10 @@
 
 set(SRC)
-list(APPEND SRC src/AnchorOffsetLayout.cpp)
+list(APPEND SRC src/Container.cpp)
+list(APPEND SRC src/ListLayout.cpp)
+list(APPEND SRC src/OverlayLayout.cpp)
 list(APPEND SRC src/Box.cpp)
+list(APPEND SRC src/UIElement.cpp)
 list(APPEND SRC src/UISystem.cpp)
 list(APPEND SRC src/UIUtil.cpp)
 list(APPEND SRC src/Text.cpp)

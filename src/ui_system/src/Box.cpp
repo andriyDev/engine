@@ -36,13 +36,7 @@ Box::Box()
     }
 }
 
-vec2 Box::layout(hash_map<const UIElement*, vec2>& desiredSizes)
-{
-    desiredSizes.insert(make_pair(this, vec2(0,0)));
-    return vec2(0,0);
-}
-
-void Box::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, vec2>& desiredSizes)
+void Box::renderSelf(vec4 rect, vec4 mask, vec2 surfaceSize)
 {
     boxMaterial->use();
     boxMaterial->setVec2Property("surface_size", surfaceSize, true);
