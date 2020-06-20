@@ -28,7 +28,7 @@ public:
 };
 
 enum class ListDirection : uchar {
-    Row, Column, RowReverse, ColumnReverse
+    Row, Column, RowReverse, ColumnReverse, RowCentered, ColumnCentered
 };
 
 // This is templated so most of the code will be optimized out (due to the constant nature of dir).
