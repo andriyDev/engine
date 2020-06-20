@@ -19,6 +19,8 @@ public:
 
     Text();
 
+    vec4 colour = vec4(1,1,1,1);
+
     void setText(const string& _text) {
         text = _text;
         textNeedsUpdate = true;

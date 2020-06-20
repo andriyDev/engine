@@ -39,3 +39,8 @@ public:
     virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
         const hash_map<const UIElement*, vec2>& desiredSizes) = 0;
 };
+
+inline vec4 intersect_boxes(vec4 box1, vec4 box2)
+{
+    return vec4(max(box1.x, box2.x), max(box1.y, box2.y), min(box1.z, box2.z), min(box1.w, box2.w));
+}

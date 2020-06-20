@@ -12,7 +12,7 @@ class Container : public UIElement
 public:
     virtual ~Container();
 
-    bool maskChildren;
+    bool maskChildren = true;
     ContainerLayout* layoutAlgorithm = nullptr;
 
     virtual void addChild(shared_ptr<UIElement> element);

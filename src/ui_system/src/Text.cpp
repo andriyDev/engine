@@ -62,6 +62,7 @@ void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const U
     textMaterial->setVec2Property("surface_size", surfaceSize, true);
     textMaterial->setVec4Property("rect", rect, true);
     textMaterial->setVec4Property("mask", mask, true);
+    textMaterial->setVec4Property("colour", colour, true);
     GLint uniformId = textMaterial->getUniformId("character_layout");
     glUniform4fv(uniformId, (GLsizei)textLayout.layout.size() * 2, (float*)&textLayout.layout[0]);
     UIUtil::bindRectangle();

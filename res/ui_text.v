@@ -3,6 +3,7 @@ layout(location=0) in vec2 vert_position;
 
 uniform vec2 surface_size;
 uniform vec4 rect;
+uniform vec4 mask;
 
 #define MAX_CHARACTERS 128
 

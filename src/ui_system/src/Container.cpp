@@ -54,6 +54,6 @@ void Container::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<co
     }
     for(int i = 0; i < elements.size(); i++) {
         vec4& box = layoutAlgorithm ? boxes[i] : rect;
-        elements[i]->render(box, maskChildren ? rect : mask, surfaceSize, desiredSizes);
+        elements[i]->render(box, maskChildren ? intersect_boxes(mask, rect) : mask, surfaceSize, desiredSizes);
     }
 }

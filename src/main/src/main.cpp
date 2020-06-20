@@ -368,19 +368,20 @@ int main()
             element = layout;
 
             shared_ptr<Box> box = make_shared<Box>();
-            box->layoutAlgorithm = new ListLayout<ListDirection::Column>(0);
-            box->anchors = vec4(0, 0.25f, 0, 0.25f);
-            box->origin.x = 0;
-            box->origin.y = 0;
-            box->position.x = 20;
-            box->position.y = 20;
+            box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
+            box->anchors = vec4(0, 0.25f, 1, 0.25f);
+            box->margin.x = 15;
+            box->margin.z = 15;
             box->colour = vec4(1, 0, 0, 1);
+            box->padding = vec4(1,1,1,1) * 30.f;
             layout->addChild(box);
 
             shared_ptr<Box> backBox = make_shared<Box>();
+            backBox->weight = 1;
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(0,1,0,1);
-            backBox->margin = vec4(1,1,1,1) * 30.f;
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->horizontalGravity = UIElement::Gravity::End;
             box->addChild(backBox);
 
             shared_ptr<Text> text = make_shared<Text>();
@@ -393,12 +394,42 @@ int main()
             backBox = make_shared<Box>();
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(0,0,1,1);
-            backBox->margin = vec4(1,1,1,1) * 30.f;
+            backBox->padding = vec4(1,1,1,1) * 15.f;
             box->addChild(backBox);
 
             text = make_shared<Text>();
             text->font = 12;
             text->setText("Hello, world 2!\n\tHow are you today?");
+            text->setFontSize(30.0f);
+            text->setLineSpacing(2.0f);
+            backBox->addChild(text);
+
+            backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(1,0,1,1);
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->weight = 1;
+            box->addChild(backBox);
+
+            text = make_shared<Text>();
+            text->font = 12;
+            text->setText("Hello, world");
+            text->setFontSize(30.0f);
+            text->setLineSpacing(2.0f);
+            backBox->addChild(text);
+
+            backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(1,0,1,1);
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            box->addChild(backBox);
+
+            text = make_shared<Text>();
+            text->anchors = vec4(0, 0.5f, 1, 0.5f);
+            text->origin.y = 0.5f;
+            text->colour = vec4(0,0,0,1);
+            text->font = 12;
+            text->setText("Hello, world blah blah blah blah");
             text->setFontSize(30.0f);
             text->setLineSpacing(2.0f);
             backBox->addChild(text);

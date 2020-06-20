@@ -22,10 +22,10 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
         vec2 size = desiredSizes.find(element.get())->second;
         weightSum += element->weight;
         if(isHorizontal(dir)) {
-            mainSize += size.x;
+            mainSize += size.x + element->margin.x + element->margin.z;
             basisProduct += size.x * element->weight;
         } else {
-            mainSize += size.y;
+            mainSize += size.y + element->margin.y + element->margin.w;
             basisProduct += size.y * element->weight;
         }
     }
