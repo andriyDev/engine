@@ -15,6 +15,7 @@ void RenderSystem::init()
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_MULTISAMPLE);
     glCullFace(GL_BACK);
 }
 

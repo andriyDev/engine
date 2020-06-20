@@ -98,6 +98,7 @@ void Window::build()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     window = glfwCreateWindow(width, height, windowTitle.c_str(), NULL, NULL);
     if(!window) {
