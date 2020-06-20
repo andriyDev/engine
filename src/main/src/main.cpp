@@ -369,9 +369,12 @@ int main()
 
             shared_ptr<Box> box = make_shared<Box>();
             box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
-            box->anchors = vec4(0, 0.25f, 1, 0.25f);
+            box->anchors = vec4(0, 1, 1, 1);
+            box->origin.y = 1;
+            box->position.y = -15;
             box->margin.x = 15;
             box->margin.z = 15;
+            box->cornerRadii = vec4(10, 10, 0, 0);
             box->colour = vec4(1, 0, 0, 1);
             box->padding = vec4(1,1,1,1) * 30.f;
             layout->addChild(box);
@@ -387,8 +390,8 @@ int main()
             shared_ptr<Text> text = make_shared<Text>();
             text->font = 12;
             text->setText("Hello, world!\n\tHow are you today?");
-            text->setFontSize(30.0f);
-            text->setLineSpacing(2.0f);
+            text->setFontSize(14.0f);
+            text->setLineSpacing(1.0f);
             backBox->addChild(text);
 
             backBox = make_shared<Box>();
@@ -400,25 +403,26 @@ int main()
             text = make_shared<Text>();
             text->font = 12;
             text->setText("Hello, world 2!\n\tHow are you today?");
-            text->setFontSize(30.0f);
-            text->setLineSpacing(2.0f);
+            text->setFontSize(14.0f);
+            text->setLineSpacing(1.0f);
             backBox->addChild(text);
 
             backBox = make_shared<Box>();
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(1,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->weight = 1;
+            backBox->weight = 2;
             box->addChild(backBox);
 
             text = make_shared<Text>();
             text->font = 12;
             text->setText("Hello, world");
-            text->setFontSize(30.0f);
-            text->setLineSpacing(2.0f);
+            text->setFontSize(14.0f);
+            text->setLineSpacing(1.0f);
             backBox->addChild(text);
 
             backBox = make_shared<Box>();
+            backBox->verticalGravity = UIElement::Gravity::Center;
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(1,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
@@ -430,8 +434,8 @@ int main()
             text->colour = vec4(0,0,0,1);
             text->font = 12;
             text->setText("Hello, world blah blah blah blah");
-            text->setFontSize(30.0f);
-            text->setLineSpacing(2.0f);
+            text->setFontSize(14.0f);
+            text->setLineSpacing(1.0f);
             backBox->addChild(text);
         }
 

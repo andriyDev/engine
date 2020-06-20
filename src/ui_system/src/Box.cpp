@@ -11,8 +11,8 @@ Box::Box()
 {
     if(!boxMaterial) {
         shared_ptr<Shader> common_shader = Shader::loadDirectly<Shader>("res/ui_common.s");
-        shared_ptr<Shader> vertex_shader = Shader::loadDirectly<Shader>("res/ui_generic.v");
-        shared_ptr<Shader> fragment_shader = Shader::loadDirectly<Shader>("res/ui_generic.f");
+        shared_ptr<Shader> vertex_shader = Shader::loadDirectly<Shader>("res/ui_box.v");
+        shared_ptr<Shader> fragment_shader = Shader::loadDirectly<Shader>("res/ui_box.f");
 
         if(!common_shader || !vertex_shader || !fragment_shader) {
             throw "Failed to load UI shaders.";
@@ -43,6 +43,7 @@ void Box::renderSelf(vec4 rect, vec4 mask, vec2 surfaceSize)
     boxMaterial->setVec4Property("rect", rect, true);
     boxMaterial->setVec4Property("mask", mask, true);
     boxMaterial->setVec4Property("colour_tint", colour, true);
+    boxMaterial->setVec4Property("corner_radii", cornerRadii, true);
     UIUtil::bindRectangle();
     UIUtil::renderRectangle();
 }
