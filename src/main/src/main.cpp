@@ -368,7 +368,7 @@ int main()
             element = layout;
 
             shared_ptr<Box> box = make_shared<Box>();
-            box->layoutAlgorithm = new ListLayout<ListDirection::RowCentered>(30);
+            box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
             box->anchors = vec4(0, 1, 1, 1);
             box->origin.y = 1;
             box->position.y = -15;
@@ -380,7 +380,7 @@ int main()
             layout->addChild(box);
 
             shared_ptr<Box> backBox = make_shared<Box>();
-            backBox->weight = 1;
+            //backBox->weight = 1;
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(0,1,0,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
@@ -411,7 +411,7 @@ int main()
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(1,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->weight = 2;
+            //backBox->weight = 2;
             box->addChild(backBox);
 
             text = make_shared<Text>();

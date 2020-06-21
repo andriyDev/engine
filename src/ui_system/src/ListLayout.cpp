@@ -51,7 +51,7 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
             elementSizeDelta = sizeDelta * element->weight * (isHorizontal(dir) ? size.x : size.y) / basisProduct;
         }
         if(isHorizontal(dir)) {
-            size.x += elementSizeDelta;
+            size.x += elementSizeDelta + 1;
             if(isReversed(dir)) {
                 box.z = rect.z - offset - element->margin.z;
                 box.x = box.z - size.x;
@@ -61,7 +61,7 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
             }
             offset += size.x + element->margin.x + element->margin.z;
         } else {
-            size.y += elementSizeDelta;
+            size.y += elementSizeDelta + 1;
             if(isReversed(dir)) {
                 box.w = rect.y - offset - element->margin.w;
                 box.y = box.w - size.y;
@@ -177,7 +177,7 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         box.x = start_point + offset + element->margin.x;
         box.z = box.x + size.x;
         
-        offset += size.x + element->margin.x + element->margin.z;
+        offset += size.x + element->margin.x + element->margin.z + 1;
         offset += spaceBetweenElements;
 
         if(element->verticalGravity == UIElement::Start) {
