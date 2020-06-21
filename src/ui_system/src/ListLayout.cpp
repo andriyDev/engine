@@ -173,11 +173,12 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
         vec2 size = desiredSizes.find(element.get())->second;
+        size.x += 1;
         
         box.x = start_point + offset + element->margin.x;
         box.z = box.x + size.x;
         
-        offset += size.x + element->margin.x + element->margin.z + 1;
+        offset += size.x + element->margin.x + element->margin.z;
         offset += spaceBetweenElements;
 
         if(element->verticalGravity == UIElement::Start) {
@@ -220,6 +221,7 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
         vec2 size = desiredSizes.find(element.get())->second;
+        size.y += 1;
         
         box.y = start_point + offset + element->margin.y;
         box.w = box.y + size.y;

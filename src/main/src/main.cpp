@@ -368,7 +368,7 @@ int main()
             element = layout;
 
             shared_ptr<Box> box = make_shared<Box>();
-            box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
+            box->layoutAlgorithm = new ListLayout<ListDirection::RowCentered>(30);
             box->anchors = vec4(0, 1, 1, 1);
             box->origin.y = 1;
             box->position.y = -15;
