@@ -280,7 +280,6 @@ int main()
         loader.addAssetType(typeid(RenderableTexture), RenderableTexture::build);
         loader.addAssetType(typeid(MaterialProgram), MaterialProgram::build);
         loader.addAssetType(typeid(Material), Material::build);
-        loader.addAssetType(typeid(FontFace), FontFace::build);
         loader.addAssetType(typeid(Font), Font::build);
     }
     shared_ptr<Mesh> box = Mesh::makeBox(vec3(0.5f, 0.5f, 0.5f));
@@ -305,11 +304,19 @@ int main()
             materialData->setVec3Property("albedo", vec3(1,1,1));
             loader.addAssetData(9, typeid(Material), materialData);
         }
-        loader.addAssetData(11, typeid(FontFace), FontFace::createAssetData(10, "Roboto-Regular.ttf"));
-        loader.addAssetData(12, typeid(Font), Font::createAssetData(11, 30));
+        loader.addAssetData(10, typeid(Texture), Texture::createAssetData("font.tpk"));
+        loader.addAssetData(11, typeid(Font), Font::createAssetData(12, "font.fnt"));
+        {
+            auto textureData = RenderableTexture::createAssetData(10);
+            textureData->wrapU = RenderableTexture::Clamp;
+            textureData->wrapV = RenderableTexture::Clamp;
+            textureData->minFilter = RenderableTexture::Linear;
+            textureData->magFilter = RenderableTexture::Linear;
+            textureData->minFilterMipMap = RenderableTexture::Linear;
+            textureData->mipMapLevels = 1;
+            loader.addAssetData(12, typeid(RenderableTexture), textureData);
+        }
     }
-
-    FontLoader::registerLoader(10);
 
     Universe U;
     U.gameplayRate = 60;
@@ -388,7 +395,7 @@ int main()
             box->addChild(backBox);
 
             shared_ptr<Text> text = make_shared<Text>();
-            text->font = 12;
+            text->font = 11;
             text->setText("Hello, world!\n\tHow are you today?");
             text->setFontSize(14.0f);
             text->setLineSpacing(1.0f);
@@ -401,7 +408,7 @@ int main()
             box->addChild(backBox);
 
             text = make_shared<Text>();
-            text->font = 12;
+            text->font = 11;
             text->setText("Hello, world 2!\n\tHow are you today?");
             text->setFontSize(14.0f);
             text->setLineSpacing(1.0f);
@@ -415,7 +422,7 @@ int main()
             box->addChild(backBox);
 
             text = make_shared<Text>();
-            text->font = 12;
+            text->font = 11;
             text->setText("Hello, world");
             text->setFontSize(14.0f);
             text->setLineSpacing(1.0f);
@@ -432,7 +439,7 @@ int main()
             text->anchors = vec4(0, 0.5f, 1, 0.5f);
             text->origin.y = 0.5f;
             text->colour = vec4(0,0,0,1);
-            text->font = 12;
+            text->font = 11;
             text->setText("Hello, world blah blah blah blah");
             text->setFontSize(14.0f);
             text->setLineSpacing(1.0f);

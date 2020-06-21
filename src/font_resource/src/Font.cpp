@@ -1,16 +1,13 @@
 
 #include "font/Font.h"
 
-#include <ft2build.h>
-#include <freetype/freetype.h>
-
 #include "resources/Texture.h"
 
-shared_ptr<Resource::BuildData> Font::createAssetData(uint font, uint size)
+shared_ptr<Resource::BuildData> Font::createAssetData(uint texture, string fileName)
 {
     shared_ptr<BuildData> data = make_shared<BuildData>();
-    data->font = font;
-    data->size = size;
+    data->texture = texture;
+    data->fileName = fileName;
     return data;
 }
 
@@ -18,128 +15,103 @@ shared_ptr<Resource> Font::build(shared_ptr<Resource::BuildData> data)
 {
     shared_ptr<Font::BuildData> d = static_pointer_cast<Font::BuildData>(data);
     shared_ptr<Font> font(new Font());
-    font->fontFace = d->font;
+    font->texture = d->texture;
     return font;
 }
 
-Font::Font(ResourceRef<FontFace> _fontFace, uint size)
-    : fontFace(_fontFace)
+Font::Font(ResourceRef<RenderableTexture> _texture, string fileName)
+    : texture(_texture)
 {
     shared_ptr<BuildData> data = make_shared<BuildData>();
-    data->size = size;
+    data->fileName = fileName;
     resolveDependencies(Immediate);
     if(!load(data)) {
-        throw "Failed to load FontFace";
+        throw "Failed to load Font";
     }
 }
-
-#define FONT_CHAR_ROW 10
 
 bool Font::load(shared_ptr<Resource::BuildData> data)
 {
     shared_ptr<Font::BuildData> d = static_pointer_cast<Font::BuildData>(data);
-    shared_ptr<FontFace> fontFacePtr = fontFace.resolve(Immediate);
-    FT_Face face = fontFacePtr->face_data;
-    FT_Set_Pixel_Sizes(face, 0, d->size);
-
-    uvec2 currentOffset(0,0);
-    uvec2 texDimensions(0,0);
-
-    int orderIndex = 0;
-
-    lineHeight = (uchar)(face->height >> 6);
-    sourceFontSize = (uchar)d->size;
-
-    if(FT_Load_Char(face, 32, FT_LOAD_ADVANCE_ONLY)) {
-        fprintf(stderr, "Could not load space info during Font loading.\n");
-        return false;
-    }
-    spaceAdvance = (uchar)(face->glyph->advance.x >> 6);
-
-    maxDescent = 0;
-
-    for(uint c = 0; c < FONT_CHAR_COUNT; c++) {
-        if(FT_Load_Char(face, c + FONT_CHAR_START, FT_LOAD_BITMAP_METRICS_ONLY | FT_LOAD_ADVANCE_ONLY)) {
-            characters[c].valid = false;
-        } else {
-            characters[c].valid = true;
-            // The position in the texture is the current offset.
-            characters[c].pos = currentOffset + uvec2(1,1); // + 1 for margin.
-            characters[c].size = uvec2(face->glyph->bitmap.width, face->glyph->bitmap.rows);
-            characters[c].bearing = uvec2(face->glyph->bitmap_left, face->glyph->bitmap_top);
-            characters[c].advance = (uchar)(face->glyph->advance.x >> 6);
-            // Shift the offset to the right. This will be the new right-most edge for this row.
-            currentOffset.x += characters[c].size.x + 2; // + 2 for margin.
-            // Take whichever is more right, the current width, or the right-most edge of this glyph.
-            texDimensions.x = max<int>(currentOffset.x, texDimensions.x);
-            // Take whichever is more down, the current height, or the bottom edge of this glyph.
-            texDimensions.y = max<int>(currentOffset.y + characters[c].size.y + 2, texDimensions.y);
-
-            maxDescent = (uchar)max((int)maxDescent, (int)characters[c].size.y - (int)characters[c].bearing.y);
-            // Increment the order index.
-            orderIndex++;
-            // If we've started a new row, shift to the left, and below the current height.
-            if(orderIndex % FONT_CHAR_ROW == 0) {
-                currentOffset.x = 0;
-                currentOffset.y = texDimensions.y;
-            }
-        }
-    }
-
-    if(texDimensions.x == 0 || texDimensions.y == 0) {
-        fprintf(stderr, "Something went horribly wrong with Font loading.\n");
+    ifstream file(d->fileName, ios_base::binary | ios_base::in);
+    if(!file.is_open()) {
         return false;
     }
 
-    sourceSize = uvec2(texDimensions.x, texDimensions.y);
-    uchar* textureData = new uchar[texDimensions.x * texDimensions.y];
-
-    for(uint c = 0; c < FONT_CHAR_COUNT; c++) {
-        if(!characters[c].valid) {
+    sourceFontSize = read_ushort(&file);
+    sourceSize.x = read_ushort(&file);
+    sourceSize.y = read_ushort(&file);
+    spaceAdvance = read_ushort(&file);
+    lineHeight = read_ushort(&file);
+    maxDescent = read_ushort(&file);
+    uchar packed_bool = 0;
+    for(uint i = 0; i < FONT_CHAR_COUNT; i++) {
+        if((i & 0b00000111) == 0) {
+            packed_bool = read_uchar(&file);
+        }
+        characters[i].valid = packed_bool & 0b10000000;
+        packed_bool <<= 1;
+    }
+    for(uint i = 0; i < FONT_CHAR_COUNT; i++) {
+        if(!characters[i]) {
             continue;
         }
 
-        if(FT_Load_Char(face, c + FONT_CHAR_START, FT_LOAD_RENDER)) {
-            characters[c].valid = false;
-            continue;
-        }
-
-        uvec2 start = characters[c].pos;
-        uvec2 end = start + characters[c].size;
-
-        // Clear out the top margin.
-        for(uint x = start.x - 1; x < end.x + 1; x++) {
-            textureData[x + (start.y - 1) * texDimensions.x] = 0;
-        }
-        for(uint y = start.y; y < end.y; y++) {
-            // Clear out left margin.
-            textureData[start.x - 1 + y * texDimensions.x] = 0;
-            // Fill in this row of the texture with the bitmap.
-            for(uint x = start.x; x < end.x; x++) {
-                uchar cc = face->glyph->bitmap.buffer[
-                    (x - start.x) + (y - start.y) * characters[c].size.x];
-                textureData[x + y * texDimensions.x] = cc;
-            }
-            textureData[end.x + y * texDimensions.x] = 0;
-        }
-        // Clear out the bottom margin.
-        for(uint x = start.x - 1; x < end.x + 1; x++) {
-            textureData[x + end.y * texDimensions.x] = 0;
-        }
+        characters[i].pos.x = read_ushort(&file);
+        characters[i].pos.y = read_ushort(&file);
+        characters[i].size.x = read_ushort(&file);
+        characters[i].size.y = read_ushort(&file);
+        characters[i].bearing.x = read_short(&file);
+        characters[i].bearing.y = read_short(&file);
+        characters[i].advance = read_ushort(&file);
     }
 
-    // Build the texture.
-    shared_ptr<Texture> textureSrc = shared_ptr<Texture>(new Texture());
-    textureSrc->fromGreyscale(textureData, texDimensions.x, texDimensions.y);
+    file.close();
+    return true;
+}
 
-    // Convert it to a RenderableTexture which we will use.
-    texture = shared_ptr<RenderableTexture>(new RenderableTexture(textureSrc,
-        RenderableTexture::Clamp, RenderableTexture::Clamp,
-        RenderableTexture::Linear, RenderableTexture::Linear, RenderableTexture::Linear, 1
-    ));
+bool Font::save(string fileName)
+{
+    ofstream file(fileName, ios_base::binary | ios_base::out);
+    if(!file.is_open()) {
+        return false;
+    }
+    
+    write_ushort(&file, sourceFontSize);
+    write_ushort(&file, (ushort)sourceSize.x);
+    write_ushort(&file, (ushort)sourceSize.y);
+    write_ushort(&file, spaceAdvance);
+    write_ushort(&file, lineHeight);
+    write_ushort(&file, maxDescent);
+    uchar packed_bool = 0;
+    for(uint i = 0; i < FONT_CHAR_COUNT; i++) {
+        packed_bool = (packed_bool << 1) | (uchar)characters[i].valid;
+        // If we just packed the 8th bit (we're about to roll over), write the byte.
+        if((i & 0b00000111) == 7) {
+            write_uchar(&file, packed_bool);
+        }
+    }
+    // If there are left over bytes, write them out.
+    if((FONT_CHAR_COUNT & 0b00000111) != 0) {
+        // Shift it over so that the valid bits are to the left of the byte.
+        packed_bool = packed_bool << (8 - (FONT_CHAR_COUNT & 0b00000111));
+        write_uchar(&file, packed_bool);
+    }
+    for(uint i = 0; i < FONT_CHAR_COUNT; i++) {
+        if(!characters[i]) {
+            continue;
+        }
 
-    // Clear the font face reference, we no longer need it.
-    fontFace = ResourceRef<FontFace>();
+        write_ushort(&file, (ushort)characters[i].pos.x);
+        write_ushort(&file, (ushort)characters[i].pos.y);
+        write_ushort(&file, (ushort)characters[i].size.x);
+        write_ushort(&file, (ushort)characters[i].size.y);
+        write_short(&file, (short)characters[i].bearing.x);
+        write_short(&file, (short)characters[i].bearing.y);
+        write_ushort(&file, characters[i].advance);
+    }
+
+    file.close();
     return true;
 }
 
@@ -188,7 +160,7 @@ struct Token
     operator bool() const { return length; }
 };
 
-vector<Token> tokenize(const string& text, const Font::Character* characters, uchar spaceAdvance, float pixelUnit)
+vector<Token> tokenize(const string& text, const Font::Character* characters, ushort spaceAdvance, float pixelUnit)
 {
     vector<Token> tokens;
 
@@ -246,7 +218,7 @@ int splitToken(const vector<float>& widths, int offset, float remainingLineSpace
     return offset;
 }
 
-void newLine(vec2& offset, Font::StringLayout& layout, uchar lineHeight, float pixelUnit, float lineSpacing,
+void newLine(vec2& offset, Font::StringLayout& layout, ushort lineHeight, float pixelUnit, float lineSpacing,
     int lines = 1)
 {
     offset.x = 0;
@@ -320,6 +292,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                     charLayout.textureLayout = vec4(vec2(info.pos) / vec2(sourceSize), vec2(info.size) / vec2(sourceSize));
                     vec2 tl = offset + vec2(info.bearing) * pixelUnit * vec2(1, -1);
                     charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * pixelUnit);
+                    vec2 s = vec2(info.size) * pixelUnit;
                     layoutData.layout.push_back(charLayout);
                 }
                 offset.x += widths[lastChar];

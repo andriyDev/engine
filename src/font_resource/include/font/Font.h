@@ -4,19 +4,20 @@
 #include "std.h"
 
 #include "resources/ResourceLoader.h"
-#include "font/FontFace.h"
 #include "renderer/RenderableTexture.h"
 
 #define FONT_CHAR_START 33
 #define FONT_CHAR_END 127
-#define FONT_CHAR_COUNT FONT_CHAR_END - FONT_CHAR_START
+#define FONT_CHAR_COUNT (FONT_CHAR_END - FONT_CHAR_START)
 
 class Font : public Resource
 {
 public:
-    Font(ResourceRef<FontFace> _fontFace, uint size);
+    Font(ResourceRef<RenderableTexture> _texture, string fileName);
 
-    static shared_ptr<BuildData> createAssetData(uint font, uint size);
+    Font() {}
+
+    static shared_ptr<BuildData> createAssetData(uint texture, string fileName);
 
     static shared_ptr<Resource> build(shared_ptr<Resource::BuildData> data);
 
@@ -25,8 +26,8 @@ public:
         bool valid;
         uvec2 pos;
         uvec2 size;
-        uvec2 bearing;
-        uchar advance;
+        ivec2 bearing;
+        ushort advance;
 
         operator bool() const { return valid; }
     };
@@ -43,35 +44,33 @@ public:
         vec2 bounds;
     };
 
+    Character characters[FONT_CHAR_COUNT];
+    uvec2 sourceSize;
+    ushort sourceFontSize;
+    ushort spaceAdvance;
+    ushort lineHeight;
+    ushort maxDescent;
+
     StringLayout layoutString(const string& text, float desiredFontSize,
         float width, float lineSpacing = 1) const;
 
     StringLayout layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing = 1) const;
 
-    shared_ptr<RenderableTexture> getTextureSheet() const { return texture; }
+    shared_ptr<RenderableTexture> resolveTextureSheet(ResolveMethod method) { return texture.resolve(method); }
+
+    bool save(string fileName);
 
 protected:
     class BuildData : public Resource::BuildData
     {
     public:
-        uint font; // Font Id.
-        uint size; // In pixels
+        uint texture; // Texture Id.
+        string fileName; // The file to read font data from.
     };
 
-    Font() {}
-
-    virtual vector<uint> getDependencies() override { return { fontFace }; }
-    virtual void resolveDependencies(ResolveMethod method) override { fontFace.resolve(method); }
+    virtual vector<uint> getDependencies() override { return { texture }; }
+    virtual void resolveDependencies(ResolveMethod method) override { texture.resolve(method); }
     virtual bool load(shared_ptr<Resource::BuildData> data) override;
-    
-    ResourceRef<FontFace> fontFace;
 
-    Character characters[FONT_CHAR_COUNT];
-    uvec2 sourceSize;
-    uchar sourceFontSize;
-    uchar spaceAdvance;
-    uchar lineHeight;
-    uchar maxDescent;
-
-    shared_ptr<RenderableTexture> texture;
+    ResourceRef<RenderableTexture> texture;
 };

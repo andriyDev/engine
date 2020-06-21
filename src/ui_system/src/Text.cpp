@@ -38,6 +38,10 @@ Text::Text()
 vec2 Text::layout(hash_map<const UIElement*, vec2>& desiredSizes)
 {
     shared_ptr<Font> fontPtr = font.resolve(Immediate);
+    if(!fontPtr) {
+        desiredSizes.insert(make_pair(static_cast<UIElement*>(this), vec2(0,0)));
+        return vec2(0,0);
+    }
     if(desiredNeedsUpdate) {
         desiredNeedsUpdate = false;
         textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, lineSpacing);
@@ -49,6 +53,9 @@ vec2 Text::layout(hash_map<const UIElement*, vec2>& desiredSizes)
 void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, vec2>& desiredSizes)
 {
     shared_ptr<Font> fontPtr = font.resolve(Immediate);
+    if(!fontPtr) {
+        return;
+    }
     float newWidth = rect.z - rect.x;
     if(textNeedsUpdate || newWidth != layoutWidth) {
         layoutWidth = newWidth;
@@ -56,7 +63,7 @@ void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const U
         textLayout = fontPtr->layoutString(text, size, layoutWidth, lineSpacing);
     }
 
-    textMaterial->setTexture("font_texture", fontPtr->getTextureSheet());
+    textMaterial->setTexture("font_texture", fontPtr->resolveTextureSheet(Immediate));
     
     textMaterial->use();
     textMaterial->setVec2Property("surface_size", surfaceSize, true);

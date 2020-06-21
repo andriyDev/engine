@@ -54,7 +54,9 @@ void Material::use()
     }
     for(int i = 0; i < textures.size(); i++) {
         shared_ptr<RenderableTexture> tex = textures[i].resolve(Immediate);
-        tex->bind(i);
+        if(tex) {
+            tex->bind(i);
+        }
     }
 }
 
