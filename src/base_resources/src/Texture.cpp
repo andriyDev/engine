@@ -54,20 +54,20 @@ void Texture::loadFromFile(ifstream& file)
     uint width = read_uint(&file);
     uint height = read_uint(&file);
     uchar mode = read_uchar(&file);
-    uint size = getWidth() * getHeight();
-    if(getMode() == Texture::RGB_8) {
+    uint size = width * height;
+    if(mode == Texture::RGB_8) {
         Colour3* data_loaded = new Colour3[size];
         for(uint i = 0; i < size; i++) {
             read_Colour3_inplace(&file, data_loaded + i);
         }
         fromColour3(data_loaded, width, height);
-    } else if(getMode() == Texture::RGBA_8) {
+    } else if(mode == Texture::RGBA_8) {
         Colour4* data_loaded = new Colour4[size];
         for(uint i = 0; i < size; i++) {
             read_Colour4_inplace(&file, data_loaded + i);
         }
         fromColour4(data_loaded, width, height);
-    } else if(getMode() == Texture::GREYSCALE_8) {
+    } else if(mode == Texture::GREYSCALE_8) {
         uchar* data_loaded = new uchar[size];
         for(uint i = 0; i < size; i++) {
             data_loaded[i] = read_uchar(&file);
