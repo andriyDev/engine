@@ -85,7 +85,6 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
             }
         }
     }
-    printf("%d\n", maxDescent);
 
     if(texDimensions.x == 0 || texDimensions.y == 0) {
         fprintf(stderr, "Something went horribly wrong with Font loading.\n");
