@@ -9,6 +9,7 @@ find_package(libpng REQUIRED)
 
 set(SRC)
 list(APPEND SRC src/main.cpp)
+list(APPEND SRC src/font_load.cpp)
 
 add_library(IrrXML STATIC IMPORTED)
 set_property(TARGET IrrXML PROPERTY INCLUDE_DIRECTORIES ${IRRXML_INCLUDE_DIR})
