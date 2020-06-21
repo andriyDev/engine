@@ -23,13 +23,10 @@ public:
     struct Character
     {
         bool valid;
-        vec2 textureStart;
-        vec2 textureSize;
-        ivec2 charPos;
-        ivec2 charSize;
-        vec2 scaledCharSize;
-        vec2 scaledCharBearing;
-        float advance;
+        uvec2 pos;
+        uvec2 size;
+        uvec2 bearing;
+        uchar advance;
 
         operator bool() const { return valid; }
     };
@@ -70,9 +67,11 @@ protected:
     ResourceRef<FontFace> fontFace;
 
     Character characters[FONT_CHAR_COUNT];
-    float spaceAdvance;
-    float lineHeight;
-    float maxDescent;
+    uvec2 sourceSize;
+    uchar sourceFontSize;
+    uchar spaceAdvance;
+    uchar lineHeight;
+    uchar maxDescent;
 
     shared_ptr<RenderableTexture> texture;
 };
