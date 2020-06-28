@@ -3,6 +3,11 @@
 
 #include "std.h"
 
+struct UILayoutInfo
+{
+    vec2 desiredSize;
+};
+
 class UIElement
 {
 public:
@@ -33,11 +38,11 @@ public:
     // If space (or lack of space) must be distributed between siblings, how much should be given to this element.
     float weight = 0;
 
-    vec4 adjustRect(vec4 rect, const hash_map<const UIElement*, vec2>& desiredSizes) const;
+    vec4 adjustRect(vec4 rect, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const;
 
-    virtual vec2 layout(hash_map<const UIElement*, vec2>& desiredSizes) = 0;
+    virtual UILayoutInfo layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo) = 0;
     virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
-        const hash_map<const UIElement*, vec2>& desiredSizes) = 0;
+        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) = 0;
 };
 
 inline vec4 intersect_boxes(vec4 box1, vec4 box2)

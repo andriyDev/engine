@@ -1,7 +1,7 @@
 
 #include "ui/UIElement.h"
 
-vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, vec2>& desiredSizes) const
+vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
 {
     vec2 rectMin(rect.x, rect.y);
     vec2 rectMax(rect.z, rect.w);
@@ -13,8 +13,7 @@ vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, vec2>& de
     if(min.x == max.x) {
         float desiredWidth;
         if(size.x == 0) {
-            vec2 bounds = desiredSizes.find(this)->second;
-            desiredWidth = bounds.x;
+            desiredWidth = layoutInfo.find(this)->second.desiredSize.x;
         } else {
             desiredWidth = size.x;
         }
@@ -34,7 +33,7 @@ vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, vec2>& de
     if(min.y == max.y) {
         float desiredHeight;
         if(size.y == 0) {
-            desiredHeight = desiredSizes.find(this)->second.y;
+            desiredHeight = layoutInfo.find(this)->second.desiredSize.y;
         } else {
             desiredHeight = size.y;
         }

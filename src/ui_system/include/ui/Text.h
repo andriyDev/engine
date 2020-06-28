@@ -39,9 +39,9 @@ public:
         desiredNeedsUpdate = true;
     }
 
-    virtual vec2 layout(hash_map<const UIElement*, vec2>& desiredSizes) override;
+    virtual UILayoutInfo layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo) override;
     virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
-        const hash_map<const UIElement*, vec2>& desiredSizes) override;
+        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) override;
 protected:
     string text;
     float size = 1.0f;

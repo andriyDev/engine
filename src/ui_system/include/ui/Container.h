@@ -19,9 +19,9 @@ public:
     virtual void removeChild(shared_ptr<UIElement> element);
     virtual void clearChildren();
 
-    virtual vec2 layout(hash_map<const UIElement*, vec2>& desiredSizes) override;
+    virtual UILayoutInfo layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo) override;
     virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
-        const hash_map<const UIElement*, vec2>& desiredSizes) override;
+        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) override;
     
     virtual void renderSelf(vec4 rect, vec4 mask, vec2 surfaceSize) {};
 protected:

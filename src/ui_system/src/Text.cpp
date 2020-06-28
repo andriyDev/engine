@@ -35,22 +35,25 @@ Text::Text()
     }
 }
 
-vec2 Text::layout(hash_map<const UIElement*, vec2>& desiredSizes)
+UILayoutInfo Text::layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
 {
+    UILayoutInfo info;
     shared_ptr<Font> fontPtr = font.resolve(Immediate);
     if(!fontPtr) {
-        desiredSizes.insert(make_pair(static_cast<UIElement*>(this), vec2(0,0)));
-        return vec2(0,0);
+        info.desiredSize = vec2(0,0);
+        layoutInfo.insert(make_pair(static_cast<UIElement*>(this), info));
+        return info;
     }
     if(desiredNeedsUpdate) {
         desiredNeedsUpdate = false;
         textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, lineSpacing);
     }
-    desiredSizes.insert(make_pair(static_cast<UIElement*>(this), textDesiredLayout.bounds));
-    return textDesiredLayout.bounds;
+    info.desiredSize = textDesiredLayout.bounds;
+    layoutInfo.insert(make_pair(static_cast<UIElement*>(this), info));
+    return info;
 }
 
-void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, vec2>& desiredSizes)
+void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
 {
     shared_ptr<Font> fontPtr = font.resolve(Immediate);
     if(!fontPtr) {

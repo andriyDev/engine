@@ -14,13 +14,13 @@ inline vec2 marginSize(const vec4& margin)
 template<ListDirection dir>
 vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect,
     const vector<shared_ptr<UIElement>>& elements,
-    const hash_map<const UIElement*, vec2>& desiredSizes) const
+    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
 {
     float weightSum = 0.f;
     float basisProduct = 0.f;
     float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
-        vec2 size = desiredSizes.find(element.get())->second;
+        vec2 size = layoutInfo.find(element.get())->second.desiredSize;
         weightSum += element->weight;
         if(isHorizontal(dir)) {
             mainSize += size.x + element->margin.x + element->margin.z;
@@ -38,7 +38,7 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
     float offset = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
-        vec2 size = desiredSizes.find(element.get())->second;
+        vec2 size = layoutInfo.find(element.get())->second.desiredSize;
         // If the element has no weight, or the size delta is exactly 0,
         // just layout the element according to its desired size.
         float elementSizeDelta;
@@ -113,11 +113,13 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
 }
 
 template<ListDirection dir>
-vec2 ListLayout<dir>::computeDesiredSize(const UIElement* element, const vector<vec2>& childSizes,
+UILayoutInfo ListLayout<dir>::computeLayoutInfo(const UIElement* element, const vector<UILayoutInfo>& childLayout,
     const vector<shared_ptr<UIElement>>& elements) const
 {
     // Our sum begins with the constant padding.
-    vec2 sum = vec2(0,0);
+    UILayoutInfo info;
+    vec2& sum = info.desiredSize;
+    sum = vec2(0,0);
     float maxCross = 0;
     {
         // We now compute the total space between elements, which is just one less than the elements times space.
@@ -130,7 +132,7 @@ vec2 ListLayout<dir>::computeDesiredSize(const UIElement* element, const vector<
         }
     }
     for(int i = 0; i < elements.size(); i++) {
-        vec2 size = childSizes[i] + marginSize(elements[i]->margin);
+        vec2 size = childLayout[i].desiredSize + marginSize(elements[i]->margin);
         // Now for each child, add its size along the main axis, take the max along the cross axis.
         if(isHorizontal(dir)) {
             sum.x += size.x;
@@ -146,7 +148,7 @@ vec2 ListLayout<dir>::computeDesiredSize(const UIElement* element, const vector<
     } else {
         sum.x += maxCross;
     }
-    return sum;
+    return info;
 }
 
 template class ListLayout<ListDirection::Row>;
@@ -157,12 +159,12 @@ template class ListLayout<ListDirection::ColumnReverse>;
 template<>
 vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElement* element, vec4 rect,
     const vector<shared_ptr<UIElement>>& elements,
-    const hash_map<const UIElement*, vec2>& desiredSizes) const
+    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
 {
     float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
-        vec2 size = desiredSizes.find(element.get())->second;
-        mainSize += size.x + element->margin.x + element->margin.z;
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        mainSize += info.desiredSize.x + element->margin.x + element->margin.z;
     }
     mainSize += spaceBetweenElements * (elements.size() - 1);
     float start_point = ((rect.x + rect.z) - mainSize) * 0.5f;
@@ -172,25 +174,25 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
     float offset = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
-        vec2 size = desiredSizes.find(element.get())->second;
-        size.x += 1;
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        info.desiredSize.x += 1;
         
         box.x = start_point + offset + element->margin.x;
-        box.z = box.x + size.x;
+        box.z = box.x + info.desiredSize.x;
         
-        offset += size.x + element->margin.x + element->margin.z;
+        offset += info.desiredSize.x + element->margin.x + element->margin.z;
         offset += spaceBetweenElements;
 
         if(element->verticalGravity == UIElement::Start) {
             box.y = rect.y + element->margin.y;
-            box.w = box.y + size.y;
+            box.w = box.y + info.desiredSize.y;
         } else if (element->verticalGravity == UIElement::End) {
             box.w = rect.w - element->margin.w;
-            box.y = box.w - size.y;
+            box.y = box.w - info.desiredSize.y;
         } else if (element->verticalGravity == UIElement::Center) {
             float center = (rect.y + rect.w) * 0.5f;
-            box.y = center - size.y * 0.5f;
-            box.w = center + size.y * 0.5f;
+            box.y = center - info.desiredSize.y * 0.5f;
+            box.w = center + info.desiredSize.y * 0.5f;
         } else {
             box.y = rect.y + element->margin.y;
             box.w = rect.w - element->margin.w;
@@ -205,12 +207,12 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
 template<>
 vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIElement* element, vec4 rect,
     const vector<shared_ptr<UIElement>>& elements,
-    const hash_map<const UIElement*, vec2>& desiredSizes) const
+    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
 {
     float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
-        vec2 size = desiredSizes.find(element.get())->second;
-        mainSize += size.y + element->margin.y + element->margin.w;
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        mainSize += info.desiredSize.y + element->margin.y + element->margin.w;
     }
     mainSize += spaceBetweenElements * (elements.size() - 1);
     float start_point = ((rect.y + rect.w) - mainSize) * 0.5f;
@@ -220,25 +222,25 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
     float offset = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
-        vec2 size = desiredSizes.find(element.get())->second;
-        size.y += 1;
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        info.desiredSize.y += 1;
         
         box.y = start_point + offset + element->margin.y;
-        box.w = box.y + size.y;
+        box.w = box.y + info.desiredSize.y;
         
-        offset += size.y + element->margin.y + element->margin.w;
+        offset += info.desiredSize.y + element->margin.y + element->margin.w;
         offset += spaceBetweenElements;
 
         if(element->horizontalGravity == UIElement::Start) {
             box.x = rect.x + element->margin.x;
-            box.z = box.x + size.x;
+            box.z = box.x + info.desiredSize.x;
         } else if (element->horizontalGravity == UIElement::End) {
             box.z = rect.z - element->margin.z;
-            box.x = box.z - size.x;
+            box.x = box.z - info.desiredSize.x;
         } else if (element->horizontalGravity == UIElement::Center) {
             float center = (rect.x + rect.z) * 0.5f;
-            box.x = center - size.x * 0.5f;
-            box.z = center + size.x * 0.5f;
+            box.x = center - info.desiredSize.x * 0.5f;
+            box.z = center + info.desiredSize.x * 0.5f;
         } else {
             box.x = rect.x + element->margin.x;
             box.z = rect.z - element->margin.z;

@@ -27,33 +27,34 @@ void Container::clearChildren()
     elements.clear();
 }
 
-vec2 Container::layout(hash_map<const UIElement*, vec2>& desiredSizes)
+UILayoutInfo Container::layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
 {
-    vector<vec2> sizes;
-    sizes.reserve(elements.size());
+    UILayoutInfo info;
+    vector<UILayoutInfo> childInfo;
+    childInfo.reserve(elements.size());
     for(const auto& child : elements) {
-        vec2 size = child->layout(desiredSizes);
-        sizes.push_back(size);
+        UILayoutInfo cinfo = child->layout(layoutInfo);
+        childInfo.push_back(cinfo);
     }
 
-    vec2 desiredSize(0,0);
     if(layoutAlgorithm) {
-        desiredSize = layoutAlgorithm->computeDesiredSize(this, sizes, elements);
+        info = layoutAlgorithm->computeLayoutInfo(this, childInfo, elements);
     }
-    desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
-    desiredSizes.insert(make_pair(this, desiredSize));
-    return desiredSize;
+    info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
+    layoutInfo.insert(make_pair(this, info));
+    return info;
 }
 
-void Container::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, vec2>& desiredSizes)
+void Container::render(vec4 rect, vec4 mask, vec2 surfaceSize,
+    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
 {
     renderSelf(rect, mask, surfaceSize);
     vector<vec4> boxes;
     if(layoutAlgorithm) {
-        boxes = layoutAlgorithm->layoutElements(this, rect + padding * vec4(1, 1, -1, -1), elements, desiredSizes);
+        boxes = layoutAlgorithm->layoutElements(this, rect + padding * vec4(1, 1, -1, -1), elements, layoutInfo);
     }
     for(int i = 0; i < elements.size(); i++) {
         vec4& box = layoutAlgorithm ? boxes[i] : rect;
-        elements[i]->render(box, maskChildren ? intersect_boxes(mask, rect) : mask, surfaceSize, desiredSizes);
+        elements[i]->render(box, maskChildren ? intersect_boxes(mask, rect) : mask, surfaceSize, layoutInfo);
     }
 }
