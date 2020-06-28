@@ -54,6 +54,8 @@ protected:
 
     GLuint textureId = 0;
 
+    float width;
+    float height;
     ResourceRef<Texture> sourceTextureRef;
 
     virtual vector<uint> getDependencies() override {
