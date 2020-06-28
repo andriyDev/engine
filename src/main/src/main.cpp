@@ -39,6 +39,7 @@
 #include "ui/ContainerLayouts.h"
 #include "ui/Box.h"
 #include "ui/Text.h"
+#include "ui/Image.h"
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -397,7 +398,7 @@ int main()
             shared_ptr<Text> text = make_shared<Text>();
             text->font = 11;
             text->setText("Hello, world!\n\tHow are you today?");
-            text->setFontSize(14.0f);
+            text->setFontSize(20.0f);
             text->setLineSpacing(1.0f);
             backBox->addChild(text);
 
@@ -410,7 +411,7 @@ int main()
             text = make_shared<Text>();
             text->font = 11;
             text->setText("Hello, world 2!\n\tHow are you today?");
-            text->setFontSize(14.0f);
+            text->setFontSize(20.0f);
             text->setLineSpacing(1.0f);
             backBox->addChild(text);
 
@@ -424,7 +425,7 @@ int main()
             text = make_shared<Text>();
             text->font = 11;
             text->setText("Hello, world");
-            text->setFontSize(14.0f);
+            text->setFontSize(20.0f);
             text->setLineSpacing(1.0f);
             backBox->addChild(text);
 
@@ -441,9 +442,14 @@ int main()
             text->colour = vec4(0,0,0,1);
             text->font = 11;
             text->setText("Hello, world blah blah blah blah");
-            text->setFontSize(14.0f);
+            text->setFontSize(20.0f);
             text->setLineSpacing(1.0f);
             backBox->addChild(text);
+
+            shared_ptr<Image> image = make_shared<Image>();
+            image->image = 8;
+            image->tint = vec4(0.5f, 0.5f, 1.f, 1.f);
+            box->addChild(image);
         }
 
         shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
