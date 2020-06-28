@@ -351,11 +351,11 @@ int main()
         IS->addActionMouseBind(0, "lmb", GLFW_MOUSE_BUTTON_LEFT);
         IS->createAction(0, "rmb");
         IS->addActionMouseBind(0, "rmb", GLFW_MOUSE_BUTTON_RIGHT);
-        IS->setCursor(true, true);
+        //IS->setCursor(true, true);
 
-        shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
-        CLS->IS = IS;
-        CLS->running = &running;
+        //shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
+        //CLS->IS = IS;
+        //CLS->running = &running;
 
         w->addSystem<GravitySystem>(5);
 
@@ -364,9 +364,9 @@ int main()
 
         //w->addSystem<BoxBouncer>(-5);
 
-        shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
-        spawner->IS = IS;
-        spawner->PS = Physics;
+        //shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
+        //spawner->IS = IS;
+        //spawner->PS = Physics;
 
         shared_ptr<UIElement> element;
         {
