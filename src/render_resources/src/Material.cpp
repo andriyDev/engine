@@ -77,7 +77,7 @@ GLint Material::getUniformId(const string& uniformName)
     return it->second;
 }
 
-void Material::setTexture(const string& textureName, const ResourceRef<RenderableTexture>& texture)
+void Material::setTexture(const string& textureName, ResourceRef<RenderableTexture>& texture, bool temporary)
 {
     GLint uniformId = getUniformId(textureName);
     if(uniformId == -1) {
@@ -88,10 +88,26 @@ void Material::setTexture(const string& textureName, const ResourceRef<Renderabl
     if(it == values.end()) {
         int textureUnit = (int)textures.size();
         values.insert_or_assign(uniformId, PropInfo(textureUnit));
-        textures.push_back(texture);
+        if(temporary) {
+            textures.push_back(ResourceRef<RenderableTexture>(nullptr));
+            shared_ptr<RenderableTexture> texPtr = texture.resolve(Deferred);
+            if(texPtr) {
+                texPtr->bind(textureUnit);
+            }
+        } else {
+            textures.push_back(texture);
+        }
     } else {
         if(it->second.data_int < textures.size()) {
-            textures[it->second.data_int] = texture;
+            if(temporary) {
+                textures[it->second.data_int] = ResourceRef<RenderableTexture>(nullptr);
+                shared_ptr<RenderableTexture> texPtr = texture.resolve(Deferred);
+                if(texPtr) {
+                    texPtr->bind(it->second.data_int);
+                }
+            } else {
+                textures[it->second.data_int] = texture;
+            }
         }
     }
 }

@@ -56,7 +56,7 @@ public:
 
     StringLayout layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing = 1) const;
 
-    shared_ptr<RenderableTexture> resolveTextureSheet(ResolveMethod method) { return texture.resolve(method); }
+    ResourceRef<RenderableTexture>& getTextureSheet() { return texture; }
 
     bool save(string fileName);
 

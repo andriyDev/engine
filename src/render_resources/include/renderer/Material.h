@@ -20,7 +20,7 @@ public:
     
     GLint getUniformId(const string& uniformName);
 
-    void setTexture(const string& textureName, const ResourceRef<RenderableTexture>& texture);
+    void setTexture(const string& textureName, ResourceRef<RenderableTexture>& texture, bool temporary = false);
 
     void setIntProperty(const string& name, int value, bool temporary = false);
     void setFloatProperty(const string& name, float value, bool temporary = false);

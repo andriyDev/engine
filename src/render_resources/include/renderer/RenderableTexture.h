@@ -49,6 +49,9 @@ public:
 
     static shared_ptr<BuildData> createAssetData(uint sourceTexture);
 
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+
 protected:
     RenderableTexture() {}
 

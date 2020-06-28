@@ -66,7 +66,7 @@ void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const U
         textLayout = fontPtr->layoutString(text, size, layoutWidth, lineSpacing);
     }
 
-    textMaterial->setTexture("font_texture", fontPtr->resolveTextureSheet(Immediate));
+    textMaterial->setTexture("font_texture", fontPtr->getTextureSheet());
     
     textMaterial->use();
     textMaterial->setVec2Property("surface_size", surfaceSize, true);
