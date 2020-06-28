@@ -77,8 +77,8 @@ bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
         }
     }
 
-    width = texture->getWidth();
-    height = texture->getHeight();
+    width = (float)texture->getWidth();
+    height = (float)texture->getHeight();
 
     sourceTextureRef = ResourceRef<Texture>();
     return true;
