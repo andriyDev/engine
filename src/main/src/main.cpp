@@ -393,6 +393,7 @@ int main()
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(0,1,0,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
             backBox->horizontalGravity = UIElement::Gravity::End;
             box->addChild(backBox);
 
@@ -407,6 +408,7 @@ int main()
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(0,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
             box->addChild(backBox);
 
             text = make_shared<Text>();
@@ -421,6 +423,7 @@ int main()
             backBox->colour = vec4(1,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->weight = 2;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
             box->addChild(backBox);
 
             text = make_shared<Text>();
@@ -428,6 +431,8 @@ int main()
             text->setText("Hello, world");
             text->setFontSize(20.0f);
             text->setLineSpacing(1.0f);
+            text->anchors = vec4(0.5f, 0.5f, 0.5f, 0.5f);
+            text->origin = vec2(0.5f, 0.5f);
             backBox->addChild(text);
 
             backBox = make_shared<Box>();
@@ -435,6 +440,7 @@ int main()
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(1,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
             box->addChild(backBox);
 
             text = make_shared<Text>();
