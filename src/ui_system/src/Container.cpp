@@ -79,6 +79,6 @@ void Container::render(vec4 mask, vec2 surfaceSize)
 {
     renderSelf(mask, surfaceSize);
     for(shared_ptr<UIElement>& element : elements) {
-        element->render(mask, surfaceSize);
+        element->render(maskChildren ? intersect_boxes(mask, getLayoutBox()) : mask, surfaceSize);
     }
 }
