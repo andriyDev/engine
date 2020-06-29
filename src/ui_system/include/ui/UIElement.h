@@ -6,6 +6,7 @@
 struct UILayoutInfo
 {
     vec2 desiredSize;
+    bool maintainAspect = false;
 };
 
 class UIElement

@@ -37,6 +37,7 @@ Image::Image()
 UILayoutInfo Image::layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
 {
     UILayoutInfo info;
+    info.maintainAspect = true;
     shared_ptr<RenderableTexture> imagePtr = image.resolve(Deferred);
     if(imagePtr) {
         info.desiredSize = vec2(imagePtr->getWidth(), imagePtr->getHeight());

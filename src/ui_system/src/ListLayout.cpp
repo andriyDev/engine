@@ -19,8 +19,57 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
     float weightSum = 0.f;
     float basisProduct = 0.f;
     float mainSize = 0;
+    
+    vector<vec4> boxes;
+    boxes.reserve(elements.size());
+
     for(shared_ptr<UIElement> element : elements) {
-        vec2 size = layoutInfo.find(element.get())->second.desiredSize;
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        vec4 box;
+        vec2 size = info.desiredSize;
+        // Use gravity to figure out the cross direction.
+        if(isHorizontal(dir)) {
+            if(element->verticalGravity == UIElement::Start) {
+                box.y = rect.y + element->margin.y;
+                box.w = box.y + size.y;
+            } else if (element->verticalGravity == UIElement::End) {
+                box.w = rect.w - element->margin.w;
+                box.y = box.w - size.y;
+            } else if (element->verticalGravity == UIElement::Center) {
+                float center = (rect.y + rect.w) * 0.5f;
+                box.y = center - size.y * 0.5f;
+                box.w = center + size.y * 0.5f;
+            } else {
+                box.y = rect.y + element->margin.y;
+                box.w = rect.w - element->margin.w;
+            }
+        } else {
+            if(element->horizontalGravity == UIElement::Start) {
+                box.x = rect.x + element->margin.x;
+                box.z = box.x + size.x;
+            } else if (element->horizontalGravity == UIElement::End) {
+                box.z = rect.z - element->margin.z;
+                box.x = box.z - size.x;
+            } else if (element->horizontalGravity == UIElement::Center) {
+                float center = (rect.x + rect.z) * 0.5f;
+                box.x = center - size.x * 0.5f;
+                box.z = center + size.x * 0.5f;
+            } else {
+                box.x = rect.x + element->margin.x;
+                box.z = rect.z - element->margin.z;
+            }
+        }
+        // This incomplete box is put into the list of boxes.
+        boxes.push_back(box);
+
+        if(info.maintainAspect) {
+            if(isHorizontal(dir)) {
+                size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+            } else {
+                size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+            }
+        }
+
         weightSum += element->weight;
         if(isHorizontal(dir)) {
             mainSize += size.x + element->margin.x + element->margin.z;
@@ -33,12 +82,20 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
     mainSize += spaceBetweenElements * (elements.size() - 1);
     float sizeDelta = (isHorizontal(dir) ? rect.z - rect.x : rect.w - rect.y) - mainSize;
 
-    vector<vec4> boxes;
-    boxes.reserve(elements.size());
     float offset = 0;
-    for(shared_ptr<UIElement> element : elements) {
-        vec4 box;
-        vec2 size = layoutInfo.find(element.get())->second.desiredSize;
+    for(uint i = 0; i < elements.size(); i++) {
+        const shared_ptr<UIElement>& element = elements[i];
+        vec4& box = boxes[i];
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        vec2 size = info.desiredSize;
+
+        if(info.maintainAspect) {
+            if(isHorizontal(dir)) {
+                size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+            } else {
+                size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+            }
+        }
         // If the element has no weight, or the size delta is exactly 0,
         // just layout the element according to its desired size.
         float elementSizeDelta;
@@ -72,41 +129,6 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
             offset += size.y + element->margin.y + element->margin.w;
         }
         offset += spaceBetweenElements;
-
-        // Use gravity to figure out the cross direction.
-        if(isHorizontal(dir)) {
-            if(element->verticalGravity == UIElement::Start) {
-                box.y = rect.y + element->margin.y;
-                box.w = box.y + size.y;
-            } else if (element->verticalGravity == UIElement::End) {
-                box.w = rect.w - element->margin.w;
-                box.y = box.w - size.y;
-            } else if (element->verticalGravity == UIElement::Center) {
-                float center = (rect.y + rect.w) * 0.5f;
-                box.y = center - size.y * 0.5f;
-                box.w = center + size.y * 0.5f;
-            } else {
-                box.y = rect.y + element->margin.y;
-                box.w = rect.w - element->margin.w;
-            }
-        } else {
-            if(element->horizontalGravity == UIElement::Start) {
-                box.x = rect.x + element->margin.x;
-                box.z = box.x + size.x;
-            } else if (element->horizontalGravity == UIElement::End) {
-                box.z = rect.z - element->margin.z;
-                box.x = box.z - size.x;
-            } else if (element->horizontalGravity == UIElement::Center) {
-                float center = (rect.x + rect.z) * 0.5f;
-                box.x = center - size.x * 0.5f;
-                box.z = center + size.x * 0.5f;
-            } else {
-                box.x = rect.x + element->margin.x;
-                box.z = rect.z - element->margin.z;
-            }
-        }
-
-        boxes.push_back(box);
     }
 
     return boxes;
@@ -161,27 +183,12 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
     const vector<shared_ptr<UIElement>>& elements,
     const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
 {
-    float mainSize = 0;
-    for(shared_ptr<UIElement> element : elements) {
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
-        mainSize += info.desiredSize.x + element->margin.x + element->margin.z;
-    }
-    mainSize += spaceBetweenElements * (elements.size() - 1);
-    float start_point = ((rect.x + rect.z) - mainSize) * 0.5f;
-
     vector<vec4> boxes;
     boxes.reserve(elements.size());
-    float offset = 0;
+    float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
         UILayoutInfo info = layoutInfo.find(element.get())->second;
-        info.desiredSize.x += 1;
-        
-        box.x = start_point + offset + element->margin.x;
-        box.z = box.x + info.desiredSize.x;
-        
-        offset += info.desiredSize.x + element->margin.x + element->margin.z;
-        offset += spaceBetweenElements;
 
         if(element->verticalGravity == UIElement::Start) {
             box.y = rect.y + element->margin.y;
@@ -198,7 +205,33 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
             box.w = rect.w - element->margin.w;
         }
 
+        vec2 size = info.desiredSize;
+        if(info.maintainAspect) {
+            size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+        }
+        mainSize += size.x + element->margin.x + element->margin.z;
         boxes.push_back(box);
+    }
+    mainSize += spaceBetweenElements * (elements.size() - 1);
+    float start_point = ((rect.x + rect.z) - mainSize) * 0.5f;
+
+    float offset = 0;
+    for(uint i = 0; i < elements.size(); i++) {
+        vec4& box = boxes[i];
+        const shared_ptr<UIElement>& element = elements[i];
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        vec2 size = info.desiredSize;
+
+        if(info.maintainAspect) {
+            size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+        }
+        size.x += 1;
+        
+        box.x = start_point + offset + element->margin.x;
+        box.z = box.x + size.x;
+        
+        offset += size.x + element->margin.x + element->margin.z;
+        offset += spaceBetweenElements;
     }
 
     return boxes;
@@ -209,27 +242,12 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
     const vector<shared_ptr<UIElement>>& elements,
     const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
 {
-    float mainSize = 0;
-    for(shared_ptr<UIElement> element : elements) {
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
-        mainSize += info.desiredSize.y + element->margin.y + element->margin.w;
-    }
-    mainSize += spaceBetweenElements * (elements.size() - 1);
-    float start_point = ((rect.y + rect.w) - mainSize) * 0.5f;
-
     vector<vec4> boxes;
     boxes.reserve(elements.size());
-    float offset = 0;
+    float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
         UILayoutInfo info = layoutInfo.find(element.get())->second;
-        info.desiredSize.y += 1;
-        
-        box.y = start_point + offset + element->margin.y;
-        box.w = box.y + info.desiredSize.y;
-        
-        offset += info.desiredSize.y + element->margin.y + element->margin.w;
-        offset += spaceBetweenElements;
 
         if(element->horizontalGravity == UIElement::Start) {
             box.x = rect.x + element->margin.x;
@@ -245,6 +263,33 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
             box.x = rect.x + element->margin.x;
             box.z = rect.z - element->margin.z;
         }
+        
+        vec2 size = info.desiredSize;
+        if(info.maintainAspect) {
+            size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+        }
+        mainSize += size.y + element->margin.y + element->margin.w;
+    }
+    mainSize += spaceBetweenElements * (elements.size() - 1);
+    float start_point = ((rect.y + rect.w) - mainSize) * 0.5f;
+
+    float offset = 0;
+    for(uint i = 0; i < elements.size(); i++) {
+        vec4& box = boxes[i];
+        const shared_ptr<UIElement>& element = elements[i];
+        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        vec2 size = info.desiredSize;
+        info.desiredSize.y += 1;
+
+        if(info.maintainAspect) {
+            size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+        }
+        
+        box.y = start_point + offset + element->margin.y;
+        box.w = box.y + size.y;
+        
+        offset += size.y + element->margin.y + element->margin.w;
+        offset += spaceBetweenElements;
 
         boxes.push_back(box);
     }
