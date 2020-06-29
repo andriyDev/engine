@@ -15,6 +15,7 @@ class UISystem : public System
 public:
     RenderSurface* targetSurface = nullptr;
     bool swapBuffers = true;
+    float uiScale = 1.0f;
 
     void addElement(shared_ptr<UIElement> element);
     void removeElement(shared_ptr<UIElement> element);

@@ -461,6 +461,7 @@ int main()
 
         shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
         ui->addElement(element);
+        ui->uiScale = 1.5f;
         ui->targetSurface = &window;
 
         w->addEntity();

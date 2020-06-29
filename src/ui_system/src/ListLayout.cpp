@@ -63,9 +63,9 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
 
         if(info.maintainAspect) {
             if(isHorizontal(dir)) {
-                size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+                size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
             } else {
-                size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+                size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
             }
         }
 
@@ -90,9 +90,9 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
 
         if(info.maintainAspect) {
             if(isHorizontal(dir)) {
-                size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+                size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
             } else {
-                size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+                size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
             }
         }
         // If the element has no weight, or the size delta is exactly 0,
@@ -220,7 +220,7 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         vec2 size = info.desiredSize;
 
         if(info.maintainAspect) {
-            size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+            size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
         }
         size.x += 1;
         
@@ -262,7 +262,7 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
         
         vec2 size = info.desiredSize;
         if(info.maintainAspect) {
-            size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+            size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
         }
         mainSize += size.y + element->margin.y + element->margin.w;
     }
@@ -278,7 +278,7 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
         info.desiredSize.y += 1;
 
         if(info.maintainAspect) {
-            size.y = size.x == 0 ? 0 : (size.y / size.x * (box.z - box.x));
+            size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
         }
         
         box.y = start_point + offset + element->margin.y;

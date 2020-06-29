@@ -13,13 +13,13 @@ void UISystem::frameTick(float delta)
 {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    vec2 surfaceSize = targetSurface->getSize();
+    vec2 surfaceSize = targetSurface->getSize() * uiScale;
     bool relayout = false;
     if(surfaceSize != lastSurfaceSize) {
         lastSurfaceSize = surfaceSize;
         relayout = true;
     }
-    vec4 screenBox(0,0, surfaceSize.x, surfaceSize.y);
+    vec4 screenBox = vec4(0,0, surfaceSize.x, surfaceSize.y);
     for(const shared_ptr<UIElement>& element : elements) {
         if(relayout || element->isLayoutDirty()) {
             bool stillDirty = element->updateLayoutRequest();
@@ -27,7 +27,7 @@ void UISystem::frameTick(float delta)
         }
     }
     for(const shared_ptr<UIElement>& element : elements) {
-        element->render(vec4(0,0,surfaceSize.x, surfaceSize.y), surfaceSize);
+        element->render(screenBox, surfaceSize);
     }
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
