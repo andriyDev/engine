@@ -3,13 +3,13 @@
 
 #include "std.h"
 
-struct UILayoutInfo
+struct UILayoutRequest
 {
     vec2 desiredSize;
     bool maintainAspect = false;
 };
 
-class UIElement
+class UIElement : public enable_shared_from_this<UIElement>
 {
 public:
     enum Gravity {
@@ -39,11 +39,43 @@ public:
     // If space (or lack of space) must be distributed between siblings, how much should be given to this element.
     float weight = 0;
 
-    vec4 adjustRect(vec4 rect, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const;
+    void markLayoutDirty();
 
-    virtual UILayoutInfo layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo) = 0;
-    virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
-        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) = 0;
+    bool isLayoutDirty() const { return layoutDirty; }
+
+    vec4 adjustRect(vec4 rect) const;
+
+    // Updates the layout request of the element. Returns a bool indicating whether the layout request is still dirty.
+    bool updateLayoutRequest();
+    /* Updates the layout of the element. Also given a bool on whether to reset the dirty flag or not.
+        Returns a flag whether still dirty.
+    */
+    bool updateLayouts(vec4 newLayout, bool clearDirtyFlag);
+
+    // Sets the parent of this element. Should only be called by containers.
+    void setParent(shared_ptr<UIElement> element);
+
+    UILayoutRequest getLayoutRequest() const { return layoutRequest; }
+    vec4 getLayoutBox() const { return layoutBox; }
+    
+    virtual void render(vec4 mask, vec2 surfaceSize) = 0;
+protected:
+    /*
+    Computes the layout request for this element (children all have valid layout requests).
+    Returns the layout request and a bool indicating whether the layout request is still dirty.
+    */
+    virtual pair<UILayoutRequest, bool> computeLayoutRequest() = 0;
+    // Computes a layout for each child.
+    virtual hash_map<UIElement*, vec4> computeChildLayouts() { return hash_map<UIElement*, vec4>(); }
+    // Calls updateLayoutRequest on each child of this element. Returns a bool which is an OR of the resulting calls.
+    virtual bool updateChildLayoutRequests() { return false; }
+
+    virtual void releaseChild(shared_ptr<UIElement> element) {};
+private:
+    bool layoutDirty = true;
+    UILayoutRequest layoutRequest;
+    vec4 layoutBox;
+    weak_ptr<UIElement> parentElement;
 };
 
 inline vec4 intersect_boxes(vec4 box1, vec4 box2)

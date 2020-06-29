@@ -12,9 +12,8 @@ inline vec2 marginSize(const vec4& margin)
 }
 
 template<ListDirection dir>
-vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect,
-    const vector<shared_ptr<UIElement>>& elements,
-    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
+vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 rect,
+    const vector<shared_ptr<UIElement>>& elements) const
 {
     float weightSum = 0.f;
     float basisProduct = 0.f;
@@ -24,7 +23,7 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
     boxes.reserve(elements.size());
 
     for(shared_ptr<UIElement> element : elements) {
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        UILayoutRequest info = element->getLayoutRequest();
         vec4 box;
         vec2 size = info.desiredSize;
         // Use gravity to figure out the cross direction.
@@ -86,7 +85,7 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
     for(uint i = 0; i < elements.size(); i++) {
         const shared_ptr<UIElement>& element = elements[i];
         vec4& box = boxes[i];
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        UILayoutRequest info = element->getLayoutRequest();
         vec2 size = info.desiredSize;
 
         if(info.maintainAspect) {
@@ -135,11 +134,10 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* element, vec4 rect
 }
 
 template<ListDirection dir>
-UILayoutInfo ListLayout<dir>::computeLayoutInfo(const UIElement* element, const vector<UILayoutInfo>& childLayout,
+UILayoutRequest ListLayout<dir>::computeLayoutRequest(const UIElement* rootElement,
     const vector<shared_ptr<UIElement>>& elements) const
 {
-    // Our sum begins with the constant padding.
-    UILayoutInfo info;
+    UILayoutRequest info;
     vec2& sum = info.desiredSize;
     sum = vec2(0,0);
     float maxCross = 0;
@@ -154,7 +152,7 @@ UILayoutInfo ListLayout<dir>::computeLayoutInfo(const UIElement* element, const 
         }
     }
     for(int i = 0; i < elements.size(); i++) {
-        vec2 size = childLayout[i].desiredSize + marginSize(elements[i]->margin);
+        vec2 size = elements[i]->getLayoutRequest().desiredSize + marginSize(elements[i]->margin);
         // Now for each child, add its size along the main axis, take the max along the cross axis.
         if(isHorizontal(dir)) {
             sum.x += size.x;
@@ -179,16 +177,15 @@ template class ListLayout<ListDirection::Column>;
 template class ListLayout<ListDirection::ColumnReverse>;
 
 template<>
-vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElement* element, vec4 rect,
-    const vector<shared_ptr<UIElement>>& elements,
-    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
+vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElement* rootElement, vec4 rect,
+    const vector<shared_ptr<UIElement>>& elements) const
 {
     vector<vec4> boxes;
     boxes.reserve(elements.size());
     float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        UILayoutRequest info = element->getLayoutRequest();
 
         if(element->verticalGravity == UIElement::Start) {
             box.y = rect.y + element->margin.y;
@@ -219,7 +216,7 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
     for(uint i = 0; i < elements.size(); i++) {
         vec4& box = boxes[i];
         const shared_ptr<UIElement>& element = elements[i];
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        UILayoutRequest info = element->getLayoutRequest();
         vec2 size = info.desiredSize;
 
         if(info.maintainAspect) {
@@ -238,16 +235,15 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
 }
 
 template<>
-vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIElement* element, vec4 rect,
-    const vector<shared_ptr<UIElement>>& elements,
-    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
+vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIElement* rootElement, vec4 rect,
+    const vector<shared_ptr<UIElement>>& elements) const
 {
     vector<vec4> boxes;
     boxes.reserve(elements.size());
     float mainSize = 0;
     for(shared_ptr<UIElement> element : elements) {
         vec4 box;
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        UILayoutRequest info = element->getLayoutRequest();
 
         if(element->horizontalGravity == UIElement::Start) {
             box.x = rect.x + element->margin.x;
@@ -277,7 +273,7 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
     for(uint i = 0; i < elements.size(); i++) {
         vec4& box = boxes[i];
         const shared_ptr<UIElement>& element = elements[i];
-        UILayoutInfo info = layoutInfo.find(element.get())->second;
+        UILayoutRequest info = element->getLayoutRequest();
         vec2 size = info.desiredSize;
         info.desiredSize.y += 1;
 

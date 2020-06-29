@@ -34,22 +34,9 @@ Image::Image()
     }
 }
 
-UILayoutInfo Image::layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
+void Image::render(vec4 mask, vec2 surfaceSize)
 {
-    UILayoutInfo info;
-    info.maintainAspect = true;
-    shared_ptr<RenderableTexture> imagePtr = image.resolve(Deferred);
-    if(imagePtr) {
-        info.desiredSize = vec2(imagePtr->getWidth(), imagePtr->getHeight());
-    } else {
-        info.desiredSize = vec2(0,0);
-    }
-    layoutInfo.insert(make_pair(this, info));
-    return info;
-}
-
-void Image::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
-{
+    vec4 rect = getLayoutBox();
     imageMaterial->use();
     imageMaterial->setTexture("image", image, true);
     imageMaterial->setVec2Property("surface_size", surfaceSize, true);
@@ -59,4 +46,20 @@ void Image::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const 
     imageMaterial->setVec4Property("corner_radii", cornerRadii, true);
     UIUtil::bindRectangle();
     UIUtil::renderRectangle();
+}
+
+pair<UILayoutRequest, bool> Image::computeLayoutRequest()
+{
+    UILayoutRequest info;
+    info.maintainAspect = true;
+    shared_ptr<RenderableTexture> imagePtr = image.resolve(Deferred);
+    bool stillDirty;
+    if(imagePtr) {
+        info.desiredSize = vec2(imagePtr->getWidth(), imagePtr->getHeight());
+        stillDirty = false;
+    } else {
+        info.desiredSize = vec2(0,0);
+        stillDirty = true;
+    }
+    return make_pair(info, stillDirty);
 }

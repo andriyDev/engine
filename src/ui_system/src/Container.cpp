@@ -12,6 +12,7 @@ Container::~Container()
 void Container::addChild(shared_ptr<UIElement> element)
 {
     elements.push_back(element);
+    element->setParent(shared_from_this());
 }
 
 void Container::removeChild(shared_ptr<UIElement> element)
@@ -19,42 +20,65 @@ void Container::removeChild(shared_ptr<UIElement> element)
     auto it = find(elements.begin(), elements.end(), element);
     if(it != elements.end()) {
         elements.erase(it);
+        element->setParent(nullptr);
     }
 }
 
 void Container::clearChildren()
 {
+    for(shared_ptr<UIElement> element : elements) {
+        element->setParent(nullptr);
+    }
     elements.clear();
 }
 
-UILayoutInfo Container::layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
+void Container::releaseChild(shared_ptr<UIElement> element)
 {
-    UILayoutInfo info;
-    vector<UILayoutInfo> childInfo;
-    childInfo.reserve(elements.size());
-    for(const auto& child : elements) {
-        UILayoutInfo cinfo = child->layout(layoutInfo);
-        childInfo.push_back(cinfo);
+    auto it = find(elements.begin(), elements.end(), element);
+    if(it != elements.end()) {
+        elements.erase(it);
     }
-
-    if(layoutAlgorithm) {
-        info = layoutAlgorithm->computeLayoutInfo(this, childInfo, elements);
-    }
-    info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
-    layoutInfo.insert(make_pair(this, info));
-    return info;
 }
 
-void Container::render(vec4 rect, vec4 mask, vec2 surfaceSize,
-    const hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
+pair<UILayoutRequest, bool> Container::computeLayoutRequest()
 {
-    renderSelf(rect, mask, surfaceSize);
-    vector<vec4> boxes;
+    UILayoutRequest info;
     if(layoutAlgorithm) {
-        boxes = layoutAlgorithm->layoutElements(this, rect + padding * vec4(1, 1, -1, -1), elements, layoutInfo);
+        info = layoutAlgorithm->computeLayoutRequest(this, elements);
     }
-    for(int i = 0; i < elements.size(); i++) {
-        vec4& box = layoutAlgorithm ? boxes[i] : rect;
-        elements[i]->render(box, maskChildren ? intersect_boxes(mask, rect) : mask, surfaceSize, layoutInfo);
+    info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
+    return make_pair(info, false);
+}
+
+hash_map<UIElement*, vec4> Container::computeChildLayouts()
+{
+    hash_map<UIElement*, vec4> result;
+    vector<vec4> boxes;
+    vec4 paddedBox = getLayoutBox() + padding * vec4(1, 1, -1, -1);
+    
+    if(layoutAlgorithm) {
+        boxes = layoutAlgorithm->layoutElements(this, paddedBox, elements);
+    }
+    for(uint i = 0; i < elements.size(); i++) {
+        vec4& box = layoutAlgorithm ? boxes[i] : paddedBox;
+        result.insert(make_pair(elements[i].get(), box));
+    }
+    return result;
+}
+
+bool Container::updateChildLayoutRequests()
+{
+    bool stillDirty = false;
+    for(shared_ptr<UIElement>& element : elements) {
+        stillDirty = stillDirty || element->updateLayoutRequest();
+    }
+    return stillDirty;
+}
+
+void Container::render(vec4 mask, vec2 surfaceSize)
+{
+    renderSelf(mask, surfaceSize);
+    for(shared_ptr<UIElement>& element : elements) {
+        element->render(mask, surfaceSize);
     }
 }

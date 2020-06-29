@@ -36,8 +36,9 @@ Box::Box()
     }
 }
 
-void Box::renderSelf(vec4 rect, vec4 mask, vec2 surfaceSize)
+void Box::renderSelf(vec4 mask, vec2 surfaceSize)
 {
+    vec4 rect = getLayoutBox();
     boxMaterial->use();
     boxMaterial->setVec2Property("surface_size", surfaceSize, true);
     boxMaterial->setVec4Property("rect", rect, true);

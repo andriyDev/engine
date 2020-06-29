@@ -35,30 +35,13 @@ Text::Text()
     }
 }
 
-UILayoutInfo Text::layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
+void Text::render(vec4 mask, vec2 surfaceSize)
 {
-    UILayoutInfo info;
-    shared_ptr<Font> fontPtr = font.resolve(Immediate);
-    if(!fontPtr) {
-        info.desiredSize = vec2(0,0);
-        layoutInfo.insert(make_pair(static_cast<UIElement*>(this), info));
-        return info;
-    }
-    if(desiredNeedsUpdate) {
-        desiredNeedsUpdate = false;
-        textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, lineSpacing);
-    }
-    info.desiredSize = textDesiredLayout.bounds;
-    layoutInfo.insert(make_pair(static_cast<UIElement*>(this), info));
-    return info;
-}
-
-void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo)
-{
-    shared_ptr<Font> fontPtr = font.resolve(Immediate);
+    shared_ptr<Font> fontPtr = font.resolve(Deferred);
     if(!fontPtr) {
         return;
     }
+    vec4 rect = getLayoutBox();
     float newWidth = rect.z - rect.x;
     if(textNeedsUpdate || newWidth != layoutWidth) {
         layoutWidth = newWidth;
@@ -77,4 +60,20 @@ void Text::render(vec4 rect, vec4 mask, vec2 surfaceSize, const hash_map<const U
     glUniform4fv(uniformId, (GLsizei)textLayout.layout.size() * 2, (float*)&textLayout.layout[0]);
     UIUtil::bindRectangle();
     UIUtil::renderRectangles((uint)textLayout.layout.size());
+}
+
+pair<UILayoutRequest, bool> Text::computeLayoutRequest()
+{
+    UILayoutRequest info;
+    shared_ptr<Font> fontPtr = font.resolve(Deferred);
+    if(!fontPtr) {
+        info.desiredSize = vec2(0,0);
+        return make_pair(info, true);
+    }
+    if(desiredNeedsUpdate) {
+        desiredNeedsUpdate = false;
+        textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, lineSpacing);
+    }
+    info.desiredSize = textDesiredLayout.bounds;
+    return make_pair(info, false);
 }

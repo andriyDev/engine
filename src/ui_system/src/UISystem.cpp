@@ -13,16 +13,16 @@ void UISystem::frameTick(float delta)
 {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    hash_map<const UIElement*, UILayoutInfo> layoutInfo;
-    for(const shared_ptr<UIElement>& element : elements) {
-        element->layout(layoutInfo);
-    }
     vec2 surfaceSize = targetSurface->getSize();
+    vec4 screenBox(0,0, surfaceSize.x, surfaceSize.y);
     for(const shared_ptr<UIElement>& element : elements) {
-        element->render(
-            vec4(0,0,surfaceSize.x, surfaceSize.y),
-            vec4(0,0,surfaceSize.x,surfaceSize.y),
-            surfaceSize, layoutInfo);
+        if(element->isLayoutDirty()) {
+            bool stillDirty = element->updateLayoutRequest();
+            element->updateLayouts(screenBox, !stillDirty);
+        }
+    }
+    for(const shared_ptr<UIElement>& element : elements) {
+        element->render(vec4(0,0,surfaceSize.x, surfaceSize.y), surfaceSize);
     }
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);

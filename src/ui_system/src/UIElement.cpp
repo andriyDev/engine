@@ -2,7 +2,7 @@
 #include "ui/UIElement.h"
 
 void adjustX(vec2& min, vec2& max, const vec2& size, const vec4& margin, const vec2& origin, const vec2& position,
-    const UILayoutInfo& info, bool canUseAspect)
+    const UILayoutRequest& info, bool canUseAspect)
 {
     if(min.x == max.x) {
         float desiredWidth;
@@ -26,7 +26,7 @@ void adjustX(vec2& min, vec2& max, const vec2& size, const vec4& margin, const v
 }
 
 void adjustY(vec2& min, vec2& max, const vec2& size, const vec4& margin, const vec2& origin, const vec2& position,
-    const UILayoutInfo& info, bool canUseAspect)
+    const UILayoutRequest& info, bool canUseAspect)
 {
 
     if(min.y == max.y) {
@@ -52,7 +52,7 @@ void adjustY(vec2& min, vec2& max, const vec2& size, const vec4& margin, const v
     }
 }
 
-vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const
+vec4 UIElement::adjustRect(vec4 rect) const
 {
     vec2 rectMin(rect.x, rect.y);
     vec2 rectMax(rect.z, rect.w);
@@ -64,7 +64,7 @@ vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, UILayoutI
     bool widthDetermined = min.x != max.x || size.x != 0;
     bool heightDetermined = min.y != max.y || size.y != 0;
 
-    UILayoutInfo info = layoutInfo.find(this)->second;
+    UILayoutRequest info = getLayoutRequest();
 
     if(widthDetermined) {
         adjustX(min, max, size, margin, origin, position, info, false);
@@ -76,3 +76,47 @@ vec4 UIElement::adjustRect(vec4 rect, const hash_map<const UIElement*, UILayoutI
 
     return vec4(min, max);
 }
+
+void UIElement::markLayoutDirty()
+{
+    layoutDirty = true;
+    shared_ptr<UIElement> parent = parentElement.lock();
+    if(parent) {
+        parent->markLayoutDirty();
+    }
+}
+
+void UIElement::setParent(shared_ptr<UIElement> element)
+{
+    shared_ptr<UIElement> currentParent = parentElement.lock();
+    if(currentParent) {
+        currentParent->releaseChild(shared_from_this());
+    }
+    parentElement = element;
+    markLayoutDirty();
+}
+
+bool UIElement::updateLayoutRequest()
+{
+    if(layoutDirty) {
+        bool childrenDirty = updateChildLayoutRequests();
+        auto p = computeLayoutRequest();
+        layoutRequest = p.first;
+        return childrenDirty || p.second;
+    }
+    return false;
+}
+
+bool UIElement::updateLayouts(vec4 newLayout, bool clearDirtyFlag)
+{
+    layoutBox = newLayout;
+    bool stillDirty = false;
+    for(auto p : computeChildLayouts()) {
+        stillDirty = stillDirty || p.first->updateLayouts(p.second, clearDirtyFlag);
+    }
+    if(clearDirtyFlag && !stillDirty) {
+        layoutDirty = false;
+    }
+    return layoutDirty;
+}
+

@@ -39,10 +39,10 @@ public:
         desiredNeedsUpdate = true;
     }
 
-    virtual UILayoutInfo layout(hash_map<const UIElement*, UILayoutInfo>& layoutInfo) override;
-    virtual void render(vec4 rect, vec4 mask, vec2 surfaceSize,
-        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) override;
+    virtual void render(vec4 mask, vec2 surfaceSize) override;
 protected:
+    virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
+
     string text;
     float size = 1.0f;
     float lineSpacing = 1.0f;

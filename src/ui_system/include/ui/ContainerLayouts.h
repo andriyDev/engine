@@ -8,22 +8,20 @@
 class ContainerLayout
 {
 public:
-    virtual vector<vec4> layoutElements(const UIElement* element, vec4 rect,
-        const vector<shared_ptr<UIElement>>& elements,
-        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const = 0;
+    virtual vector<vec4> layoutElements(const UIElement* rootElement, vec4 rect,
+        const vector<shared_ptr<UIElement>>& elements) const = 0;
     
-    virtual UILayoutInfo computeLayoutInfo(const UIElement* element, const vector<UILayoutInfo>& childLayout,
+    virtual UILayoutRequest computeLayoutRequest(const UIElement* rootElement,
         const vector<shared_ptr<UIElement>>& elements) const = 0;
 };
 
 class OverlayLayout : public ContainerLayout
 {
 public:
-    virtual vector<vec4> layoutElements(const UIElement* element, vec4 rect,
-        const vector<shared_ptr<UIElement>>& elements,
-        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const override;
+    virtual vector<vec4> layoutElements(const UIElement* rootElement, vec4 rect,
+        const vector<shared_ptr<UIElement>>& elements) const override;
     
-    virtual UILayoutInfo computeLayoutInfo(const UIElement* element, const vector<UILayoutInfo>& childLayout,
+    virtual UILayoutRequest computeLayoutRequest(const UIElement* rootElement,
         const vector<shared_ptr<UIElement>>& elements) const override;
 };
 
@@ -41,10 +39,9 @@ public:
     ListLayout(float _spaceBetweenElements)
         : spaceBetweenElements(_spaceBetweenElements) {}
 
-    virtual vector<vec4> layoutElements(const UIElement* element, vec4 rect,
-        const vector<shared_ptr<UIElement>>& elements,
-        const hash_map<const UIElement*, UILayoutInfo>& layoutInfo) const override;
+    virtual vector<vec4> layoutElements(const UIElement* rootElement, vec4 rect,
+        const vector<shared_ptr<UIElement>>& elements) const override;
     
-    virtual UILayoutInfo computeLayoutInfo(const UIElement* element, const vector<UILayoutInfo>& childLayout,
+    virtual UILayoutRequest computeLayoutRequest(const UIElement* rootElement,
         const vector<shared_ptr<UIElement>>& elements) const override;
 };
