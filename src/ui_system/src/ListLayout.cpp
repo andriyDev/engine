@@ -227,9 +227,8 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         boxes.push_back(box);
     }
     mainSize += spaceBetweenElements * (elements.size() - 1);
-    float start_point = ((rect.x + rect.z) - mainSize) * 0.5f;
 
-    float offset = 0;
+    float offset = ((rect.x + rect.z) - mainSize) * 0.5f;
     for(uint i = 0; i < elements.size(); i++) {
         vec4& box = boxes[i];
         const shared_ptr<UIElement>& element = elements[i];
@@ -242,7 +241,7 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         applySizing<ListDirection::RowCentered>(size, element->size);
         size.x += 1;
         
-        box.x = start_point + offset + element->margin.x;
+        box.x = offset + element->margin.x;
         box.z = box.x + size.x;
         
         offset += size.x + element->margin.x + element->margin.z;
@@ -273,9 +272,8 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
         mainSize += size.y + element->margin.y + element->margin.w;
     }
     mainSize += spaceBetweenElements * (elements.size() - 1);
-    float start_point = ((rect.y + rect.w) - mainSize) * 0.5f;
 
-    float offset = 0;
+    float offset = ((rect.y + rect.w) - mainSize) * 0.5f;
     for(uint i = 0; i < elements.size(); i++) {
         vec4& box = boxes[i];
         const shared_ptr<UIElement>& element = elements[i];
@@ -288,7 +286,7 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
         applySizing<ListDirection::ColumnCentered>(size, element->size);
         size.y += 1;
         
-        box.y = start_point + offset + element->margin.y;
+        box.y = offset + element->margin.y;
         box.w = box.y + size.y;
         
         offset += size.y + element->margin.y + element->margin.w;
