@@ -394,74 +394,30 @@ int main()
             backBox->colour = vec4(0,1,0,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->horizontalGravity = UIElement::Gravity::End;
+            backBox->size.x = 500;
             box->addChild(backBox);
-
-            shared_ptr<Text> text = make_shared<Text>();
-            text->font = 11;
-            text->setText("Hello, world!\n\tHow are you today?");
-            text->setFontSize(20.0f);
-            text->setLineSpacing(1.0f);
-            backBox->addChild(text);
 
             backBox = make_shared<Box>();
             backBox->layoutAlgorithm = new OverlayLayout();
             backBox->colour = vec4(0,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
+            backBox->size.x = 500;
+            backBox->weight = 1;
             box->addChild(backBox);
-
-            text = make_shared<Text>();
-            text->font = 11;
-            text->setText("Hello, world 2!\n\tHow are you today?");
-            text->setFontSize(20.0f);
-            text->setLineSpacing(1.0f);
-            backBox->addChild(text);
 
             backBox = make_shared<Box>();
             backBox->layoutAlgorithm = new OverlayLayout();
-            backBox->colour = vec4(1,0,1,1);
-            backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->weight = 2;
-            backBox->cornerRadii = vec4(10, 10, 10, 10);
-            box->addChild(backBox);
-
-            text = make_shared<Text>();
-            text->font = 11;
-            text->setText("Hello, world");
-            text->setFontSize(20.0f);
-            text->setLineSpacing(1.0f);
-            text->anchors = vec4(0.5f, 0.5f, 0.5f, 0.5f);
-            text->origin = vec2(0.5f, 0.5f);
-            backBox->addChild(text);
-
-            backBox = make_shared<Box>();
-            backBox->verticalGravity = UIElement::Gravity::Center;
-            backBox->layoutAlgorithm = new OverlayLayout();
-            backBox->colour = vec4(1,0,1,1);
+            backBox->colour = vec4(0,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
+            backBox->size.x = 500;
             box->addChild(backBox);
-
-            text = make_shared<Text>();
-            text->anchors = vec4(0, 0.5f, 1, 0.5f);
-            text->origin.y = 0.5f;
-            text->colour = vec4(0,0,0,1);
-            text->font = 11;
-            text->setText("Hello, world blah blah blah blah");
-            text->setFontSize(20.0f);
-            text->setLineSpacing(1.0f);
-            backBox->addChild(text);
-
-            shared_ptr<Image> image = make_shared<Image>();
-            image->image = 8;
-            image->tint = vec4(0.5f, 0.5f, 1, 1.f);
-            box->addChild(image);
         }
 
         shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
         ui->addElement(element);
-        ui->uiScale = 1.5f;
+        //ui->uiScale = 1.5f;
         ui->targetSurface = &window;
 
         w->addEntity();

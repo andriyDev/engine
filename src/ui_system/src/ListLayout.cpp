@@ -12,6 +12,66 @@ inline vec2 marginSize(const vec4& margin)
 }
 
 template<ListDirection dir>
+void configureCross(const shared_ptr<UIElement>& element, vec4& box, const vec4& rect, const vec2& desiredSize)
+{
+    if(isHorizontal(dir)) {
+        if(element->verticalGravity == UIElement::Start) {
+            box.y = rect.y + element->margin.y;
+            box.w = box.y + desiredSize.y;
+        } else if (element->verticalGravity == UIElement::End) {
+            box.w = rect.w - element->margin.w;
+            box.y = box.w - desiredSize.y;
+        } else if (element->verticalGravity == UIElement::Center) {
+            float center = (rect.y + rect.w) * 0.5f;
+            box.y = center - desiredSize.y * 0.5f;
+            box.w = center + desiredSize.y * 0.5f;
+        } else {
+            box.y = rect.y + element->margin.y;
+            box.w = rect.w - element->margin.w;
+        }
+    } else {
+        if(element->horizontalGravity == UIElement::Start) {
+            box.x = rect.x + element->margin.x;
+            box.z = box.x + desiredSize.x;
+        } else if (element->horizontalGravity == UIElement::End) {
+            box.z = rect.z - element->margin.z;
+            box.x = box.z - desiredSize.x;
+        } else if (element->horizontalGravity == UIElement::Center) {
+            float center = (rect.x + rect.z) * 0.5f;
+            box.x = center - desiredSize.x * 0.5f;
+            box.z = center + desiredSize.x * 0.5f;
+        } else {
+            box.x = rect.x + element->margin.x;
+            box.z = rect.z - element->margin.z;
+        }
+    }
+}
+
+template<ListDirection dir>
+void maintainAspect(vec2& size, const vec4& box)
+{
+    if(isHorizontal(dir)) {
+        size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
+    } else {
+        size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
+    }
+}
+
+template<ListDirection dir>
+void applySizing(vec2& desiredSize, const vec2& size)
+{
+    if(isHorizontal(dir)) {
+        if(size.x != 0) {
+            desiredSize.x = size.x;
+        }
+    } else {
+        if(size.y != 0) {
+            desiredSize.y = size.y;
+        }
+    }
+}
+
+template<ListDirection dir>
 vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 rect,
     const vector<shared_ptr<UIElement>>& elements) const
 {
@@ -26,48 +86,17 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
         UILayoutRequest info = element->getLayoutRequest();
         vec4 box;
         vec2 size = info.desiredSize;
-        // Use gravity to figure out the cross direction.
-        if(isHorizontal(dir)) {
-            if(element->verticalGravity == UIElement::Start) {
-                box.y = rect.y + element->margin.y;
-                box.w = box.y + size.y;
-            } else if (element->verticalGravity == UIElement::End) {
-                box.w = rect.w - element->margin.w;
-                box.y = box.w - size.y;
-            } else if (element->verticalGravity == UIElement::Center) {
-                float center = (rect.y + rect.w) * 0.5f;
-                box.y = center - size.y * 0.5f;
-                box.w = center + size.y * 0.5f;
-            } else {
-                box.y = rect.y + element->margin.y;
-                box.w = rect.w - element->margin.w;
-            }
-        } else {
-            if(element->horizontalGravity == UIElement::Start) {
-                box.x = rect.x + element->margin.x;
-                box.z = box.x + size.x;
-            } else if (element->horizontalGravity == UIElement::End) {
-                box.z = rect.z - element->margin.z;
-                box.x = box.z - size.x;
-            } else if (element->horizontalGravity == UIElement::Center) {
-                float center = (rect.x + rect.z) * 0.5f;
-                box.x = center - size.x * 0.5f;
-                box.z = center + size.x * 0.5f;
-            } else {
-                box.x = rect.x + element->margin.x;
-                box.z = rect.z - element->margin.z;
-            }
-        }
-        // This incomplete box is put into the list of boxes.
-        boxes.push_back(box);
+        
+        configureCross<dir>(element, box, rect, size);
 
         if(info.maintainAspect) {
-            if(isHorizontal(dir)) {
-                size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
-            } else {
-                size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
-            }
+            maintainAspect<dir>(size, box);
         }
+
+        applySizing<dir>(size, element->size);
+
+        // This incomplete box is put into the list of boxes.
+        boxes.push_back(box);
 
         weightSum += element->weight;
         if(isHorizontal(dir)) {
@@ -89,12 +118,10 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
         vec2 size = info.desiredSize;
 
         if(info.maintainAspect) {
-            if(isHorizontal(dir)) {
-                size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
-            } else {
-                size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
-            }
+            maintainAspect<dir>(size, box);
         }
+
+        applySizing<dir>(size, element->size);
         // If the element has no weight, or the size delta is exactly 0,
         // just layout the element according to its desired size.
         float elementSizeDelta;
@@ -152,7 +179,9 @@ UILayoutRequest ListLayout<dir>::computeLayoutRequest(const UIElement* rootEleme
         }
     }
     for(int i = 0; i < elements.size(); i++) {
-        vec2 size = elements[i]->getLayoutRequest().desiredSize + marginSize(elements[i]->margin);
+        vec2 size = elements[i]->getLayoutRequest().desiredSize;
+        applySizing<dir>(size, elements[i]->size);
+        size += marginSize(elements[i]->margin);
         // Now for each child, add its size along the main axis, take the max along the cross axis.
         if(isHorizontal(dir)) {
             sum.x += size.x;
@@ -187,24 +216,11 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         vec4 box;
         UILayoutRequest info = element->getLayoutRequest();
 
-        if(element->verticalGravity == UIElement::Start) {
-            box.y = rect.y + element->margin.y;
-            box.w = box.y + info.desiredSize.y;
-        } else if (element->verticalGravity == UIElement::End) {
-            box.w = rect.w - element->margin.w;
-            box.y = box.w - info.desiredSize.y;
-        } else if (element->verticalGravity == UIElement::Center) {
-            float center = (rect.y + rect.w) * 0.5f;
-            box.y = center - info.desiredSize.y * 0.5f;
-            box.w = center + info.desiredSize.y * 0.5f;
-        } else {
-            box.y = rect.y + element->margin.y;
-            box.w = rect.w - element->margin.w;
-        }
+        configureCross<ListDirection::RowCentered>(element, box, rect, info.desiredSize);
 
         vec2 size = info.desiredSize;
         if(info.maintainAspect) {
-            size.x = size.y == 0 ? 0 : (size.x / size.y * (box.w - box.y));
+            maintainAspect<ListDirection::RowCentered>(size, box);
         }
         mainSize += size.x + element->margin.x + element->margin.z;
         boxes.push_back(box);
@@ -220,8 +236,9 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         vec2 size = info.desiredSize;
 
         if(info.maintainAspect) {
-            size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
+            maintainAspect<ListDirection::ColumnCentered>(size, box);
         }
+        applySizing<ListDirection::RowCentered>(size, element->size);
         size.x += 1;
         
         box.x = start_point + offset + element->margin.x;
@@ -241,28 +258,15 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
     vector<vec4> boxes;
     boxes.reserve(elements.size());
     float mainSize = 0;
-    for(shared_ptr<UIElement> element : elements) {
+    for(const shared_ptr<UIElement>& element : elements) {
         vec4 box;
         UILayoutRequest info = element->getLayoutRequest();
 
-        if(element->horizontalGravity == UIElement::Start) {
-            box.x = rect.x + element->margin.x;
-            box.z = box.x + info.desiredSize.x;
-        } else if (element->horizontalGravity == UIElement::End) {
-            box.z = rect.z - element->margin.z;
-            box.x = box.z - info.desiredSize.x;
-        } else if (element->horizontalGravity == UIElement::Center) {
-            float center = (rect.x + rect.z) * 0.5f;
-            box.x = center - info.desiredSize.x * 0.5f;
-            box.z = center + info.desiredSize.x * 0.5f;
-        } else {
-            box.x = rect.x + element->margin.x;
-            box.z = rect.z - element->margin.z;
-        }
+        configureCross<ListDirection::ColumnCentered>(element, box, rect, info.desiredSize);
         
         vec2 size = info.desiredSize;
         if(info.maintainAspect) {
-            size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
+            maintainAspect<ListDirection::ColumnCentered>(size, box);
         }
         mainSize += size.y + element->margin.y + element->margin.w;
     }
@@ -275,11 +279,12 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
         const shared_ptr<UIElement>& element = elements[i];
         UILayoutRequest info = element->getLayoutRequest();
         vec2 size = info.desiredSize;
-        info.desiredSize.y += 1;
 
         if(info.maintainAspect) {
-            size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
+            maintainAspect<ListDirection::ColumnCentered>(size, box);
         }
+        applySizing<ListDirection::ColumnCentered>(size, element->size);
+        size.y += 1;
         
         box.y = start_point + offset + element->margin.y;
         box.w = box.y + size.y;
