@@ -222,6 +222,7 @@ vector<vec4> ListLayout<ListDirection::RowCentered>::layoutElements(const UIElem
         if(info.maintainAspect) {
             maintainAspect<ListDirection::RowCentered>(size, box);
         }
+        applySizing<ListDirection::RowCentered>(size, element->size);
         mainSize += size.x + element->margin.x + element->margin.z;
         boxes.push_back(box);
     }
@@ -268,6 +269,7 @@ vector<vec4> ListLayout<ListDirection::ColumnCentered>::layoutElements(const UIE
         if(info.maintainAspect) {
             maintainAspect<ListDirection::ColumnCentered>(size, box);
         }
+        applySizing<ListDirection::ColumnCentered>(size, element->size);
         mainSize += size.y + element->margin.y + element->margin.w;
     }
     mainSize += spaceBetweenElements * (elements.size() - 1);
