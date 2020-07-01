@@ -394,7 +394,7 @@ int main()
             backBox->colour = vec4(0,1,0,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 400;
+            backBox->size.x = 100;
             box->addChild(backBox);
 
             backBox = make_shared<Box>();
@@ -402,7 +402,7 @@ int main()
             backBox->colour = vec4(0,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 400;
+            backBox->size.x = 100;
             backBox->weight = 1;
             box->addChild(backBox);
 
@@ -411,7 +411,7 @@ int main()
             backBox->colour = vec4(0,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 400;
+            backBox->size.x = 100;
             backBox->weight = 2;
             box->addChild(backBox);
 
@@ -420,7 +420,7 @@ int main()
             backBox->colour = vec4(0,0,1,1);
             backBox->padding = vec4(1,1,1,1) * 15.f;
             backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 400;
+            backBox->size.x = 100;
             box->addChild(backBox);
         }
 

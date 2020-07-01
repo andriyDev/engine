@@ -153,9 +153,6 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
                 }
             }
         }
-        if(eventElement == elements.size()) {
-            break;
-        }
         // If sizeDelta occurs before eventDelta. We just check whether sizeDelta is positive or negative and
         // whether it is before or after eventDelta respectively.
         if(sizeDelta > 0 != sizeDelta > eventDelta) {
@@ -175,6 +172,9 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
             }
         }
         sizeDelta -= eventDelta;
+        if(eventElement == elements.size()) {
+            break;
+        }
         basisProduct -= (isHorizontal(dir) ? boxes[eventElement].x : boxes[eventElement].y)
             * elements[eventElement]->weight;
         weightSum -= elements[eventElement]->weight;
