@@ -13,9 +13,11 @@ Window::~Window()
 void Window::window_resized(GLFWwindow* gwindow, int width, int height)
 {
     Window* window = static_cast<Window*>(glfwGetWindowUserPointer(gwindow));
-    
+
     window->width = width;
     window->height = height;
+
+    glViewport(0, 0, width, height);
 }
 
 void Window::key_event(GLFWwindow* gwindow, int key, int scancode, int action, int mods)
@@ -96,6 +98,7 @@ void Window::build()
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
     window = glfwCreateWindow(width, height, windowTitle.c_str(), NULL, NULL);
     if(!window) {
@@ -105,7 +108,7 @@ void Window::build()
     glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
     glfwSetWindowUserPointer(window, this);
-    glfwSetWindowSizeCallback(window, Window::window_resized);
+    glfwSetFramebufferSizeCallback(window, Window::window_resized);
     glfwSetKeyCallback(window, Window::key_event);
     glfwSetCharCallback(window, Window::char_typed);
     glfwSetMouseButtonCallback(window, Window::mouse_btn_event);

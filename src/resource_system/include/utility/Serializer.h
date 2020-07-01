@@ -5,102 +5,47 @@
 
 #include "std.h"
 
-#define SER_READ false
-#define SER_WRITE true
+float read_float(istream* buf);
+int read_int(istream* buf);
+short read_short(istream* buf);
+char read_char(istream* buf);
 
-#define SER_START 0
-#define SER_END 1
-#define SER_CUR 2
+uint read_uint(istream* buf);
+ushort read_ushort(istream* buf);
+uchar read_uchar(istream* buf);
 
-class Serializer
-{
-public:
-    Serializer();
-    Serializer(istream* _src);
-    Serializer(ostream* _dst);
+string read_string(istream* buf, uint str_len);
+string read_string_uint_len(istream* buf);
+string read_string_ushort_len(istream* buf);
+string read_string_uchar_len(istream* buf);
 
-    void write_raw(char* buffer, int bytes);
-    void read_raw(char* buffer, int bytes);
+void write_float(ostream* buf, float v);
+void write_int(ostream* buf, int v);
+void write_short(ostream* buf, short v);
+void write_char(ostream* buf, char v);
 
-    void seek(uint offset, uint relativeTo);
-    uint pos();
+void write_uint(ostream* buf, uint v);
+void write_ushort(ostream* buf, ushort v);
+void write_uchar(ostream* buf, uchar v);
 
-    inline bool isWriting() const {
-        return dst;
-    }
-private:
-    istream* src;
-    ostream* dst;
-};
+void write_string(ostream* buf, const string& str, uint n);
+void write_string_uint_len(ostream* buf, const string& str);
+void write_string_ushort_len(ostream* buf, const string& str);
+void write_string_uchar_len(ostream* buf, const string& str);
 
-template<typename T>
-void write(Serializer& pkg, const T& data);
 
-template<typename T>
-void read(Serializer& pkg, T& data);
 
-template<typename lengthType, typename T>
-void write_array(Serializer& pkg, T const* data, lengthType len, bool omitLen = false) 
-{
-    if(!omitLen) {
-        write(pkg, len);
-    }
-    for(lengthType i = 0; i < len; i++) {
-        write(pkg, data[i]);
-    }
-}
+vec2 read_vec2(istream* buf);
+vec3 read_vec3(istream* buf);
+vec4 read_vec4(istream* buf);
 
-template<typename lengthType, typename T>
-void read_array(Serializer& pkg, vector<T>& data, lengthType len=0, bool omitLen = false)
-{
-    if(!omitLen) {
-        read(pkg, len);
-    }
-    data.clear();
-    for(lengthType i = 0; i < len; i++) {
-        T element;
-        read(pkg, element);
-        data.push_back(element);
-    }
-}
+void read_vec2_inplace(istream* buf, vec2* v);
+void read_vec3_inplace(istream* buf, vec3* v);
+void read_vec4_inplace(istream* buf, vec4* v);
 
-template<typename lengthType, typename T>
-void read_array(Serializer& pkg, T* data, lengthType len=0, bool omitLen = false)
-{
-    if(!omitLen) {
-        read(pkg, len);
-    }
-    for(lengthType i = 0; i < len; i++) {
-        T element;
-        read(pkg, element);
-        data[i] = element;
-    }
-}
+void write_vec2(ostream* buf, const vec2& v);
+void write_vec3(ostream* buf, const vec3& v);
+void write_vec4(ostream* buf, const vec4& v);
 
-template<typename lengthType, typename T>
-void read_array_alloc(Serializer& pkg, T*& data, lengthType& len, bool omitLen = false)
-{
-    if(!omitLen) {
-        read(pkg, len);
-    }
-    data = (T*)new uchar[len * sizeof(T)];
-    for(lengthType i = 0; i < len; i++) {
-        T element;
-        read(pkg, element);
-        data[i] = element;
-    }
-}
-
-template<typename lengthType>
-void write_string(Serializer& pkg, const string& data, bool omitLen=false)
-{
-    write_array<lengthType>(pkg, data.c_str(), (lengthType)data.size(), omitLen);
-}
-
-template<typename lengthType>
-void read_string(Serializer& pkg, string& data, int len=0, bool omitLen=false)
-{
-    vector<char> raw_data;
-    read_array<lengthType>(pkg, raw_data, len, omitLen);
-    data = string(raw_data.begin(), raw_data.end());
-}
+vec2 compress_unit(const vec3& v);
+vec3 decompress_unit(const vec2& v);

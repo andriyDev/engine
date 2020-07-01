@@ -15,6 +15,12 @@ public:
         return shared_ptr<T>(new T());
     }
 
+    template<typename T>
+    static shared_ptr<T> loadDirectly(string fileName) {
+        shared_ptr<T> resource = make_shared<T>();
+        return resource->load(createAssetData(fileName)) ? resource : nullptr;
+    }
+
     class FileData : public Resource::BuildData
     {
     public:

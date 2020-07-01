@@ -74,40 +74,55 @@ void Mesh::clearData()
     indexData = nullptr;
 }
 
-template<>
-void write(Serializer& ser, const Mesh::Vertex& vertex)
+void read_Vertex_inplace(istream* buf, Mesh::Vertex* vertex)
 {
-    write_array<uchar>(ser, (float*)&vertex, sizeof(Mesh::Vertex) / sizeof(float), true);
+    read_vec3_inplace(buf, &vertex->position);
+    read_vec4_inplace(buf, &vertex->colour);
+    read_vec2_inplace(buf, &vertex->texCoord);
+    vec2 normal_compressed, tangent_compressed;
+    read_vec2_inplace(buf, &normal_compressed);
+    read_vec2_inplace(buf, &tangent_compressed);
+    vertex->normal = decompress_unit(normal_compressed);
+    vertex->tangent = decompress_unit(tangent_compressed);
+    vertex->bitangent = cross(vertex->normal, vertex->tangent);
 }
 
-template<>
-void read(Serializer& ser, Mesh::Vertex& vertex)
+void write_Vertex(ostream* buf, const Mesh::Vertex& vertex)
 {
-    read_array<uchar>(ser, (float*)&vertex, sizeof(Mesh::Vertex) / sizeof(float), true);
-}
-
-template<>
-void write(Serializer& ser, const Mesh& mesh)
-{
-    write_array(ser, mesh.vertData, mesh.vertCount);
-    write_array(ser, mesh.indexData, mesh.indexCount);
-}
-
-template<>
-void read(Serializer& ser, Mesh& mesh)
-{
-    read_array_alloc(ser, mesh.vertData, mesh.vertCount);
-    read_array_alloc(ser, mesh.indexData, mesh.indexCount);
+    write_vec3(buf, vertex.position);
+    write_vec4(buf, vertex.colour);
+    write_vec2(buf, vertex.texCoord);
+    vec2 normal_compressed, tangent_compressed;
+    normal_compressed = compress_unit(vertex.normal);
+    tangent_compressed = compress_unit(vertex.tangent);
+    write_vec2(buf, normal_compressed);
+    write_vec2(buf, tangent_compressed);
 }
 
 void Mesh::loadFromFile(ifstream& file)
 {
-    Serializer ser(&file);
-    read(ser, *this);
+    vertCount = read_uint(&file);
+    indexCount = read_uint(&file);
+
+    vertData = new Mesh::Vertex[vertCount];
+    indexData = new uint[indexCount];
+
+    for(uint i = 0; i < vertCount; i++) {
+        read_Vertex_inplace(&file, vertData + i);
+    }
+    for(uint i = 0; i < indexCount; i++) {
+        indexData[i] = read_uint(&file);
+    }
 }
 
 void Mesh::saveToFile(ofstream& file)
 {
-    Serializer ser(&file);
-    write(ser, *this);
+    write_uint(&file, vertCount);
+    write_uint(&file, indexCount);
+    for(uint i = 0; i < vertCount; i++) {
+        write_Vertex(&file, vertData[i]);
+    }
+    for(uint i = 0; i < indexCount; i++) {
+        write_uint(&file, indexData[i]);
+    }
 }

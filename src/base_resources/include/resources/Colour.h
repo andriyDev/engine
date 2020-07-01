@@ -30,14 +30,8 @@ struct Colour4
     };
 };
 
-template<>
-void write(Serializer& ser, const Colour3& colour);
+void read_Colour3_inplace(istream* buf, Colour3* colour);
+void read_Colour4_inplace(istream* buf, Colour4* colour);
 
-template<>
-void read(Serializer& ser, Colour3& colour);
-
-template<>
-void write(Serializer& ser, const Colour4& colour);
-
-template<>
-void read(Serializer& ser, Colour4& colour);
+void write_Colour3(ostream* buf, const Colour3& colour);
+void write_Colour4(ostream* buf, const Colour4& colour);

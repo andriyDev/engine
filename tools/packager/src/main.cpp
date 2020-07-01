@@ -12,7 +12,7 @@
 #include "resources/Mesh.h"
 #include "resources/Shader.h"
 #include "resources/Texture.h"
-
+#include "font/Font.h"
 #include "utility/Serializer.h"
 
 #include <png.h>
@@ -100,7 +100,7 @@ Mesh* convertMesh(aiMesh* srcMesh)
 }
 
 vector<pair<Mesh*, string>> extractMeshes(const string& fileName,
-    vector<string> desiredMeshes, unordered_map<string, string> meshNameMap, Assimp::Importer& importer)
+    vector<string> desiredMeshes, hash_map<string, string> meshNameMap, Assimp::Importer& importer)
 {
     vector<pair<Mesh*, string>> resources;
 
@@ -206,6 +206,8 @@ Texture* loadPNGTexture(const string& fileName)
     return tex;
 }
 
+pair<Font*, Texture*> loadFont(string fontFile, uint faceIndex, uint size);
+
 Assimp::Importer gImporter;
 
 string toLower(const string& str)
@@ -246,7 +248,7 @@ void processResourceCommand(vector<string> command)
     {
         string fileName = command[1];
         vector<string> meshNames;
-        unordered_map<string, string> meshFiles;
+        hash_map<string, string> meshFiles;
         if(command.size() % 2 != 0) {
             cerr << "Mesh command improperly formatted." << endl;
             return;
@@ -287,6 +289,25 @@ void processResourceCommand(vector<string> command)
         }
         if(tex) {
             delete tex;
+        }
+    }
+    else if(cmdType == "font") {
+        if(command.size() != 4 && command.size() != 5) {
+            cerr << "Invalid font command: 'font <source ttf> <font size> <outFile w/o extension> [face index]'" << endl;
+            return;
+        }
+        uint size = stoi(command[2]);
+        uint faceIndex = command.size() == 5 ? stoi(command[4]) : 0;
+        pair<Font*, Texture*> font = loadFont(command[1], faceIndex, size);
+        if(!font.first || !font.first->save(command[3] + ".fnt")
+            || !font.second || !font.second->save(command[3] + ".tpk")) {
+            throw "Failed to load/save font.";
+        }
+        if(font.first) {
+            delete font.first;
+        }
+        if(font.second) {
+            delete font.second;
         }
     }
     else

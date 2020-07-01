@@ -35,6 +35,12 @@
 #include "physics/Trigger.h"
 #include "physics/RigidBody.h"
 
+#include "ui/UISystem.h"
+#include "ui/ContainerLayouts.h"
+#include "ui/Box.h"
+#include "ui/Text.h"
+#include "ui/Image.h"
+
 #include <glm/gtx/string_cast.hpp>
 
 namespace glm
@@ -275,6 +281,7 @@ int main()
         loader.addAssetType(typeid(RenderableTexture), RenderableTexture::build);
         loader.addAssetType(typeid(MaterialProgram), MaterialProgram::build);
         loader.addAssetType(typeid(Material), Material::build);
+        loader.addAssetType(typeid(Font), Font::build);
     }
     shared_ptr<Mesh> box = Mesh::makeBox(vec3(0.5f, 0.5f, 0.5f));
     {
@@ -298,6 +305,18 @@ int main()
             materialData->setVec3Property("albedo", vec3(1,1,1));
             loader.addAssetData(9, typeid(Material), materialData);
         }
+        loader.addAssetData(10, typeid(Texture), Texture::createAssetData("font.tpk"));
+        loader.addAssetData(11, typeid(Font), Font::createAssetData(12, "font.fnt"));
+        {
+            auto textureData = RenderableTexture::createAssetData(10);
+            textureData->wrapU = RenderableTexture::Clamp;
+            textureData->wrapV = RenderableTexture::Clamp;
+            textureData->minFilter = RenderableTexture::Linear;
+            textureData->magFilter = RenderableTexture::Linear;
+            textureData->minFilterMipMap = RenderableTexture::Linear;
+            textureData->mipMapLevels = 1;
+            loader.addAssetData(12, typeid(RenderableTexture), textureData);
+        }
     }
 
     Universe U;
@@ -308,6 +327,7 @@ int main()
         shared_ptr<World> w = U.addWorld();
         shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
         RS->targetSurface = &window;
+        RS->swapBuffers = false;
         shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
         IS->setTargetWindow(&window);
         IS->setControlSetCount(1);
@@ -332,11 +352,11 @@ int main()
         IS->addActionMouseBind(0, "lmb", GLFW_MOUSE_BUTTON_LEFT);
         IS->createAction(0, "rmb");
         IS->addActionMouseBind(0, "rmb", GLFW_MOUSE_BUTTON_RIGHT);
-        IS->setCursor(true, true);
+        //IS->setCursor(true, true);
 
-        shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
-        CLS->IS = IS;
-        CLS->running = &running;
+        //shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
+        //CLS->IS = IS;
+        //CLS->running = &running;
 
         w->addSystem<GravitySystem>(5);
 
@@ -345,9 +365,69 @@ int main()
 
         //w->addSystem<BoxBouncer>(-5);
 
-        shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
-        spawner->IS = IS;
-        spawner->PS = Physics;
+        //shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
+        //spawner->IS = IS;
+        //spawner->PS = Physics;
+
+        shared_ptr<UIElement> element;
+        {
+            shared_ptr<Container> layout = make_shared<Container>();
+            layout->layoutAlgorithm = new OverlayLayout();
+            element = layout;
+
+            shared_ptr<Box> box = make_shared<Box>();
+            box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
+            box->anchors = vec4(0, 1, 1, 1);
+            box->origin.y = 1;
+            box->position.y = -15;
+            box->margin.x = 15;
+            box->margin.z = 15;
+            box->size.y = 150;
+            box->cornerRadii = vec4(10, 10, 0, 0);
+            box->colour = vec4(1, 0, 0, 1);
+            box->padding = vec4(1,1,1,1) * 30.f;
+            layout->addChild(box);
+
+            shared_ptr<Box> backBox = make_shared<Box>();
+            //backBox->weight = 1;
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(0,1,0,1);
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
+            backBox->size.x = 300;
+            box->addChild(backBox);
+
+            backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(0,0,1,1);
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
+            backBox->size.x = 300;
+            backBox->weight = 1;
+            box->addChild(backBox);
+
+            backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(0,0,1,1);
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
+            backBox->size.x = 300;
+            backBox->weight = 2;
+            box->addChild(backBox);
+
+            backBox = make_shared<Box>();
+            backBox->layoutAlgorithm = new OverlayLayout();
+            backBox->colour = vec4(0,0,1,1);
+            backBox->padding = vec4(1,1,1,1) * 15.f;
+            backBox->cornerRadii = vec4(10, 10, 10, 10);
+            backBox->size.x = 300;
+            box->addChild(backBox);
+        }
+
+        shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
+        ui->addElement(element);
+        //ui->uiScale = 1.5f;
+        ui->targetSurface = &window;
 
         w->addEntity();
 
@@ -386,7 +466,7 @@ int main()
             gravRegion->addComponent<GravityRegion>();
         }
         
-        for(int i = 0; i < 100; i++) {
+        for(int i = 0; i < 30; i++) {
             vec3 point(
                 rand() * 1.f / RAND_MAX * 10 - 5.f,
                 rand() * 1.f / RAND_MAX * 5,

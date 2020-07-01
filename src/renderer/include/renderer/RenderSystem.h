@@ -12,4 +12,5 @@ class RenderSystem : public System
     virtual void frameTick(float delta) override;
 public:
     RenderSurface* targetSurface;
+    bool swapBuffers = true;
 };

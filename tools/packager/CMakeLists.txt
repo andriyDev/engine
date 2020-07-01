@@ -4,10 +4,12 @@ project(packager VERSION 0.1)
 find_package(zlib REQUIRED)
 find_package(IrrXML REQUIRED)
 find_package(ASSIMP REQUIRED)
+find_package(Freetype REQUIRED)
 find_package(libpng REQUIRED)
 
 set(SRC)
 list(APPEND SRC src/main.cpp)
+list(APPEND SRC src/font_load.cpp)
 
 add_library(IrrXML STATIC IMPORTED)
 set_property(TARGET IrrXML PROPERTY INCLUDE_DIRECTORIES ${IRRXML_INCLUDE_DIR})
@@ -20,4 +22,4 @@ target_include_directories(packager
     PRIVATE src)
 
 target_link_libraries(packager
-    PRIVATE resource_system base_resources assimp::assimp png_static IrrXML)
+    PRIVATE resource_system base_resources font_resource assimp::assimp png_static IrrXML Freetype::Freetype)

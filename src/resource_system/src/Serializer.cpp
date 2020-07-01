@@ -7,164 +7,233 @@
 #include <netinet/in.h>
 #endif
 
-Serializer::Serializer()
-    : src(nullptr), dst(nullptr)
-{ }
+#include <math.h>
 
-Serializer::Serializer(istream* _src)
-    : src(_src), dst(nullptr)
-{ }
-
-Serializer::Serializer(ostream* _dst)
-    : dst(_dst), src(nullptr)
-{ }
-
-void Serializer::write_raw(char* buffer, int bytes)
-{
-    assert(dst);
-    dst->write(buffer, bytes);
-}
-
-void Serializer::read_raw(char* buffer, int bytes)
-{
-    assert(src);
-    src->read(buffer, bytes);
-}
-
-void Serializer::seek(uint offset, uint relativeTo)
-{
-    assert(relativeTo < 3);
-    ios_base::seekdir base;
-    if(relativeTo == SER_START) {
-        base = ios_base::beg;
-    } else if(relativeTo == SER_END) {
-        base = ios_base::end;
-    } else {
-        base = ios_base::cur;
-    }
-
-    if(dst) {
-        dst->seekp(offset, base);
-    } else {
-        src->seekg(offset, base);
-    }
-}
-
-uint Serializer::pos()
-{
-    if(dst) {
-        return (uint)dst->tellp();
-    } else {
-        return (uint)src->tellg();
-    }
-}
-
-template<>
-void write(Serializer& pkg, const int& data)
-{
-    int netData = htonl(data);
-    pkg.write_raw((char*)&netData, sizeof(int));
-}
-
-template<>
-void read(Serializer& pkg, int& data)
-{
-    int netData;
-    pkg.read_raw((char*)&netData, sizeof(int));
-    data = ntohl(netData);
-}
-
-template<>
-void write(Serializer& pkg, const float& data)
+float read_float(istream* buf)
 {
     union {
-        float netDataF;
-        int netDataL;
+        uint i;
+        float f;
     };
-    netDataF = data;
-    netDataL = htonl(netDataL);
-    pkg.write_raw((char*)&netDataL, sizeof(float));
+    i = read_uint(buf);
+    return f;
 }
 
-template<>
-void read(Serializer& pkg, float& data)
+int read_int(istream* buf)
+{
+    int data;
+    buf->read((char*)&data, sizeof(int));
+    return ntohl(data);
+}
+
+short read_short(istream* buf)
+{
+    short data;
+    buf->read((char*)&data, sizeof(short));
+    return ntohs(data);
+}
+
+char read_char(istream* buf)
+{
+    char data;
+    buf->read((char*)&data, sizeof(char));
+    return data;
+}
+
+uint read_uint(istream* buf)
+{
+    uint data;
+    buf->read((char*)&data, sizeof(uint));
+    return ntohl(data);
+}
+
+ushort read_ushort(istream* buf)
+{
+    ushort data;
+    buf->read((char*)&data, sizeof(ushort));
+    return ntohs(data);
+}
+
+uchar read_uchar(istream* buf)
+{
+    uchar data;
+    buf->read((char*)&data, sizeof(uchar));
+    return data;
+}
+
+string read_string(istream* buf, uint str_len)
+{
+    char* char_buf = new char[str_len + 1];
+    char_buf[str_len] = 0;
+    buf->read(char_buf, str_len);
+    string result(char_buf);
+    delete char_buf;
+    return result;
+}
+
+string read_string_uint_len(istream* buf)
+{
+    uint l = read_uint(buf);
+    return read_string(buf, l);
+}
+
+string read_string_ushort_len(istream* buf)
+{
+    ushort l = read_ushort(buf);
+    return read_string(buf, (uint)l);
+}
+
+string read_string_uchar_len(istream* buf)
+{
+    uchar l = read_uchar(buf);
+    return read_string(buf, (uint)l);
+}
+
+void write_float(ostream* buf, float v)
 {
     union {
-        float netDataF;
-        int netDataL;
+        uint i;
+        float f;
     };
-    pkg.read_raw((char*)&netDataL, sizeof(float));
-    netDataL = ntohl(netDataL);
-    data = netDataF;
+    f = v;
+    write_uint(buf, i);
 }
 
-template<>
-void write(Serializer& pkg, const short& data)
+void write_int(ostream* buf, int v)
 {
-    short netData = htons(data);
-    pkg.write_raw((char*)&netData, sizeof(short));
+    uint v2 = htonl(v);
+    buf->write((char*)&v2, sizeof(uint));
 }
 
-template<>
-void read(Serializer& pkg, short& data)
+void write_short(ostream* buf, short v)
 {
-    short netData;
-    pkg.read_raw((char*)&netData, sizeof(short));
-    data = ntohs(netData);
+    ushort v2 = htons(v);
+    buf->write((char*)&v2, sizeof(ushort));
 }
 
-template<>
-void write(Serializer& pkg, const char& data)
+void write_char(ostream* buf, char v)
 {
-    pkg.write_raw((char*)&data, sizeof(char));
+    buf->write((char*)v, sizeof(char));
 }
 
-template<>
-void read(Serializer& pkg, char& data)
+void write_uint(ostream* buf, uint v)
 {
-    pkg.read_raw(&data, sizeof(char));
+    v = htonl(v);
+    buf->write((char*)&v, sizeof(uint));
 }
 
-// ===== UNSIGNED ===== //
-
-template<>
-void write(Serializer& pkg, const uint& data)
+void write_ushort(ostream* buf, ushort v)
 {
-    uint netData = htonl(data);
-    pkg.write_raw((char*)&netData, sizeof(uint));
+    v = htons(v);
+    buf->write((char*)&v, sizeof(ushort));
 }
 
-template<>
-void read(Serializer& pkg, uint& data)
+void write_uchar(ostream* buf, uchar v)
 {
-    uint netData;
-    pkg.read_raw((char*)&netData, sizeof(uint));
-    data = ntohl(netData);
+    buf->write((char*)&v, sizeof(uchar));
 }
 
-template<>
-void write(Serializer& pkg, const ushort& data)
+void write_string(ostream* buf, const string& str, uint n)
 {
-    ushort netData = htons(data);
-    pkg.write_raw((char*)&netData, sizeof(ushort));
+    buf->write(str.c_str(), min(str.size(), n));
 }
 
-template<>
-void read(Serializer& pkg, ushort& data)
+void write_string_uint_len(ostream* buf, const string& str)
 {
-    ushort netData;
-    pkg.read_raw((char*)&netData, sizeof(ushort));
-    data = ntohs(netData);
+    uint n = (uint)str.size();
+    write_uint(buf, n);
+    write_string(buf, str, n);
 }
 
-template<>
-void write(Serializer& pkg, const uchar& data)
+void write_string_ushort_len(ostream* buf, const string& str)
 {
-    pkg.write_raw((char*)&data, sizeof(uchar));
+    ushort n = (ushort)str.size();
+    write_ushort(buf, n);
+    write_string(buf, str, n);
 }
 
-template<>
-void read(Serializer& pkg, uchar& data)
+void write_string_uchar_len(ostream* buf, const string& str)
 {
-    pkg.read_raw((char*)&data, sizeof(uchar));
+    uchar n = (uchar)str.size();
+    write_ushort(buf, n);
+    write_string(buf, str, n);
+}
+
+vec2 read_vec2(istream* buf)
+{
+    vec2 v;
+    v.x = read_float(buf);
+    v.y = read_float(buf);
+    return v;
+}
+
+vec3 read_vec3(istream* buf)
+{
+    vec3 v;
+    v.x = read_float(buf);
+    v.y = read_float(buf);
+    v.z = read_float(buf);
+    return v;
+}
+
+vec4 read_vec4(istream* buf)
+{
+    vec4 v;
+    v.x = read_float(buf);
+    v.y = read_float(buf);
+    v.z = read_float(buf);
+    v.w = read_float(buf);
+    return v;
+}
+
+void read_vec2_inplace(istream* buf, vec2* v)
+{
+    v->x = read_float(buf);
+    v->y = read_float(buf);
+}
+
+void read_vec3_inplace(istream* buf, vec3* v)
+{
+    v->x = read_float(buf);
+    v->y = read_float(buf);
+    v->z = read_float(buf);
+}
+
+void read_vec4_inplace(istream* buf, vec4* v)
+{
+    v->x = read_float(buf);
+    v->y = read_float(buf);
+    v->z = read_float(buf);
+    v->w = read_float(buf);
+}
+
+void write_vec2(ostream* buf, const vec2& v)
+{
+    write_float(buf, v.x);
+    write_float(buf, v.y);
+}
+
+void write_vec3(ostream* buf, const vec3& v)
+{
+    write_float(buf, v.x);
+    write_float(buf, v.y);
+    write_float(buf, v.z);
+}
+
+void write_vec4(ostream* buf, const vec4& v)
+{
+    write_float(buf, v.x);
+    write_float(buf, v.y);
+    write_float(buf, v.z);
+    write_float(buf, v.w);
+}
+
+vec2 compress_unit(const vec3& v)
+{
+    return vec2(v.x, v.y);
+}
+
+vec3 decompress_unit(const vec2& v)
+{
+    return vec3(v.x, v.y, sqrtf(1.0f - v.x*v.x - v.y * v.y));
 }
