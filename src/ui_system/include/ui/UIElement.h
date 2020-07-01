@@ -38,6 +38,10 @@ public:
     Gravity verticalGravity = Fill;
     // If space (or lack of space) must be distributed between siblings, how much should be given to this element.
     float weight = 0;
+    // Minimum size this element wants (may not be provided).
+    vec2 minSize = vec2(0,0);
+    // Maximum size this element wants (may not be provided).
+    vec2 maxSize = vec2(INFINITY,INFINITY);
 
     void markLayoutDirty();
 

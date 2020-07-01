@@ -94,6 +94,13 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
         }
 
         applySizing<dir>(size, element->size);
+        // Since the box's coordinates along the main axis haven't been defined,
+        // we can use them to store the desired size until they are defined.
+        if(isHorizontal(dir)) {
+            box.x = size.x;
+        } else {
+            box.y = size.y;
+        }
 
         // This incomplete box is put into the list of boxes.
         boxes.push_back(box);
@@ -110,49 +117,94 @@ vector<vec4> ListLayout<dir>::layoutElements(const UIElement* rootElement, vec4 
     mainSize += spaceBetweenElements * (elements.size() - 1);
     float sizeDelta = (isHorizontal(dir) ? rect.z - rect.x : rect.w - rect.y) - mainSize;
 
+    vector<float> sizesAlongMain;
+    vector<bool> canBeResized;
+    sizesAlongMain.resize(elements.size());
+    canBeResized.resize(elements.size());
+    for(uint i = 0; i < elements.size(); i++) {
+        const shared_ptr<UIElement>& element = elements[i];
+        sizesAlongMain[i] = isHorizontal(dir) ? boxes[i].x : boxes[i].y;
+        canBeResized[i] = element->weight != 0;
+    }
+
+    while(abs(sizeDelta) > FLT_EPSILON) {
+        uint eventElement = (uint)elements.size();
+        float eventDelta = INFINITY * sign(sizeDelta);
+        for(uint i = 0; i < elements.size(); i++) {
+            if(!canBeResized[i]) {
+                continue;
+            }
+            const shared_ptr<UIElement>& element = elements[i];
+            float sizeAlongMain = sizesAlongMain[i];
+            float originalDesiredSize = isHorizontal(dir) ? boxes[i].x : boxes[i].y;
+            if(sizeDelta > 0) {
+                float maxSize = (isHorizontal(dir) ? element->maxSize.x : element->maxSize.y);
+                float newDelta = (maxSize - sizeAlongMain) * weightSum / element->weight;
+                if(newDelta < eventDelta) {
+                    eventElement = i;
+                    eventDelta = newDelta;
+                }
+            } else {
+                float minSize = (isHorizontal(dir) ? element->minSize.x : element->minSize.y);
+                float newDelta = (minSize - sizeAlongMain) * basisProduct / (element->weight * originalDesiredSize);
+                if(newDelta > eventDelta) {
+                    eventElement = i;
+                    eventDelta = newDelta;
+                }
+            }
+        }
+        if(eventElement == elements.size()) {
+            break;
+        }
+        // If sizeDelta occurs before eventDelta. We just check whether sizeDelta is positive or negative and
+        // whether it is before or after eventDelta respectively.
+        if(sizeDelta > 0 != sizeDelta > eventDelta) {
+            eventDelta = sizeDelta;
+        }
+        for(uint i = 0; i < elements.size(); i++) {
+            if(!canBeResized[i]) {
+                continue;
+            }
+            const shared_ptr<UIElement>& element = elements[i];
+            float& sizeAlongMain = sizesAlongMain[i];
+            float originalDesiredSize = isHorizontal(dir) ? boxes[i].x : boxes[i].y;
+            if(sizeDelta > 0) {
+                sizeAlongMain += eventDelta * element->weight / weightSum;
+            } else {
+                sizeAlongMain += eventDelta * element->weight * originalDesiredSize / basisProduct;
+            }
+        }
+        sizeDelta -= eventDelta;
+        basisProduct -= (isHorizontal(dir) ? boxes[eventElement].x : boxes[eventElement].y)
+            * elements[eventElement]->weight;
+        weightSum -= elements[eventElement]->weight;
+        canBeResized[eventElement] = false;
+    }
+
     float offset = 0;
     for(uint i = 0; i < elements.size(); i++) {
         const shared_ptr<UIElement>& element = elements[i];
         vec4& box = boxes[i];
-        UILayoutRequest info = element->getLayoutRequest();
-        vec2 size = info.desiredSize;
+        float sizeAlongMain = sizesAlongMain[i];
 
-        if(info.maintainAspect) {
-            maintainAspect<dir>(size, box);
-        }
-
-        applySizing<dir>(size, element->size);
-        // If the element has no weight, or the size delta is exactly 0,
-        // just layout the element according to its desired size.
-        float elementSizeDelta;
-        if(element->weight == 0 || sizeDelta == 0) {
-            elementSizeDelta = 0;
-        } else if(sizeDelta > 0) {
-            // Otherwise, grow or shrink the element based on the flexbox algorithm.
-            elementSizeDelta = sizeDelta * element->weight / weightSum;
-        } else {
-            elementSizeDelta = sizeDelta * element->weight * (isHorizontal(dir) ? size.x : size.y) / basisProduct;
-        }
         if(isHorizontal(dir)) {
-            size.x += elementSizeDelta + 1;
             if(isReversed(dir)) {
                 box.z = rect.z - offset - element->margin.z;
-                box.x = box.z - size.x;
+                box.x = box.z - sizeAlongMain;
             } else {
                 box.x = rect.x + offset + element->margin.x;
-                box.z = box.x + size.x;
+                box.z = box.x + sizeAlongMain;
             }
-            offset += size.x + element->margin.x + element->margin.z;
+            offset += sizeAlongMain + element->margin.x + element->margin.z;
         } else {
-            size.y += elementSizeDelta + 1;
             if(isReversed(dir)) {
                 box.w = rect.y - offset - element->margin.w;
-                box.y = box.w - size.y;
+                box.y = box.w - sizeAlongMain;
             } else {
                 box.y = rect.y + offset + element->margin.y;
-                box.w = box.y + size.y;
+                box.w = box.y + sizeAlongMain;
             }
-            offset += size.y + element->margin.y + element->margin.w;
+            offset += sizeAlongMain + element->margin.y + element->margin.w;
         }
         offset += spaceBetweenElements;
     }
