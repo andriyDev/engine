@@ -102,3 +102,30 @@ void UISystem::updateTopElements()
     topElement = _topElement;
     topInteractiveElement = _topInteractiveElement;
 }
+
+void UISystem::setDefaultFocus(shared_ptr<UIElement> element)
+{
+    defaultFocus = element;
+}
+
+void UISystem::focusElement(shared_ptr<UIElement> element)
+{
+    focusedElement = element;
+}
+
+shared_ptr<UIElement> UISystem::changeFocus(UIElement::Direction direction)
+{
+    shared_ptr<UIElement> currentFocus = focusedElement.lock();
+    if(!currentFocus) {
+        currentFocus = defaultFocus.lock();
+        focusedElement = currentFocus;
+        return currentFocus;
+    }
+    shared_ptr<UIElement> directionElement = currentFocus->neighbours[(uint)direction].lock();
+    if(directionElement) {
+        focusedElement = directionElement;
+        return directionElement;
+    } else {
+        return currentFocus;
+    }
+}

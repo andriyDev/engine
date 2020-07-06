@@ -17,6 +17,9 @@ public:
     enum Gravity {
         Start, End, Center, Fill
     };
+    enum Direction {
+        Left = 0, Right = 1, Up = 2, Down = 3
+    };
     // We package these together to save memory since both options cannot be used at the same time.
     union {
         struct {
@@ -46,6 +49,8 @@ public:
     vec2 maxSize = vec2(INFINITY,INFINITY);
 
     bool blocksInteractive = false;
+
+    weak_ptr<UIElement> neighbours[4];
 
     void markLayoutDirty();
 

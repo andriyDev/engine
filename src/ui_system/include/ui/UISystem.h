@@ -38,6 +38,11 @@ public:
 
     void addElement(shared_ptr<UIElement> element);
     void removeElement(shared_ptr<UIElement> element);
+
+    void setDefaultFocus(shared_ptr<UIElement> element);
+    void focusElement(shared_ptr<UIElement> element);
+    shared_ptr<UIElement> changeFocus(UIElement::Direction direction);
+    shared_ptr<UIElement> getFocusedElement() const { return focusedElement.lock(); }
 private:
     vector<shared_ptr<UIElement>> elements;
     weak_ptr<UIElement> topElement;
@@ -45,6 +50,8 @@ private:
     vec2 lastSurfaceSize = vec2(0,0);
     vec2 mousePoint;
     bool mouseHasMoved = false;
+    weak_ptr<UIElement> focusedElement;
+    weak_ptr<UIElement> defaultFocus;
 
     bool mousePressed[2];
     bool mouseReleased[2];
