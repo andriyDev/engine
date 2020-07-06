@@ -18,7 +18,8 @@ private:
     {
         Default = 0,
         Hovered = 1,
-        Pressed = 2
+        PressedByMouse = 2,
+        PressedByAccept = 3
     };
 
     State currentState = State::Default;

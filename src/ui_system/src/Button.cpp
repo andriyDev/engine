@@ -6,32 +6,42 @@
 Button::Button()
 {
     blocksInteractive = true;
+    canBeFocused = true;
 }
 
 void Button::update(float delta, shared_ptr<UISystem> ui)
 {
     Container::update(delta, ui);
 
-    shared_ptr<UIElement> topElement = ui->getTopInteractiveElement();
+    shared_ptr<UIElement> focus = ui->getFocusedElement();
 
     switch (currentState)
     {
     case Default:
-        if(topElement.get() == this) {
+        if(focus.get() == this) {
             currentState = Hovered;
         }
         break;
     case Hovered:
-        if(topElement.get() != this) {
+        if(focus.get() != this) {
             currentState = Default;
         } else if(ui->isMousePressed(UISystem::MouseButton::LMB)) {
-            currentState = Pressed;
+            currentState = PressedByMouse;
+        } else if(ui->isAcceptPressed()) {
+            currentState = PressedByAccept;
         }
         break;
-    case Pressed:
-        if(topElement.get() != this) {
+    case PressedByMouse:
+        if(focus.get() != this) {
             currentState = Default;
-        } else if(ui->isMouseReleased(UISystem::MouseButton::LMB)) {
+        } else if(!ui->isMouseDown(UISystem::MouseButton::LMB)) {
+            currentState = Hovered;
+        }
+        break;
+    case PressedByAccept:
+        if(focus.get() != this) {
+            currentState = Default;
+        } else if(!ui->isAcceptDown()) {
             currentState = Hovered;
         }
         break;
@@ -48,7 +58,7 @@ vec4 Button::getColourByState(State state)
         return defaultColour;
     case Hovered:
         return hoveredColour;
-    default: // case Pressed
+    default: // case PressedBy(Mouse/Accept)
         return pressedColour;
     }
 }
