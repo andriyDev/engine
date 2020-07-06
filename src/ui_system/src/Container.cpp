@@ -95,3 +95,18 @@ void Container::update(float delta, shared_ptr<UISystem> ui)
         element->update(delta, ui);
     }
 }
+
+shared_ptr<UIElement> Container::queryLayout(vec2 point, vec4 mask, bool onlyInteractive)
+{
+    vec4 childMask = maskChildren ? intersect_boxes(mask, getLayoutBox()) : mask;
+    if(isPointInBox(childMask, point)) {
+        for(auto it = elements.rbegin(); it != elements.rend(); ++it) {
+            shared_ptr<UIElement>& element = *it;
+            shared_ptr<UIElement> response = element->queryLayout(point, childMask, onlyInteractive);
+            if(response) {
+                return response;
+            }
+        }
+    }
+    return UIElement::queryLayout(point, mask, onlyInteractive);
+}

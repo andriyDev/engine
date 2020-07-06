@@ -120,3 +120,16 @@ bool UIElement::updateLayouts(vec4 newLayout, bool clearDirtyFlag)
     return layoutDirty;
 }
 
+shared_ptr<UIElement> UIElement::queryLayout(vec2 point, vec4 mask, bool onlyInteractive)
+{
+    if(onlyInteractive && !blocksInteractive) {
+        return nullptr;
+    }
+
+    return isPointInBox(mask, point) && testPoint(point) ? shared_from_this() : nullptr;
+}
+
+bool UIElement::testPoint(vec2 point)
+{
+    return isPointInBox(layoutBox, point);
+}

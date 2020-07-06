@@ -45,6 +45,8 @@ public:
     // Maximum size this element wants (may not be provided).
     vec2 maxSize = vec2(INFINITY,INFINITY);
 
+    bool blocksInteractive = false;
+
     void markLayoutDirty();
 
     bool isLayoutDirty() const { return layoutDirty; }
@@ -66,6 +68,10 @@ public:
     
     virtual void render(vec4 mask, vec2 surfaceSize) = 0;
 
+    virtual shared_ptr<UIElement> queryLayout(vec2 point, vec4 mask, bool onlyInteractive = true);
+
+    virtual bool testPoint(vec2 point);
+
     virtual void update(float delta, shared_ptr<UISystem> ui) {}
 protected:
     /*
@@ -78,7 +84,7 @@ protected:
     // Calls updateLayoutRequest on each child of this element. Returns a bool which is an OR of the resulting calls.
     virtual bool updateChildLayoutRequests() { return false; }
 
-    virtual void releaseChild(shared_ptr<UIElement> element) {};
+    virtual void releaseChild(shared_ptr<UIElement> element) {}
 private:
     bool layoutDirty = true;
     UILayoutRequest layoutRequest;
@@ -89,4 +95,9 @@ private:
 inline vec4 intersect_boxes(vec4 box1, vec4 box2)
 {
     return vec4(max(box1.x, box2.x), max(box1.y, box2.y), min(box1.z, box2.z), min(box1.w, box2.w));
+}
+
+inline bool isPointInBox(vec4 box, vec2 point)
+{
+    return box.x <= point.x && point.x <= box.z && box.y <= point.y && point.y <= box.w;
 }

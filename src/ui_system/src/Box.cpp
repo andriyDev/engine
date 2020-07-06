@@ -34,6 +34,8 @@ Box::Box()
             throw "Failed to create UI material.";
         }
     }
+
+    blocksInteractive = true;
 }
 
 void Box::renderSelf(vec4 mask, vec2 surfaceSize)
