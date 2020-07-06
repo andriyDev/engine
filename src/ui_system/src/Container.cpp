@@ -45,6 +45,12 @@ pair<UILayoutRequest, bool> Container::computeLayoutRequest()
     UILayoutRequest info;
     if(layoutAlgorithm) {
         info = layoutAlgorithm->computeLayoutRequest(this, elements);
+    } else {
+        info.desiredSize = vec2(0,0);
+        info.maintainAspect = false;
+        for(shared_ptr<UIElement>& element : elements) {
+            info.desiredSize = max(info.desiredSize, element->getLayoutRequest().desiredSize);
+        }
     }
     info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
     return make_pair(info, false);
