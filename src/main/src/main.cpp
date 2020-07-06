@@ -323,7 +323,6 @@ int main()
     U.gameplayRate = 60;
     bool running = true;
 
-    {
         shared_ptr<World> w = U.addWorld();
         shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
         RS->targetSurface = &window;
@@ -426,7 +425,7 @@ int main()
 
         shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
         ui->addElement(element);
-        //ui->uiScale = 1.5f;
+    ui->uiScale = 1.5f;
         ui->targetSurface = &window;
 
         w->addEntity();
@@ -488,7 +487,6 @@ int main()
             body->colliders.push_back(collider);
             camera->addComponent<ControlledEntity>();
         }
-    }
 
     float previousTime = (float)glfwGetTime();
     float fpsTime = 0;
@@ -505,6 +503,13 @@ int main()
             fpsTime -= 1;
             cout << "FPS: " << (1.0f / delta) << endl;
         }
+
+        ui->clearMouseStates();
+        ui->onMouseMove(IS->getMousePosition());
+        if(IS->isMousePressed(0)) { ui->onMousePressed(UISystem::MouseButton::LMB); }
+        if(IS->isMouseReleased(0)) { ui->onMouseReleased(UISystem::MouseButton::LMB); }
+        if(IS->isMousePressed(1)) { ui->onMousePressed(UISystem::MouseButton::RMB); }
+        if(IS->isMouseReleased(1)) { ui->onMouseReleased(UISystem::MouseButton::RMB); }
 
         U.tick(delta);
     } while(running && !window.wantsClose());

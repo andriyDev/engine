@@ -26,6 +26,7 @@ void UISystem::frameTick(float delta)
             element->updateLayouts(screenBox, !stillDirty);
         }
     }
+    updateTopElements();
     
     for(const shared_ptr<UIElement>& element : elements) {
         element->update(delta, static_pointer_cast<UISystem>(shared_from_this()));
@@ -52,4 +53,46 @@ void UISystem::removeElement(shared_ptr<UIElement> element)
         elements.erase(it);
     }
 }
+
+void UISystem::clearMouseStates()
+{
+    mousePressed[0] = false;
+    mousePressed[1] = false;
+    mouseReleased[0] = false;
+    mouseReleased[1] = false;
+}
+
+void UISystem::onMousePressed(MouseButton btn)
+{
+    mousePressed[(uchar)btn] = true;
+    mouseDown[(uchar)btn] = true;
+}
+
+void UISystem::onMouseReleased(MouseButton btn)
+{
+    mouseDown[(uchar)btn] = false;
+    mouseReleased[(uchar)btn] = true;
+}
+
+void UISystem::onMouseMove(vec2 newMousePoint)
+{
+    mousePoint = newMousePoint * uiScale;
+}
+
+void UISystem::updateTopElements()
+{
+    shared_ptr<UIElement> _topInteractiveElement;
+    shared_ptr<UIElement> _topElement;
+
+    for(auto it = elements.rbegin(); it != elements.rend() && (!_topInteractiveElement || !_topElement); ++it) {
+        shared_ptr<UIElement>& element = *it;
+        if(!_topInteractiveElement) {
+            _topInteractiveElement = element->queryLayout(mousePoint, vec4(0.f, 0.f, lastSurfaceSize), true);
+        }
+        if(!_topElement) {
+            _topElement = element->queryLayout(mousePoint, vec4(0.f, 0.f, lastSurfaceSize), false);
+        }
+    }
+    topElement = _topElement;
+    topInteractiveElement = _topInteractiveElement;
 }
