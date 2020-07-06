@@ -49,6 +49,7 @@ public:
     vec2 maxSize = vec2(INFINITY,INFINITY);
 
     bool blocksInteractive = false;
+    bool canBeFocused = false;
 
     weak_ptr<UIElement> neighbours[4];
 

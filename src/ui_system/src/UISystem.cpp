@@ -116,6 +116,14 @@ void UISystem::updateTopElements()
     }
     topElement = _topElement;
     topInteractiveElement = _topInteractiveElement;
+
+    if(_topInteractiveElement && _topInteractiveElement->canBeFocused) {
+        if(_topInteractiveElement != focusedElement.lock()) {
+            focusElement(_topInteractiveElement);
+        }
+    } else {
+        focusElement(nullptr);
+    }
 }
 
 void UISystem::setDefaultFocus(shared_ptr<UIElement> element)
