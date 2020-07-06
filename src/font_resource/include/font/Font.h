@@ -21,6 +21,13 @@ public:
 
     static shared_ptr<Resource> build(shared_ptr<Resource::BuildData> data);
 
+    enum Alignment
+    {
+        Left,
+        Right,
+        Center
+    };
+
     struct Character
     {
         bool valid;
@@ -52,7 +59,7 @@ public:
     ushort maxDescent;
 
     StringLayout layoutString(const string& text, float desiredFontSize,
-        float width, float lineSpacing = 1) const;
+        float width, Alignment horizontalAlignment = Left, float lineSpacing = 1) const;
 
     StringLayout layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing = 1) const;
 

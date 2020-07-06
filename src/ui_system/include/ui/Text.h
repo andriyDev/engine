@@ -39,6 +39,11 @@ public:
         desiredNeedsUpdate = true;
     }
 
+    void setTextAlignment(Font::Alignment _alignment) {
+        textAlign = _alignment;
+        textNeedsUpdate = true;
+    }
+
     virtual void render(vec4 mask, vec2 surfaceSize) override;
 protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
@@ -47,6 +52,7 @@ protected:
     float size = 1.0f;
     float lineSpacing = 1.0f;
     float layoutWidth = 0;
+    Font::Alignment textAlign = Font::Alignment::Left;
     bool textNeedsUpdate = true;
     bool desiredNeedsUpdate = true;
 

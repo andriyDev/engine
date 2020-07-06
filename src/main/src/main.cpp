@@ -422,7 +422,7 @@ int main()
         btn->verticalGravity = UIElement::Gravity::Center;
         btn->padding = vec4(1,1,1,1) * 15.f;
         btn->cornerRadii = vec4(10, 10, 10, 10);
-        btn->weight = 2;
+        //btn->weight = 2;
         box->addChild(btn);
 
         shared_ptr<Text> text = make_shared<Text>();
@@ -430,13 +430,14 @@ int main()
         text->setLineSpacing(1.0f);
         text->font = 11;
         text->colour = vec4(0,0,0,1);
-        text->setText("Push Me!");
+        text->setText("Push Me!\nHello world It's a me, Mario!");
+        text->setTextAlignment(Font::Center);
         btn->addChild(text);
     }
 
     shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
     ui->addElement(element);
-    ui->uiScale = 1.5f;
+    //ui->uiScale = 1.5f;
     ui->targetSurface = &window;
 
     w->addEntity();

@@ -160,7 +160,17 @@ struct Token
     operator bool() const { return length; }
 };
 
-vector<Token> tokenize(const string& text, const Font::Character* characters, ushort spaceAdvance, float pixelUnit)
+struct TextLayoutData
+{
+    ushort lineHeight;
+    float pixelUnit;
+    float lineSpacing;
+    ushort spaceAdvance;
+    float width;
+    Font::Alignment align;
+};
+
+vector<Token> tokenize(const string& text, const Font::Character* characters, const TextLayoutData& data)
 {
     vector<Token> tokens;
 
@@ -186,9 +196,9 @@ vector<Token> tokenize(const string& text, const Font::Character* characters, us
         if(type == NEWLINE) {
             currentToken.width += 0;
         } else if(type == WHITESPACE) {
-            currentToken.width += (c == '\t' ? 4 : 1) * (spaceAdvance * pixelUnit);
+            currentToken.width += (c == '\t' ? 4 : 1) * (data.spaceAdvance * data.pixelUnit);
         } else {
-            currentToken.width += characters[c - FONT_CHAR_START].advance * pixelUnit;
+            currentToken.width += characters[c - FONT_CHAR_START].advance * data.pixelUnit;
         }
     }
     // A token was left over so put in the last one.
@@ -218,28 +228,46 @@ int splitToken(const vector<float>& widths, int offset, float remainingLineSpace
     return offset;
 }
 
-void newLine(vec2& offset, Font::StringLayout& layout, ushort lineHeight, float pixelUnit, float lineSpacing,
-    int lines = 1)
+void newLine(vec2& offset, Font::StringLayout& layout, uint* startOfLine, const TextLayoutData& data, uint lines = 1)
 {
+    if(startOfLine && data.align != Font::Left) {
+        float lineUsed = offset.x; // Rename for better understanding.
+        float shift = data.width - lineUsed;
+        if(data.align == Font::Center) {
+            shift *= 0.5f;
+        }
+        for(; (*startOfLine) < layout.layout.size(); (*startOfLine)++) {
+            layout.layout[*startOfLine].physicalLayout.x += shift;
+            layout.layout[*startOfLine].physicalLayout.z += shift;
+        }
+    }
     offset.x = 0;
-    offset.y += lineHeight * pixelUnit * lineSpacing * lines;
+    offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing * lines;
     layout.bounds = vec2(layout.bounds.x, max(layout.bounds.y, offset.y));
 }
 
-Font::StringLayout Font::layoutString(const string& text, float desiredFontSize, float width, float lineSpacing) const
+Font::StringLayout Font::layoutString(const string& text, float desiredFontSize, float width,
+    Alignment horizontalAlignment, float lineSpacing) const
 {
     StringLayout layoutData;
-    float pixelUnit = desiredFontSize / sourceFontSize;
+    TextLayoutData data;
+    data.lineHeight = lineHeight;
+    data.pixelUnit = desiredFontSize / sourceFontSize;
+    data.lineSpacing = lineSpacing;
+    data.spaceAdvance = spaceAdvance;
+    data.width = width;
+    data.align = horizontalAlignment;
 
-    vector<Token> tokens = tokenize(text, characters, spaceAdvance, pixelUnit);
+    vector<Token> tokens = tokenize(text, characters, data);
 
-    vec2 offset(0, lineHeight * pixelUnit);
+    vec2 offset(0, data.lineHeight * data.pixelUnit);
+    uint startOfLine = 0;
     layoutData.bounds = offset;
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            newLine(offset, layoutData, lineHeight, pixelUnit, lineSpacing, token.length);
+            newLine(offset, layoutData, &startOfLine, data, token.length);
             continue;
         }
 
@@ -247,16 +275,16 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
         if(type == WHITESPACE) {
             // Go through each character and add its width.
             for(int i = 0; i < token.length; i++) {
-                widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * (spaceAdvance * pixelUnit));
+                widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * (data.spaceAdvance * data.pixelUnit));
             }
         } else if(type == ALPHABETIC || type == NUMERIC) {
             // Go through each character and add its width.
             for(int i = 0; i < token.length; i++) {
-                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * pixelUnit);
+                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * data.pixelUnit);
             }
         } else if(type == SPECIAL) {
             // We know SPECIAL tokens only have one character so just lay it out.
-            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * pixelUnit);
+            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * data.pixelUnit);
         }
 
         int lastChar = 0;
@@ -265,12 +293,12 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
         while(currentChar != widths.size()) {
             // If the token will overflow to the next line, we should just move directly to the next line.
             if(token.width > width - offset.x && token.width <= width) {
-                newLine(offset, layoutData, lineHeight, pixelUnit, lineSpacing);
+                newLine(offset, layoutData, &startOfLine, data);
                 currentChar = (int)widths.size();
             } else {
                 // For all iterations except the first, move to the next line.
                 if(currentChar != 0) {
-                    newLine(offset, layoutData, lineHeight, pixelUnit, lineSpacing);
+                    newLine(offset, layoutData, &startOfLine, data);
                 }
                 
                 // Split the token.
@@ -279,7 +307,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                 // Since we previously only move to the next line if not on the first iteration,
                 // we have to handle this case.
                 if(currentChar == 0) {
-                    newLine(offset, layoutData, lineHeight, pixelUnit, lineSpacing);
+                    newLine(offset, layoutData, &startOfLine, data);
                 }
             }
 
@@ -290,9 +318,9 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                     CharacterLayout charLayout;
                     const Character& info = characters[text[token.start + lastChar] - FONT_CHAR_START];
                     charLayout.textureLayout = vec4(vec2(info.pos) / vec2(sourceSize), vec2(info.size) / vec2(sourceSize));
-                    vec2 tl = offset + vec2(info.bearing) * pixelUnit * vec2(1, -1);
-                    charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * pixelUnit);
-                    vec2 s = vec2(info.size) * pixelUnit;
+                    vec2 tl = offset + vec2(info.bearing) * data.pixelUnit * vec2(1, -1);
+                    charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
+                    vec2 s = vec2(info.size) * data.pixelUnit;
                     layoutData.layout.push_back(charLayout);
                 }
                 offset.x += widths[lastChar];
@@ -302,24 +330,29 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
             layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
         }
     }
-    layoutData.bounds.y += maxDescent * pixelUnit;
+    newLine(offset, layoutData, &startOfLine, data, 0);
+    layoutData.bounds.y += maxDescent * data.pixelUnit;
     return layoutData;
 }
 
 Font::StringLayout Font::layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing) const
 {
     StringLayout layoutData;
-    float pixelUnit = desiredFontSize / sourceFontSize;
+    TextLayoutData data;
+    data.lineHeight = lineHeight;
+    data.pixelUnit = desiredFontSize / sourceFontSize;
+    data.lineSpacing = lineSpacing;
+    data.spaceAdvance = spaceAdvance;
 
-    vector<Token> tokens = tokenize(text, characters, spaceAdvance, pixelUnit);
+    vector<Token> tokens = tokenize(text, characters, data);
 
-    vec2 offset(0, lineHeight * pixelUnit);
+    vec2 offset(0, data.lineHeight * data.pixelUnit);
     layoutData.bounds = offset;
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            newLine(offset, layoutData, lineHeight, pixelUnit, lineSpacing, token.length);
+            newLine(offset, layoutData, nullptr, data, token.length);
             continue;
         }
 
@@ -327,16 +360,16 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
         if(type == WHITESPACE) {
             // Go through each character and add its width.
             for(int i = 0; i < token.length; i++) {
-                widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * (spaceAdvance * pixelUnit));
+                widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * (data.spaceAdvance * data.pixelUnit));
             }
         } else if(type == ALPHABETIC || type == NUMERIC) {
             // Go through each character and add its width.
             for(int i = 0; i < token.length; i++) {
-                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * pixelUnit);
+                widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * data.pixelUnit);
             }
         } else if(type == SPECIAL) {
             // We know SPECIAL tokens only have one character so just lay it out.
-            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * pixelUnit);
+            widths.push_back(characters[text[token.start] - FONT_CHAR_START].advance * data.pixelUnit);
         }
         
         // Move lastOffset up until it matches with offset.
@@ -346,14 +379,15 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
                 CharacterLayout charLayout;
                 const Character& info = characters[text[token.start + i] - FONT_CHAR_START];
                 charLayout.textureLayout = vec4(vec2(info.pos) / vec2(sourceSize), vec2(info.size) / vec2(sourceSize));
-                vec2 tl = offset + vec2(info.bearing) * pixelUnit * vec2(1, -1);
-                charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * pixelUnit);
+                vec2 tl = offset + vec2(info.bearing) * data.pixelUnit * vec2(1, -1);
+                charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
                 layoutData.layout.push_back(charLayout);
             }
             offset.x += widths[i];
         }
         layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
     }
-    layoutData.bounds.y += maxDescent * pixelUnit;
+    newLine(offset, layoutData, nullptr, data, 0);
+    layoutData.bounds.y += maxDescent * data.pixelUnit;
     return layoutData;
 }

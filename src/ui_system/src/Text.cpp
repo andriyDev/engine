@@ -46,7 +46,7 @@ void Text::render(vec4 mask, vec2 surfaceSize)
     if(textNeedsUpdate || newWidth != layoutWidth) {
         layoutWidth = newWidth;
         textNeedsUpdate = false;
-        textLayout = fontPtr->layoutString(text, size, layoutWidth, lineSpacing);
+        textLayout = fontPtr->layoutString(text, size, layoutWidth, textAlign, lineSpacing);
     }
 
     textMaterial->setTexture("font_texture", fontPtr->getTextureSheet());
