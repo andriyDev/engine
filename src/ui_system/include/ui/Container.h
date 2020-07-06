@@ -20,6 +20,8 @@ public:
     virtual void clearChildren();
 
     virtual void render(vec4 mask, vec2 surfaceSize) override;
+
+    virtual void update(float delta, shared_ptr<UISystem> ui) override;
 protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
     virtual hash_map<UIElement*, vec4> computeChildLayouts() override;
@@ -27,7 +29,7 @@ protected:
 
     virtual void releaseChild(shared_ptr<UIElement> element) override;
     
-    virtual void renderSelf(vec4 mask, vec2 surfaceSize) {};
+    virtual void renderSelf(vec4 mask, vec2 surfaceSize) {}
 
     vector<shared_ptr<UIElement>> elements;
 };

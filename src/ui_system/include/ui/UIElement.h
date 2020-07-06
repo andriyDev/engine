@@ -63,6 +63,8 @@ public:
     vec4 getLayoutBox() const { return layoutBox; }
     
     virtual void render(vec4 mask, vec2 surfaceSize) = 0;
+
+    virtual void update(float delta, shared_ptr<UISystem> ui) {}
 protected:
     /*
     Computes the layout request for this element (children all have valid layout requests).

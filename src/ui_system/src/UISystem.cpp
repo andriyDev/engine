@@ -26,6 +26,10 @@ void UISystem::frameTick(float delta)
             element->updateLayouts(screenBox, !stillDirty);
         }
     }
+    
+    for(const shared_ptr<UIElement>& element : elements) {
+        element->update(delta, static_pointer_cast<UISystem>(shared_from_this()));
+    }
     for(const shared_ptr<UIElement>& element : elements) {
         element->render(screenBox, surfaceSize);
     }
@@ -38,10 +42,14 @@ void UISystem::frameTick(float delta)
 
 void UISystem::addElement(shared_ptr<UIElement> element)
 {
-    elements.insert(element);
+    elements.push_back(element);
 }
 
 void UISystem::removeElement(shared_ptr<UIElement> element)
 {
-    elements.erase(element);
+    auto it = find(elements.begin(), elements.end(), element);
+    if(it != elements.end()) {
+        elements.erase(it);
+    }
+}
 }

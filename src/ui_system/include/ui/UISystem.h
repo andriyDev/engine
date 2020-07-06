@@ -20,6 +20,6 @@ public:
     void addElement(shared_ptr<UIElement> element);
     void removeElement(shared_ptr<UIElement> element);
 private:
-    hash_set<shared_ptr<UIElement>> elements;
+    vector<shared_ptr<UIElement>> elements;
     vec2 lastSurfaceSize = vec2(0,0);
 };

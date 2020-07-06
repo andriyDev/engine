@@ -88,3 +88,10 @@ void Container::render(vec4 mask, vec2 surfaceSize)
         element->render(maskChildren ? intersect_boxes(mask, getLayoutBox()) : mask, surfaceSize);
     }
 }
+
+void Container::update(float delta, shared_ptr<UISystem> ui)
+{
+    for(shared_ptr<UIElement>& element : elements) {
+        element->update(delta, ui);
+    }
+}
