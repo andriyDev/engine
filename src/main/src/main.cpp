@@ -516,12 +516,22 @@ int main()
             cout << "FPS: " << (1.0f / delta) << endl;
         }
 
-        ui->clearMouseStates();
+        ui->clearInputStates();
         ui->onMouseMove(IS->getMousePosition());
         if(IS->isMousePressed(0)) { ui->onMousePressed(UISystem::MouseButton::LMB); }
         if(IS->isMouseReleased(0)) { ui->onMouseReleased(UISystem::MouseButton::LMB); }
         if(IS->isMousePressed(1)) { ui->onMousePressed(UISystem::MouseButton::RMB); }
         if(IS->isMouseReleased(1)) { ui->onMouseReleased(UISystem::MouseButton::RMB); }
+        if(IS->isKeyPressed(GLFW_KEY_ENTER)) { ui->onAcceptPressed(); }
+        if(IS->isKeyReleased(GLFW_KEY_ENTER)) { ui->onAcceptReleased(); }
+        if(IS->isKeyPressed(GLFW_KEY_W)) { ui->changeFocus(UIElement::Up); }
+        if(IS->isKeyPressed(GLFW_KEY_A)) { ui->changeFocus(UIElement::Left); }
+        if(IS->isKeyPressed(GLFW_KEY_S)) { ui->changeFocus(UIElement::Right); }
+        if(IS->isKeyPressed(GLFW_KEY_D)) { ui->changeFocus(UIElement::Down); }
+        if(IS->isKeyPressed(GLFW_KEY_UP)) { ui->changeFocus(UIElement::Up); }
+        if(IS->isKeyPressed(GLFW_KEY_LEFT)) { ui->changeFocus(UIElement::Left); }
+        if(IS->isKeyPressed(GLFW_KEY_RIGHT)) { ui->changeFocus(UIElement::Right); }
+        if(IS->isKeyPressed(GLFW_KEY_DOWN)) { ui->changeFocus(UIElement::Down); }
 
         U.tick(delta);
     } while(running && !window.wantsClose());

@@ -56,12 +56,15 @@ void UISystem::removeElement(shared_ptr<UIElement> element)
     }
 }
 
-void UISystem::clearMouseStates()
+void UISystem::clearInputStates()
 {
     mousePressed[0] = false;
     mousePressed[1] = false;
     mouseReleased[0] = false;
     mouseReleased[1] = false;
+
+    acceptPressed = false;
+    acceptReleased = false;
 }
 
 void UISystem::onMousePressed(MouseButton btn)
@@ -74,6 +77,18 @@ void UISystem::onMouseReleased(MouseButton btn)
 {
     mouseDown[(uchar)btn] = false;
     mouseReleased[(uchar)btn] = true;
+}
+
+void UISystem::onAcceptPressed()
+{
+    acceptPressed = true;
+    acceptDown = true;
+}
+
+void UISystem::onAcceptReleased()
+{
+    acceptReleased = true;
+    acceptDown = false;
 }
 
 void UISystem::onMouseMove(vec2 newMousePoint)

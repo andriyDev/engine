@@ -27,14 +27,20 @@ public:
         RMB = 1
     };
 
-    void clearMouseStates();
+    void clearInputStates();
     void onMousePressed(MouseButton btn);
     void onMouseReleased(MouseButton btn);
     void onMouseMove(vec2 newMousePoint);
+    void onAcceptPressed();
+    void onAcceptReleased();
 
     bool isMousePressed(MouseButton btn) const { return mousePressed[(uchar)btn]; }
     bool isMouseDown(MouseButton btn) const { return mouseDown[(uchar)btn]; }
     bool isMouseReleased(MouseButton btn) const { return mouseReleased[(uchar)btn]; }
+
+    bool isAcceptPressed() const { return acceptPressed; }
+    bool isAcceptDown() const { return acceptDown; }
+    bool isAcceptReleased() const { return acceptReleased; }
 
     void addElement(shared_ptr<UIElement> element);
     void removeElement(shared_ptr<UIElement> element);
@@ -56,6 +62,10 @@ private:
     bool mousePressed[2];
     bool mouseReleased[2];
     bool mouseDown[2];
+
+    bool acceptPressed;
+    bool acceptReleased;
+    bool acceptDown;
 
     void updateMouseData();
     void updateTopElements();
