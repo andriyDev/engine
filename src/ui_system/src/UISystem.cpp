@@ -26,7 +26,9 @@ void UISystem::frameTick(float delta)
             element->updateLayouts(screenBox, !stillDirty);
         }
     }
-    updateTopElements();
+    if(mouseHasMoved) {
+        updateTopElements();
+    }
     
     for(const shared_ptr<UIElement>& element : elements) {
         element->update(delta, static_pointer_cast<UISystem>(shared_from_this()));
@@ -76,7 +78,11 @@ void UISystem::onMouseReleased(MouseButton btn)
 
 void UISystem::onMouseMove(vec2 newMousePoint)
 {
-    mousePoint = newMousePoint * uiScale;
+    newMousePoint *= uiScale;
+    if(mousePoint != newMousePoint) {
+        mouseHasMoved = true;
+        mousePoint = newMousePoint;
+    }
 }
 
 void UISystem::updateTopElements()

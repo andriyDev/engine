@@ -44,6 +44,7 @@ private:
     weak_ptr<UIElement> topInteractiveElement;
     vec2 lastSurfaceSize = vec2(0,0);
     vec2 mousePoint;
+    bool mouseHasMoved = false;
 
     bool mousePressed[2];
     bool mouseReleased[2];
