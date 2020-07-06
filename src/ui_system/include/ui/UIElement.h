@@ -3,6 +3,8 @@
 
 #include "std.h"
 
+class UISystem;
+
 struct UILayoutRequest
 {
     vec2 desiredSize;
