@@ -38,6 +38,7 @@
 #include "ui/UISystem.h"
 #include "ui/ContainerLayouts.h"
 #include "ui/Box.h"
+#include "ui/Button.h"
 #include "ui/Text.h"
 #include "ui/Image.h"
 
@@ -323,170 +324,180 @@ int main()
     U.gameplayRate = 60;
     bool running = true;
 
-        shared_ptr<World> w = U.addWorld();
-        shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
-        RS->targetSurface = &window;
-        RS->swapBuffers = false;
-        shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
-        IS->setTargetWindow(&window);
-        IS->setControlSetCount(1);
-        IS->createAction(0, "escape");
-        IS->addActionKeyBind(0, "escape", GLFW_KEY_ESCAPE, false, false, false);
-        IS->createAction(0, "lookYaw");
-        IS->addActionSpecialMouseBind(0, "lookYaw", MOUSE_X_POS, 1.0f);
-        IS->addActionSpecialMouseBind(0, "lookYaw", MOUSE_X_NEG, -1.0f);
-        IS->createAction(0, "lookPitch");
-        IS->addActionSpecialMouseBind(0, "lookPitch", MOUSE_Y_POS, 1.0f);
-        IS->addActionSpecialMouseBind(0, "lookPitch", MOUSE_Y_NEG, -1.0f);
-        IS->createAction(0, "forward");
-        IS->addActionKeyBind(0, "forward", 'W', false, false, false);
-        IS->addActionKeyBind(0, "forward", 'S', false, false, false, -1.0f);
-        IS->createAction(0, "left");
-        IS->addActionKeyBind(0, "left", 'A', false, false, false);
-        IS->addActionKeyBind(0, "left", 'D', false, false, false, -1.0f);
-        IS->createAction(0, "up");
-        IS->addActionKeyBind(0, "up", ' ', false, false, false);
-        IS->addActionKeyBind(0, "up", GLFW_KEY_LEFT_SHIFT, false, false, false, -1.0f);
-        IS->createAction(0, "lmb");
-        IS->addActionMouseBind(0, "lmb", GLFW_MOUSE_BUTTON_LEFT);
-        IS->createAction(0, "rmb");
-        IS->addActionMouseBind(0, "rmb", GLFW_MOUSE_BUTTON_RIGHT);
-        //IS->setCursor(true, true);
+    shared_ptr<World> w = U.addWorld();
+    shared_ptr<RenderSystem> RS = w->addSystem<RenderSystem>(-10000);
+    RS->targetSurface = &window;
+    RS->swapBuffers = false;
+    shared_ptr<InputSystem> IS = w->addSystem<InputSystem>(20);
+    IS->setTargetWindow(&window);
+    IS->setControlSetCount(1);
+    IS->createAction(0, "escape");
+    IS->addActionKeyBind(0, "escape", GLFW_KEY_ESCAPE, false, false, false);
+    IS->createAction(0, "lookYaw");
+    IS->addActionSpecialMouseBind(0, "lookYaw", MOUSE_X_POS, 1.0f);
+    IS->addActionSpecialMouseBind(0, "lookYaw", MOUSE_X_NEG, -1.0f);
+    IS->createAction(0, "lookPitch");
+    IS->addActionSpecialMouseBind(0, "lookPitch", MOUSE_Y_POS, 1.0f);
+    IS->addActionSpecialMouseBind(0, "lookPitch", MOUSE_Y_NEG, -1.0f);
+    IS->createAction(0, "forward");
+    IS->addActionKeyBind(0, "forward", 'W', false, false, false);
+    IS->addActionKeyBind(0, "forward", 'S', false, false, false, -1.0f);
+    IS->createAction(0, "left");
+    IS->addActionKeyBind(0, "left", 'A', false, false, false);
+    IS->addActionKeyBind(0, "left", 'D', false, false, false, -1.0f);
+    IS->createAction(0, "up");
+    IS->addActionKeyBind(0, "up", ' ', false, false, false);
+    IS->addActionKeyBind(0, "up", GLFW_KEY_LEFT_SHIFT, false, false, false, -1.0f);
+    IS->createAction(0, "lmb");
+    IS->addActionMouseBind(0, "lmb", GLFW_MOUSE_BUTTON_LEFT);
+    IS->createAction(0, "rmb");
+    IS->addActionMouseBind(0, "rmb", GLFW_MOUSE_BUTTON_RIGHT);
+    //IS->setCursor(true, true);
 
-        //shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
-        //CLS->IS = IS;
-        //CLS->running = &running;
+    //shared_ptr<CameraLookSystem> CLS = w->addSystem<CameraLookSystem>(10);
+    //CLS->IS = IS;
+    //CLS->running = &running;
 
-        w->addSystem<GravitySystem>(5);
+    w->addSystem<GravitySystem>(5);
 
-        shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
-        Physics->setGravity(vec3(0,0,0));
+    shared_ptr<PhysicsSystem> Physics = w->addSystem<PhysicsSystem>(0);
+    Physics->setGravity(vec3(0,0,0));
 
-        //w->addSystem<BoxBouncer>(-5);
+    //w->addSystem<BoxBouncer>(-5);
 
-        //shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
-        //spawner->IS = IS;
-        //spawner->PS = Physics;
+    //shared_ptr<BoxSpawner> spawner = w->addSystem<BoxSpawner>(6);
+    //spawner->IS = IS;
+    //spawner->PS = Physics;
 
-        shared_ptr<UIElement> element;
-        {
-            shared_ptr<Container> layout = make_shared<Container>();
-            layout->layoutAlgorithm = new OverlayLayout();
-            element = layout;
+    shared_ptr<UIElement> element;
+    {
+        shared_ptr<Container> layout = make_shared<Container>();
+        layout->layoutAlgorithm = new OverlayLayout();
+        element = layout;
 
-            shared_ptr<Box> box = make_shared<Box>();
-            box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
-            box->anchors = vec4(0, 1, 1, 1);
-            box->origin.y = 1;
-            box->position.y = -15;
-            box->margin.x = 15;
-            box->margin.z = 15;
-            box->size.y = 150;
-            box->cornerRadii = vec4(10, 10, 0, 0);
-            box->colour = vec4(1, 0, 0, 1);
-            box->padding = vec4(1,1,1,1) * 30.f;
-            layout->addChild(box);
+        shared_ptr<Box> box = make_shared<Box>();
+        box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
+        box->anchors = vec4(0, 1, 1, 1);
+        box->origin.y = 1;
+        box->position.y = -15;
+        box->margin.x = 15;
+        box->margin.z = 15;
+        box->size.y = 150;
+        box->cornerRadii = vec4(10, 10, 0, 0);
+        box->colour = vec4(1, 0, 0, 1);
+        box->padding = vec4(1,1,1,1) * 30.f;
+        layout->addChild(box);
 
-            shared_ptr<Box> backBox = make_shared<Box>();
-            //backBox->weight = 1;
-            backBox->layoutAlgorithm = new OverlayLayout();
-            backBox->colour = vec4(0,1,0,1);
-            backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 300;
-            box->addChild(backBox);
+        shared_ptr<Box> backBox = make_shared<Box>();
+        //backBox->weight = 1;
+        // backBox->layoutAlgorithm = new OverlayLayout();
+        backBox->colour = vec4(0,1,0,1);
+        backBox->padding = vec4(1,1,1,1) * 15.f;
+        backBox->cornerRadii = vec4(10, 10, 10, 10);
+        backBox->size.x = 300;
+        box->addChild(backBox);
 
-            backBox = make_shared<Box>();
-            backBox->layoutAlgorithm = new OverlayLayout();
-            backBox->colour = vec4(0,0,1,1);
-            backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 300;
-            backBox->weight = 1;
-            box->addChild(backBox);
+        backBox = make_shared<Box>();
+        // backBox->layoutAlgorithm = new OverlayLayout();
+        backBox->colour = vec4(0,0,1,1);
+        backBox->padding = vec4(1,1,1,1) * 15.f;
+        backBox->cornerRadii = vec4(10, 10, 10, 10);
+        backBox->size.x = 300;
+        backBox->weight = 1;
+        box->addChild(backBox);
 
-            backBox = make_shared<Box>();
-            backBox->layoutAlgorithm = new OverlayLayout();
-            backBox->colour = vec4(0,0,1,1);
-            backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 300;
-            backBox->weight = 2;
-            box->addChild(backBox);
+        backBox = make_shared<Box>();
+        // backBox->layoutAlgorithm = new OverlayLayout();
+        backBox->colour = vec4(0,0,1,1);
+        backBox->padding = vec4(1,1,1,1) * 15.f;
+        backBox->cornerRadii = vec4(10, 10, 10, 10);
+        backBox->size.x = 100;
+        box->addChild(backBox);
 
-            backBox = make_shared<Box>();
-            backBox->layoutAlgorithm = new OverlayLayout();
-            backBox->colour = vec4(0,0,1,1);
-            backBox->padding = vec4(1,1,1,1) * 15.f;
-            backBox->cornerRadii = vec4(10, 10, 10, 10);
-            backBox->size.x = 300;
-            box->addChild(backBox);
-        }
+        shared_ptr<Button> btn = make_shared<Button>();
+        btn->layoutAlgorithm = new OverlayLayout();
+        btn->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
+        btn->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
+        btn->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn->verticalGravity = UIElement::Gravity::Center;
+        btn->padding = vec4(1,1,1,1) * 15.f;
+        btn->cornerRadii = vec4(10, 10, 10, 10);
+        btn->weight = 2;
+        box->addChild(btn);
 
-        shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
-        ui->addElement(element);
+        shared_ptr<Text> text = make_shared<Text>();
+        text->setFontSize(20.0f);
+        text->setLineSpacing(1.0f);
+        text->font = 11;
+        text->colour = vec4(0,0,0,1);
+        text->setText("Push Me!");
+        btn->addChild(text);
+    }
+
+    shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
+    ui->addElement(element);
     ui->uiScale = 1.5f;
-        ui->targetSurface = &window;
+    ui->targetSurface = &window;
 
-        w->addEntity();
+    w->addEntity();
 
-        vec3 floorPos(0,0,0);
-        vec3 camPos(0,5,5);
-        vec3 boxPos(0,5,0);
-        vec3 gravPos(0, 3, -7.5);
-        vec3 gravSize(100,100,100);//(15, 5, 7.5);
+    vec3 floorPos(0,0,0);
+    vec3 camPos(0,5,5);
+    vec3 boxPos(0,5,0);
+    vec3 gravPos(0, 3, -7.5);
+    vec3 gravSize(100,100,100);//(15, 5, 7.5);
 
-        shared_ptr<Entity> floor = w->addEntity();
-        {
-            shared_ptr<MeshRenderer> m = floor->addComponent<MeshRenderer>();
-            m->mesh = 7;
-            m->material = 9;
-            shared_ptr<Transform> meshTransform = floor->addComponent<Transform>();
-            m->transform = meshTransform;
-            meshTransform->setGlobalTransform(TransformData(floorPos, quat(0,0,0,1), vec3(15, 1, 15)));
-            shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
-            collider->setExtents(vec3(1, 1, 1) * 0.5f);
-            collider->transform = meshTransform;
-            shared_ptr<StaticBody> body = floor->addComponent<StaticBody>();
-            body->transform = meshTransform;
-            body->colliders.push_back(collider);
-        }
+    shared_ptr<Entity> floor = w->addEntity();
+    {
+        shared_ptr<MeshRenderer> m = floor->addComponent<MeshRenderer>();
+        m->mesh = 7;
+        m->material = 9;
+        shared_ptr<Transform> meshTransform = floor->addComponent<Transform>();
+        m->transform = meshTransform;
+        meshTransform->setGlobalTransform(TransformData(floorPos, quat(0,0,0,1), vec3(15, 1, 15)));
+        shared_ptr<BoxCollider> collider = floor->addComponent<BoxCollider>();
+        collider->setExtents(vec3(1, 1, 1) * 0.5f);
+        collider->transform = meshTransform;
+        shared_ptr<StaticBody> body = floor->addComponent<StaticBody>();
+        body->transform = meshTransform;
+        body->colliders.push_back(collider);
+    }
 
-        shared_ptr<Entity> gravRegion = w->addEntity();
-        {
-            shared_ptr<Transform> t = gravRegion->addComponent<Transform>();
-            t->setGlobalTransform(TransformData(gravPos, quat(0,0,0,1), gravSize));
-            shared_ptr<BoxCollider> collider = gravRegion->addComponent<BoxCollider>();
-            collider->setExtents(vec3(1,1,1) * 0.5f);
-            collider->transform = t;
-            shared_ptr<Trigger> trig = gravRegion->addComponent<Trigger>();
-            trig->transform = t;
-            trig->colliders.push_back(collider);
-            gravRegion->addComponent<GravityRegion>();
-        }
-        
-        for(int i = 0; i < 30; i++) {
-            vec3 point(
-                rand() * 1.f / RAND_MAX * 10 - 5.f,
-                rand() * 1.f / RAND_MAX * 5,
-                rand() * 1.f / RAND_MAX * 10 - 5.f);
-            spawnBox(w, point);
-        }
-        
-        shared_ptr<Entity> camera = w->addEntity();
-        {
-            shared_ptr<Transform> camTransform = camera->addComponent<Transform>();
-            shared_ptr<Camera> cam = camera->addComponent<Camera>();
-            cam->transform = camTransform;
-            camTransform->setRelativeTransform(TransformData(camPos));
-            shared_ptr<SphereCollider> collider = camera->addComponent<SphereCollider>();
-            collider->transform = camTransform;
-            collider->setRadius(0.5f);
-            shared_ptr<KinematicBody> body = camera->addComponent<KinematicBody>();
-            body->transform = camTransform;
-            body->colliders.push_back(collider);
-            camera->addComponent<ControlledEntity>();
-        }
+    shared_ptr<Entity> gravRegion = w->addEntity();
+    {
+        shared_ptr<Transform> t = gravRegion->addComponent<Transform>();
+        t->setGlobalTransform(TransformData(gravPos, quat(0,0,0,1), gravSize));
+        shared_ptr<BoxCollider> collider = gravRegion->addComponent<BoxCollider>();
+        collider->setExtents(vec3(1,1,1) * 0.5f);
+        collider->transform = t;
+        shared_ptr<Trigger> trig = gravRegion->addComponent<Trigger>();
+        trig->transform = t;
+        trig->colliders.push_back(collider);
+        gravRegion->addComponent<GravityRegion>();
+    }
+    
+    for(int i = 0; i < 30; i++) {
+        vec3 point(
+            rand() * 1.f / RAND_MAX * 10 - 5.f,
+            rand() * 1.f / RAND_MAX * 5,
+            rand() * 1.f / RAND_MAX * 10 - 5.f);
+        spawnBox(w, point);
+    }
+    
+    shared_ptr<Entity> camera = w->addEntity();
+    {
+        shared_ptr<Transform> camTransform = camera->addComponent<Transform>();
+        shared_ptr<Camera> cam = camera->addComponent<Camera>();
+        cam->transform = camTransform;
+        camTransform->setRelativeTransform(TransformData(camPos));
+        shared_ptr<SphereCollider> collider = camera->addComponent<SphereCollider>();
+        collider->transform = camTransform;
+        collider->setRadius(0.5f);
+        shared_ptr<KinematicBody> body = camera->addComponent<KinematicBody>();
+        body->transform = camTransform;
+        body->colliders.push_back(collider);
+        camera->addComponent<ControlledEntity>();
+    }
 
     float previousTime = (float)glfwGetTime();
     float fpsTime = 0;
