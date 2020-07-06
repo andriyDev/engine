@@ -263,6 +263,65 @@ bool InputSystem::isActionDown(uint controlSet, const string& actionName, bool i
     return it->second.isDown(*this, isGameplayTick);
 }
 
+bool InputSystem::isKeyPressed(uint key)
+{
+    return keys_frame[key].pressed;
+}
+
+bool InputSystem::isKeyReleased(uint key)
+{
+    return keys_frame[key].released;
+}
+
+bool InputSystem::isKeyDown(uint key)
+{
+    return keys_frame[key].value > 0;
+}
+
+bool InputSystem::isKeyPressedGameplay(uint key)
+{
+    return keys_gameplay[key].pressed;
+}
+
+bool InputSystem::isKeyReleasedGameplay(uint key)
+{
+    return keys_gameplay[key].released;
+}
+
+bool InputSystem::isKeyDownGameplay(uint key)
+{
+    return keys_gameplay[key].value > 0;
+}
+
+bool InputSystem::isMousePressed(uint btn)
+{
+    return keys_frame[MOUSE_BTNS + btn].pressed;
+}
+
+bool InputSystem::isMouseReleased(uint btn)
+{
+    return keys_frame[MOUSE_BTNS + btn].released;
+}
+
+bool InputSystem::isMouseDown(uint btn)
+{
+    return keys_frame[MOUSE_BTNS + btn].value > 0;
+}
+
+bool InputSystem::isMousePressedGameplay(uint btn)
+{
+    return keys_gameplay[MOUSE_BTNS + btn].pressed;
+}
+
+bool InputSystem::isMouseReleasedGameplay(uint btn)
+{
+    return keys_gameplay[MOUSE_BTNS + btn].released;
+}
+
+bool InputSystem::isMouseDownGameplay(uint btn)
+{
+    return keys_gameplay[MOUSE_BTNS + btn].value > 0;
+}
 
 void InputSystem::setCursor(bool lock, bool hidden)
 {

@@ -44,6 +44,22 @@ public:
     bool isActionReleased(uint controlSet, const string& actionName, bool useGameplayTick);
     bool isActionDown(uint controlSet, const string& actionName, bool useGameplayTick);
 
+    bool isKeyPressed(uint key);
+    bool isKeyReleased(uint key);
+    bool isKeyDown(uint key);
+
+    bool isKeyPressedGameplay(uint key);
+    bool isKeyReleasedGameplay(uint key);
+    bool isKeyDownGameplay(uint key);
+    
+    bool isMousePressed(uint btn);
+    bool isMouseReleased(uint btn);
+    bool isMouseDown(uint btn);
+    
+    bool isMousePressedGameplay(uint btn);
+    bool isMouseReleasedGameplay(uint btn);
+    bool isMouseDownGameplay(uint btn);
+
     void setCursor(bool lock, bool hidden);
 
     void setTargetWindow(Window* _target);

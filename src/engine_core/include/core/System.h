@@ -5,7 +5,7 @@
 
 class World;
 
-class System
+class System : public enable_shared_from_this<System>
 {
 public:
     /*
