@@ -388,42 +388,34 @@ int main()
         box->padding = vec4(1,1,1,1) * 30.f;
         layout->addChild(box);
 
-        shared_ptr<Box> backBox = make_shared<Box>();
-        //backBox->weight = 1;
-        // backBox->layoutAlgorithm = new OverlayLayout();
-        backBox->colour = vec4(0,1,0,1);
-        backBox->padding = vec4(1,1,1,1) * 15.f;
-        backBox->cornerRadii = vec4(10, 10, 10, 10);
-        backBox->size.x = 300;
-        box->addChild(backBox);
+        shared_ptr<Button> btn1 = make_shared<Button>();
+        btn1->layoutAlgorithm = new OverlayLayout();
+        btn1->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
+        btn1->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
+        btn1->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn1->padding = vec4(1,1,1,1) * 15.f;
+        btn1->cornerRadii = vec4(10, 10, 10, 10);
+        btn1->size.x = 300;
+        box->addChild(btn1);
 
-        backBox = make_shared<Box>();
-        // backBox->layoutAlgorithm = new OverlayLayout();
-        backBox->colour = vec4(0,0,1,1);
-        backBox->padding = vec4(1,1,1,1) * 15.f;
-        backBox->cornerRadii = vec4(10, 10, 10, 10);
-        backBox->size.x = 300;
-        backBox->weight = 1;
-        box->addChild(backBox);
+        shared_ptr<Button> btn2 = make_shared<Button>();
+        btn2->layoutAlgorithm = new OverlayLayout();
+        btn2->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
+        btn2->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
+        btn2->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn2->padding = vec4(1,1,1,1) * 15.f;
+        btn2->cornerRadii = vec4(10, 10, 10, 10);
+        btn2->weight = 1;
+        box->addChild(btn2);
 
-        backBox = make_shared<Box>();
-        // backBox->layoutAlgorithm = new OverlayLayout();
-        backBox->colour = vec4(0,0,1,1);
-        backBox->padding = vec4(1,1,1,1) * 15.f;
-        backBox->cornerRadii = vec4(10, 10, 10, 10);
-        backBox->size.x = 100;
-        box->addChild(backBox);
-
-        shared_ptr<Button> btn = make_shared<Button>();
-        btn->layoutAlgorithm = new OverlayLayout();
-        btn->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
-        btn->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
-        btn->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
-        btn->verticalGravity = UIElement::Gravity::Center;
-        btn->padding = vec4(1,1,1,1) * 15.f;
-        btn->cornerRadii = vec4(10, 10, 10, 10);
-        //btn->weight = 2;
-        box->addChild(btn);
+        shared_ptr<Button> btn3 = make_shared<Button>();
+        btn3->layoutAlgorithm = new OverlayLayout();
+        btn3->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
+        btn3->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
+        btn3->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn3->padding = vec4(1,1,1,1) * 15.f;
+        btn3->cornerRadii = vec4(10, 10, 10, 10);
+        box->addChild(btn3);
 
         shared_ptr<Text> text = make_shared<Text>();
         text->setFontSize(20.0f);
@@ -432,7 +424,13 @@ int main()
         text->colour = vec4(0,0,0,1);
         text->setText("Push Me!\nHello world It's a me, Mario!");
         text->setTextAlignment(Font::Center);
-        btn->addChild(text);
+        btn3->addChild(text);
+
+        btn1->neighbours[UIElement::Right] = btn2;
+        btn2->neighbours[UIElement::Right] = btn3;
+        
+        btn3->neighbours[UIElement::Left] = btn2;
+        btn2->neighbours[UIElement::Left] = btn1;
     }
 
     shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
@@ -526,12 +524,12 @@ int main()
         if(IS->isKeyReleased(GLFW_KEY_ENTER)) { ui->onAcceptReleased(); }
         if(IS->isKeyPressed(GLFW_KEY_W)) { ui->changeFocus(UIElement::Up); }
         if(IS->isKeyPressed(GLFW_KEY_A)) { ui->changeFocus(UIElement::Left); }
-        if(IS->isKeyPressed(GLFW_KEY_S)) { ui->changeFocus(UIElement::Right); }
-        if(IS->isKeyPressed(GLFW_KEY_D)) { ui->changeFocus(UIElement::Down); }
+        if(IS->isKeyPressed(GLFW_KEY_S)) { ui->changeFocus(UIElement::Down); }
+        if(IS->isKeyPressed(GLFW_KEY_D)) { ui->changeFocus(UIElement::Right); }
         if(IS->isKeyPressed(GLFW_KEY_UP)) { ui->changeFocus(UIElement::Up); }
         if(IS->isKeyPressed(GLFW_KEY_LEFT)) { ui->changeFocus(UIElement::Left); }
-        if(IS->isKeyPressed(GLFW_KEY_RIGHT)) { ui->changeFocus(UIElement::Right); }
         if(IS->isKeyPressed(GLFW_KEY_DOWN)) { ui->changeFocus(UIElement::Down); }
+        if(IS->isKeyPressed(GLFW_KEY_RIGHT)) { ui->changeFocus(UIElement::Right); }
 
         U.tick(delta);
     } while(running && !window.wantsClose());

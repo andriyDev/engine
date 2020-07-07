@@ -28,6 +28,7 @@ void UISystem::frameTick(float delta)
     }
     if(mouseHasMoved) {
         updateTopElements();
+        mouseHasMoved = false;
     }
     
     for(const shared_ptr<UIElement>& element : elements) {
