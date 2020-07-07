@@ -118,6 +118,9 @@ void UISystem::updateTopElements()
     topElement = _topElement;
     topInteractiveElement = _topInteractiveElement;
 
+    if(focusLocked) {
+        return;
+    }
     if(_topInteractiveElement && _topInteractiveElement->canBeFocused) {
         if(_topInteractiveElement != focusedElement.lock()) {
             focusElement(_topInteractiveElement);
@@ -134,12 +137,19 @@ void UISystem::setDefaultFocus(shared_ptr<UIElement> element)
 
 void UISystem::focusElement(shared_ptr<UIElement> element)
 {
+    if(focusLocked) {
+        return;
+    }
     focusedElement = element;
 }
 
 shared_ptr<UIElement> UISystem::changeFocus(UIElement::Direction direction)
 {
     shared_ptr<UIElement> currentFocus = focusedElement.lock();
+    if(focusLocked) {
+        return currentFocus;
+    }
+    
     if(!currentFocus) {
         currentFocus = defaultFocus.lock();
         focusedElement = currentFocus;

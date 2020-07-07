@@ -49,6 +49,8 @@ public:
     void focusElement(shared_ptr<UIElement> element);
     shared_ptr<UIElement> changeFocus(UIElement::Direction direction);
     shared_ptr<UIElement> getFocusedElement() const { return focusedElement.lock(); }
+    
+    bool focusLocked = false;
 private:
     vector<shared_ptr<UIElement>> elements;
     weak_ptr<UIElement> topElement;

@@ -370,6 +370,7 @@ int main()
     //spawner->PS = Physics;
 
     shared_ptr<UIElement> element;
+    shared_ptr<UIElement> defaultFocus;
     {
         shared_ptr<Container> layout = make_shared<Container>();
         layout->layoutAlgorithm = new OverlayLayout();
@@ -431,12 +432,15 @@ int main()
         
         btn3->neighbours[UIElement::Left] = btn2;
         btn2->neighbours[UIElement::Left] = btn1;
+
+        defaultFocus = btn1;
     }
 
     shared_ptr<UISystem> ui = w->addSystem<UISystem>(-11000);
     ui->addElement(element);
     //ui->uiScale = 1.5f;
     ui->targetSurface = &window;
+    ui->setDefaultFocus(defaultFocus);
 
     w->addEntity();
 
