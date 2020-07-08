@@ -11,7 +11,7 @@ class Box : public Container
 public:
     Box();
 
-    vec4 colour = vec4(0,0,0,0);
+    vec4 colour = vec4(1,1,1,1);
     // The radius of each corner in order of TL TR BL BR
     vec4 cornerRadii = vec4(0,0,0,0);
 
