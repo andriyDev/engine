@@ -2,7 +2,7 @@
 #include "ui/Box.h"
 #include "resources/Shader.h"
 
-#include "UIUtil.h"
+#include "ui/UIUtil.h"
 
 shared_ptr<MaterialProgram> Box::boxProgram;
 shared_ptr<Material> Box::boxMaterial;

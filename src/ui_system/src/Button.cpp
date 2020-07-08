@@ -55,10 +55,10 @@ vec4 Button::getColourByState(State state)
     switch(state)
     {
     case Default:
-        return defaultColour;
+        return stateColours.base;
     case Hovered:
-        return hoveredColour;
+        return stateColours.hovered;
     default: // case PressedBy(Mouse/Accept)
-        return pressedColour;
+        return stateColours.active;
     }
 }

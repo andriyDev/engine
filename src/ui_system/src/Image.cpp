@@ -1,6 +1,6 @@
 
 #include "ui/Image.h"
-#include "UIUtil.h"
+#include "ui/UIUtil.h"
 
 shared_ptr<MaterialProgram> Image::imageProgram;
 shared_ptr<Material> Image::imageMaterial;

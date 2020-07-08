@@ -391,9 +391,11 @@ int main()
 
         shared_ptr<Button> btn1 = make_shared<Button>();
         btn1->layoutAlgorithm = new OverlayLayout();
-        btn1->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
-        btn1->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
-        btn1->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn1->stateColours = {
+            vec4(0.75f, 0.75f, 0.75f, 1.0f),
+            vec4(0.9f, 0.9f, 0.9f, 1.0f),
+            vec4(0.5f, 0.5f, 0.5f, 1.0f)
+        };
         btn1->padding = vec4(1,1,1,1) * 15.f;
         btn1->cornerRadii = vec4(10, 10, 10, 10);
         btn1->size.x = 300;
@@ -401,9 +403,11 @@ int main()
 
         shared_ptr<Button> btn2 = make_shared<Button>();
         btn2->layoutAlgorithm = new OverlayLayout();
-        btn2->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
-        btn2->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
-        btn2->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn2->stateColours = {
+            vec4(0.75f, 0.75f, 0.75f, 1.0f),
+            vec4(0.9f, 0.9f, 0.9f, 1.0f),
+            vec4(0.5f, 0.5f, 0.5f, 1.0f)
+        };
         btn2->padding = vec4(1,1,1,1) * 15.f;
         btn2->cornerRadii = vec4(10, 10, 10, 10);
         btn2->weight = 1;
@@ -411,9 +415,11 @@ int main()
 
         shared_ptr<Button> btn3 = make_shared<Button>();
         btn3->layoutAlgorithm = new OverlayLayout();
-        btn3->defaultColour = vec4(0.75f, 0.75f, 0.75f, 1.0f);
-        btn3->hoveredColour = vec4(0.9f, 0.9f, 0.9f, 1.0f);
-        btn3->pressedColour = vec4(0.5f, 0.5f, 0.5f, 1.0f);
+        btn3->stateColours = {
+            vec4(0.75f, 0.75f, 0.75f, 1.0f),
+            vec4(0.9f, 0.9f, 0.9f, 1.0f),
+            vec4(0.5f, 0.5f, 0.5f, 1.0f)
+        };
         btn3->padding = vec4(1,1,1,1) * 15.f;
         btn3->cornerRadii = vec4(10, 10, 10, 10);
         box->addChild(btn3);

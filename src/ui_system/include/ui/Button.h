@@ -3,15 +3,14 @@
 
 #include "std.h"
 #include "ui/Box.h"
+#include "ui/UIUtil.h"
 
 class Button : public Box
 {
 public:
     Button();
 
-    vec4 defaultColour;
-    vec4 hoveredColour;
-    vec4 pressedColour;
+    UIColour stateColours;
 
     virtual void update(float delta, shared_ptr<UISystem> ui) override;
 private:

@@ -6,6 +6,25 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+struct UIColour
+{
+    enum Type
+    {
+        Base = 0,
+        Hovered = 1,
+        Active = 2
+    };
+
+    union {
+        struct {
+            vec4 base;
+            vec4 hovered;
+            vec4 active;
+        };
+        vec4 colours[3];
+    };
+};
+
 class UIUtil
 {
 public:

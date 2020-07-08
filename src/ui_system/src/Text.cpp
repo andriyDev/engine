@@ -1,7 +1,7 @@
 
 #include "ui/Text.h"
 
-#include "UIUtil.h"
+#include "ui/UIUtil.h"
 
 shared_ptr<MaterialProgram> Text::textProgram;
 shared_ptr<Material> Text::textMaterial;

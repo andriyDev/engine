@@ -2,8 +2,6 @@
 #include "ui/Container.h"
 #include "resources/Shader.h"
 
-#include "UIUtil.h"
-
 Container::~Container()
 {
     delete layoutAlgorithm;
