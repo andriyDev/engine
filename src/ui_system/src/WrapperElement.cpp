@@ -28,6 +28,9 @@ shared_ptr<UIElement> WrapperElement::queryLayout(vec2 point, vec4 mask, bool on
 
 pair<UILayoutRequest, bool> WrapperElement::computeLayoutRequest()
 {
+    if(!wrappedElement) {
+        rebuild();
+    }
     UILayoutRequest info = wrappedElement ? wrappedElement->getLayoutRequest() : UILayoutRequest({vec2(0,0), false});
     info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
     return make_pair(info, false);
@@ -37,6 +40,9 @@ hash_map<UIElement*, vec4> WrapperElement::computeChildLayouts()
 {
     vec4 box = getLayoutBox() + padding * vec4(1,1,-1,-1);
     hash_map<UIElement*, vec4> layout;
+    if(!wrappedElement) {
+        rebuild();
+    }
     if(wrappedElement) {
         layout.insert(make_pair(wrappedElement.get(), box));
     }
@@ -46,7 +52,10 @@ hash_map<UIElement*, vec4> WrapperElement::computeChildLayouts()
 bool WrapperElement::updateChildLayoutRequests()
 {
     if(!wrappedElement) {
-        return false;
+        rebuild();
+        if(!wrappedElement) {
+            return false;
+        }
     }
     return wrappedElement->updateLayoutRequest();
 }
