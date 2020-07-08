@@ -2,9 +2,9 @@
 #include "ui/UIElement.h"
 
 void adjustX(vec2& min, vec2& max, const vec2& size, const vec4& margin, const vec2& origin, const vec2& position,
-    const UILayoutRequest& info, bool canUseAspect)
+    const UILayoutRequest& info, bool canUseAspect, bool anchorsMatch)
 {
-    if(min.x == max.x) {
+    if(anchorsMatch) {
         float desiredWidth;
         if(size.x == 0) {
             desiredWidth = canUseAspect && info.maintainAspect && info.desiredSize.y != 0
@@ -26,10 +26,9 @@ void adjustX(vec2& min, vec2& max, const vec2& size, const vec4& margin, const v
 }
 
 void adjustY(vec2& min, vec2& max, const vec2& size, const vec4& margin, const vec2& origin, const vec2& position,
-    const UILayoutRequest& info, bool canUseAspect)
+    const UILayoutRequest& info, bool canUseAspect, bool anchorsMatch)
 {
-
-    if(min.y == max.y) {
+    if(anchorsMatch) {
         float desiredHeight;
         if(size.y == 0) {
             desiredHeight = canUseAspect && info.maintainAspect && info.desiredSize.x != 0
@@ -67,11 +66,11 @@ vec4 UIElement::adjustRect(vec4 rect) const
     UILayoutRequest info = getLayoutRequest();
 
     if(widthDetermined) {
-        adjustX(min, max, size, margin, origin, position, info, false);
-        adjustY(min, max, size, margin, origin, position, info, true);
+        adjustX(min, max, size, margin, origin, position, info, false, anchors.x == anchors.z);
+        adjustY(min, max, size, margin, origin, position, info, true, anchors.y == anchors.w);
     } else {
-        adjustY(min, max, size, margin, origin, position, info, false);
-        adjustX(min, max, size, margin, origin, position, info, true);
+        adjustY(min, max, size, margin, origin, position, info, false, anchors.y == anchors.w);
+        adjustX(min, max, size, margin, origin, position, info, true, anchors.x == anchors.z);
     }
 
     return vec4(min, max);
