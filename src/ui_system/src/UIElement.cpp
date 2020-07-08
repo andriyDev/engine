@@ -133,3 +133,19 @@ bool UIElement::testPoint(vec2 point)
 {
     return isPointInBox(layoutBox, point);
 }
+
+void UIElement::getAncestors(vector<shared_ptr<UIElement>>& ancestors)
+{
+    ancestors.push_back(shared_from_this());
+    shared_ptr<UIElement> parent = parentElement.lock();
+    if(parent) {
+        parent->getAncestors(ancestors);
+    }
+}
+
+vector<shared_ptr<UIElement>> UIElement::getAncestors()
+{
+    vector<shared_ptr<UIElement>> ancestors;
+    getAncestors(ancestors);
+    return move(ancestors);
+}

@@ -81,6 +81,9 @@ public:
     virtual bool testPoint(vec2 point);
 
     virtual void update(float delta, shared_ptr<UISystem> ui) {}
+
+    void getAncestors(vector<shared_ptr<UIElement>>& ancestors);
+    vector<shared_ptr<UIElement>> getAncestors();
 protected:
     /*
     Computes the layout request for this element (children all have valid layout requests).
