@@ -8,7 +8,7 @@
 
 struct UIColour
 {
-    enum Type
+    enum Type : uint
     {
         Base = 0,
         Hovered = 1,
@@ -23,6 +23,8 @@ struct UIColour
         };
         vec4 colours[3];
     };
+    
+    vec4 byType(Type type) { return colours[type]; }
 };
 
 class UIUtil
