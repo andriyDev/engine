@@ -11,6 +11,7 @@ list(APPEND SRC src/UISystem.cpp)
 list(APPEND SRC src/UIUtil.cpp)
 list(APPEND SRC src/Text.cpp)
 list(APPEND SRC src/Image.cpp)
+list(APPEND SRC src/Slider.cpp)
 
 list(TRANSFORM SRC PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
 

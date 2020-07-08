@@ -41,6 +41,7 @@
 #include "ui/Button.h"
 #include "ui/Text.h"
 #include "ui/Image.h"
+#include "ui/Slider.h"
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -373,23 +374,26 @@ int main()
     shared_ptr<UIElement> defaultFocus;
     {
         shared_ptr<Container> layout = make_shared<Container>();
+        layout->label = "root";
         layout->layoutAlgorithm = new OverlayLayout();
         element = layout;
 
         shared_ptr<Box> box = make_shared<Box>();
-        box->layoutAlgorithm = new ListLayout<ListDirection::Row>(30);
+        box->label = "mainContainer";
+        box->layoutAlgorithm = new ListLayout<ListDirection::Row>(0);
         box->anchors = vec4(0, 1, 1, 1);
         box->origin.y = 1;
         box->position.y = -15;
         box->margin.x = 15;
         box->margin.z = 15;
         box->size.y = 150;
-        box->cornerRadii = vec4(10, 10, 0, 0);
+        //box->cornerRadii = vec4(10, 10, 0, 0);
         box->colour = vec4(1, 0, 0, 1);
-        box->padding = vec4(1,1,1,1) * 30.f;
+        //box->padding = vec4(1,1,1,1) * 30.f;
         layout->addChild(box);
 
         shared_ptr<Button> btn1 = make_shared<Button>();
+        btn1->label = "btn1";
         btn1->layoutAlgorithm = new OverlayLayout();
         btn1->stateColours = {
             vec4(0.75f, 0.75f, 0.75f, 1.0f),
@@ -402,6 +406,7 @@ int main()
         box->addChild(btn1);
 
         shared_ptr<Button> btn2 = make_shared<Button>();
+        btn2->label = "btn2";
         btn2->layoutAlgorithm = new OverlayLayout();
         btn2->stateColours = {
             vec4(0.75f, 0.75f, 0.75f, 1.0f),
@@ -414,6 +419,7 @@ int main()
         box->addChild(btn2);
 
         shared_ptr<Button> btn3 = make_shared<Button>();
+        btn3->label = "btn3";
         btn3->layoutAlgorithm = new OverlayLayout();
         btn3->stateColours = {
             vec4(0.75f, 0.75f, 0.75f, 1.0f),
@@ -425,6 +431,7 @@ int main()
         box->addChild(btn3);
 
         shared_ptr<Text> text = make_shared<Text>();
+        text->label = "text";
         text->setFontSize(20.0f);
         text->setLineSpacing(1.0f);
         text->font = 11;
@@ -432,6 +439,19 @@ int main()
         text->setText("Push Me!\nHello world It's a me, Mario!");
         text->setTextAlignment(Font::Center);
         btn3->addChild(text);
+
+        shared_ptr<Slider> slider = make_shared<Slider>();
+        slider->label = "slider";
+        slider->verticalGravity = UIElement::Center;
+        slider->horizontalGravity = UIElement::Center;
+        slider->direction = Slider::Horizontal;
+        slider->size.x = 200;
+        slider->filledBarColour = vec4(0,1,0,1);
+        slider->value = 0.5f;
+        slider->buttonSize = 25.f;
+        slider->sliderBarWidth = 15.f;
+        slider->sync();
+        box->addChild(slider);
 
         btn1->neighbours[UIElement::Right] = btn2;
         btn2->neighbours[UIElement::Right] = btn3;
