@@ -15,6 +15,8 @@ public:
     bool maskChildren = true;
     ContainerLayout* layoutAlgorithm = nullptr;
 
+    uint getChildCount() const { return (uint)elements.size(); }
+    shared_ptr<UIElement> getChild(uint id) { return elements[id]; }
     virtual void addChild(shared_ptr<UIElement> element);
     virtual void removeChild(shared_ptr<UIElement> element);
     virtual void clearChildren();
