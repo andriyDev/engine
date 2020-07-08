@@ -66,3 +66,12 @@ void WrapperElement::releaseChild(shared_ptr<UIElement> element)
         wrappedElement = nullptr;
     }
 }
+
+void WrapperElement::rebuild()
+{
+    if(wrappedElement) {
+        wrappedElement = nullptr;
+    }
+
+    wrappedElement = build();
+}
