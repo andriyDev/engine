@@ -48,6 +48,11 @@ public:
     // Maximum size this element wants (may not be provided).
     vec2 maxSize = vec2(INFINITY,INFINITY);
 
+    const char* label;
+
+    UIElement() : label("") {}
+    UIElement(const char* _label) : label(_label) {}
+
     bool blocksInteractive = false;
     bool canBeFocused = false;
 
