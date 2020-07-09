@@ -380,7 +380,7 @@ int main()
 
         shared_ptr<Box> box = make_shared<Box>();
         box->label = "mainContainer";
-        box->layoutAlgorithm = new ListLayout<ListDirection::Row>(0);
+        box->layoutAlgorithm = new ListLayout<ListDirection::Row>(10);
         box->anchors = vec4(0, 1, 1, 1);
         box->origin.y = 1;
         box->position.y = -15;
@@ -389,7 +389,7 @@ int main()
         box->size.y = 150;
         //box->cornerRadii = vec4(10, 10, 0, 0);
         box->colour = vec4(1, 0, 0, 1);
-        //box->padding = vec4(1,1,1,1) * 30.f;
+        box->padding = vec4(1,1,1,1) * 10.f;
         layout->addChild(box);
 
         shared_ptr<Button> btn1 = make_shared<Button>();

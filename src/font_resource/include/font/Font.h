@@ -43,6 +43,7 @@ public:
     {
         vec4 textureLayout;
         vec4 physicalLayout;
+        vec2 advancePoint;
     };
 
     struct StringLayout

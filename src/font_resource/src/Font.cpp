@@ -321,9 +321,13 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                     vec2 tl = offset + vec2(info.bearing) * data.pixelUnit * vec2(1, -1);
                     charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
                     vec2 s = vec2(info.size) * data.pixelUnit;
+                    offset.x += widths[lastChar];
+                    charLayout.advancePoint = offset;
                     layoutData.layout.push_back(charLayout);
                 }
-                offset.x += widths[lastChar];
+                else {
+                    offset.x += widths[lastChar];
+                }
                 token.width -= widths[lastChar];
             }
             // We only need to update the bounds once this token chunk has been laid out.
@@ -381,9 +385,13 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
                 charLayout.textureLayout = vec4(vec2(info.pos) / vec2(sourceSize), vec2(info.size) / vec2(sourceSize));
                 vec2 tl = offset + vec2(info.bearing) * data.pixelUnit * vec2(1, -1);
                 charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
+                offset.x += widths[i];
+                charLayout.advancePoint = offset;
                 layoutData.layout.push_back(charLayout);
             }
-            offset.x += widths[i];
+            else {
+                offset.x += widths[i];
+            }
         }
         layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
     }
