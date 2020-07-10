@@ -268,7 +268,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     StringLayout layoutData;
     TextLayoutData data;
     data.lineHeight = lineHeight;
-    data.pixelUnit = desiredFontSize / sourceFontSize;
+    data.pixelUnit = getPixelUnit(desiredFontSize);;
     data.lineSpacing = lineSpacing;
     data.spaceAdvance = spaceAdvance;
     data.width = width;
@@ -358,7 +358,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     StringLayout layoutData;
     TextLayoutData data;
     data.lineHeight = lineHeight;
-    data.pixelUnit = desiredFontSize / sourceFontSize;
+    data.pixelUnit = getPixelUnit(desiredFontSize);
     data.lineSpacing = lineSpacing;
     data.spaceAdvance = spaceAdvance;
 

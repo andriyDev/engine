@@ -69,6 +69,8 @@ public:
 
     bool save(string fileName);
 
+    inline float getPixelUnit(float desiredFontSize) const { return desiredFontSize / sourceFontSize; }
+
 protected:
     class BuildData : public Resource::BuildData
     {
