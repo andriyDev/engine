@@ -230,7 +230,8 @@ int splitToken(const vector<float>& widths, int offset, float remainingLineSpace
     return offset;
 }
 
-void newLine(vec2& offset, Font::StringLayout& layout, uint* startOfLine, const TextLayoutData& data, uint lines = 1)
+void newLine(vec2& offset, Font::StringLayout& layout, uint* startOfLine, uint* stringStartOfLine,
+    const TextLayoutData& data, uint lines = 1)
 {
     if(startOfLine && data.align != Font::Left) {
         float lineUsed = offset.x; // Rename for better understanding.
@@ -242,9 +243,22 @@ void newLine(vec2& offset, Font::StringLayout& layout, uint* startOfLine, const 
             layout.layout[*startOfLine].physicalLayout.x += shift;
             layout.layout[*startOfLine].physicalLayout.z += shift;
         }
+        for(; (*stringStartOfLine) < layout.advancePoints.size(); (*stringStartOfLine)++) {
+            layout.advancePoints[*stringStartOfLine].x += shift;
+        }
+    }
+    float lineShift = data.align == Font::Center ? data.width * 0.5f : (data.align == Font::Right ? data.width : 0);
+    if(lines > 0) {
+        for(uint i = 0; i < lines - 1; i++) {
+            layout.advancePoints.push_back(vec2(lineShift,
+                offset.y + data.lineHeight * data.pixelUnit * data.lineSpacing * (i + 1)));
+        }
     }
     offset.x = 0;
     offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing * lines;
+    if(lines >= 0) {
+        layout.advancePoints.push_back(offset);
+    }
     layout.bounds = vec2(layout.bounds.x, max(layout.bounds.y, offset.y));
 }
 
@@ -264,12 +278,13 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
 
     vec2 offset(0, maxAscent * data.pixelUnit);
     uint startOfLine = 0;
+    uint stringStartOfLine = 0;
     layoutData.bounds = offset;
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            newLine(offset, layoutData, &startOfLine, data, token.length);
+            newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data, token.length);
             continue;
         }
 
@@ -295,12 +310,12 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
         while(currentChar != widths.size()) {
             // If the token will overflow to the next line, we should just move directly to the next line.
             if(token.width > width - offset.x && token.width <= width) {
-                newLine(offset, layoutData, &startOfLine, data);
+                newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data);
                 currentChar = (int)widths.size();
             } else {
                 // For all iterations except the first, move to the next line.
                 if(currentChar != 0) {
-                    newLine(offset, layoutData, &startOfLine, data);
+                    newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data);
                 }
                 
                 // Split the token.
@@ -309,7 +324,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                 // Since we previously only move to the next line if not on the first iteration,
                 // we have to handle this case.
                 if(currentChar == 0) {
-                    newLine(offset, layoutData, &startOfLine, data);
+                    newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data);
                 }
             }
 
@@ -323,20 +338,17 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                     vec2 tl = offset + vec2(info.bearing) * data.pixelUnit * vec2(1, -1);
                     charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
                     vec2 s = vec2(info.size) * data.pixelUnit;
-                    offset.x += widths[lastChar];
-                    charLayout.advancePoint = offset;
                     layoutData.layout.push_back(charLayout);
                 }
-                else {
-                    offset.x += widths[lastChar];
-                }
+                offset.x += widths[lastChar];
                 token.width -= widths[lastChar];
+                layoutData.advancePoints.push_back(offset);
             }
             // We only need to update the bounds once this token chunk has been laid out.
             layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
         }
     }
-    newLine(offset, layoutData, &startOfLine, data, 0);
+    newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data, 0);
     layoutData.bounds.y += maxDescent * data.pixelUnit;
     return layoutData;
 }
@@ -358,7 +370,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            newLine(offset, layoutData, nullptr, data, token.length);
+            newLine(offset, layoutData, nullptr, nullptr, data, token.length);
             continue;
         }
 
@@ -387,17 +399,14 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
                 charLayout.textureLayout = vec4(vec2(info.pos) / vec2(sourceSize), vec2(info.size) / vec2(sourceSize));
                 vec2 tl = offset + vec2(info.bearing) * data.pixelUnit * vec2(1, -1);
                 charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
-                offset.x += widths[i];
-                charLayout.advancePoint = offset;
                 layoutData.layout.push_back(charLayout);
             }
-            else {
-                offset.x += widths[i];
-            }
+            offset.x += widths[i];
+            layoutData.advancePoints.push_back(offset);
         }
         layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
     }
-    newLine(offset, layoutData, nullptr, data, 0);
+    newLine(offset, layoutData, nullptr, nullptr, data, 0);
     layoutData.bounds.y += maxDescent * data.pixelUnit;
     return layoutData;
 }

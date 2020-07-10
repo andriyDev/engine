@@ -43,12 +43,12 @@ public:
     {
         vec4 textureLayout;
         vec4 physicalLayout;
-        vec2 advancePoint;
     };
 
     struct StringLayout
     {
         vector<CharacterLayout> layout;
+        vector<vec2> advancePoints;
         vec2 bounds;
     };
 
