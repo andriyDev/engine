@@ -18,6 +18,7 @@ public:
     ResourceRef<Font> font;
 
     Text();
+    virtual ~Text();
 
     vec4 colour = vec4(1,1,1,1);
 
@@ -57,6 +58,7 @@ protected:
     bool desiredNeedsUpdate = true;
 
     Font::StringLayout textLayout;
+    float* textData = nullptr;
     Font::StringLayout textDesiredLayout;
     
     static shared_ptr<MaterialProgram> textProgram;
