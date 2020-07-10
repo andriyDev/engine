@@ -26,13 +26,20 @@ void UISystem::frameTick(float delta)
             element->updateLayouts(screenBox, !stillDirty);
         }
     }
-    if(mouseHasMoved) {
-        updateTopElements();
-        mouseHasMoved = false;
-    }
-    
-    for(const shared_ptr<UIElement>& element : elements) {
+
+    updateForced = true;
+    while(updateForced) {
+        updateForced = false;
+        if(mouseHasMoved) {
+            updateTopElements();
+            mouseHasMoved = false;
+        }
+        
+        for(const shared_ptr<UIElement>& element : elements) {
             element->update(delta, screenBox, static_pointer_cast<UISystem>(shared_from_this()));
+        }
+        // After the first update, any subsequent updates will have no time expire.
+        delta = 0;
     }
     for(const shared_ptr<UIElement>& element : elements) {
         element->render(screenBox, surfaceSize);
@@ -162,4 +169,10 @@ shared_ptr<UIElement> UISystem::changeFocus(UIElement::Direction direction)
     } else {
         return currentFocus;
     }
+}
+
+void UISystem::forceUpdate()
+{
+    mouseHasMoved = true;
+    updateForced = true;
 }

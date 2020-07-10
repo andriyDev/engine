@@ -49,6 +49,8 @@ public:
     void focusElement(shared_ptr<UIElement> element);
     shared_ptr<UIElement> changeFocus(UIElement::Direction direction);
     shared_ptr<UIElement> getFocusedElement() const { return focusedElement.lock(); }
+
+    void forceUpdate();
     
     bool focusLocked = false;
 private:
@@ -58,6 +60,7 @@ private:
     vec2 lastSurfaceSize = vec2(0,0);
     vec2 mousePoint;
     bool mouseHasMoved = false;
+    bool updateForced = false;
     weak_ptr<UIElement> focusedElement;
     weak_ptr<UIElement> defaultFocus;
 
