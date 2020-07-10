@@ -45,6 +45,11 @@ public:
         textNeedsUpdate = true;
     }
 
+    void setUnboundedLayout(bool useUnbounded) {
+        useUnboundedLayout = useUnbounded;
+        textNeedsUpdate = true;
+    }
+
     virtual void render(vec4 mask, vec2 surfaceSize) override;
 protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
@@ -54,12 +59,13 @@ protected:
     float lineSpacing = 1.0f;
     float layoutWidth = 0;
     Font::Alignment textAlign = Font::Alignment::Left;
+    bool useUnboundedLayout = false;
     bool textNeedsUpdate = true;
     bool desiredNeedsUpdate = true;
 
     Font::StringLayout textLayout;
-    float* textData = nullptr;
     Font::StringLayout textDesiredLayout;
+    float* textData = nullptr;
     
     static shared_ptr<MaterialProgram> textProgram;
     static shared_ptr<Material> textMaterial;

@@ -48,10 +48,14 @@ void Text::render(vec4 mask, vec2 surfaceSize)
     }
     vec4 rect = getLayoutBox();
     float newWidth = rect.z - rect.x;
-    if(textNeedsUpdate || newWidth != layoutWidth) {
+    if(textNeedsUpdate || newWidth != layoutWidth && !useUnboundedLayout) {
         layoutWidth = newWidth;
         textNeedsUpdate = false;
-        textLayout = fontPtr->layoutString(text, size, layoutWidth, textAlign, lineSpacing);
+        if(useUnboundedLayout) {
+            textLayout = textDesiredLayout;
+        } else {
+            textLayout = fontPtr->layoutString(text, size, layoutWidth, textAlign, lineSpacing);
+        }
         delete[] textData;
         textData = new float[textLayout.layout.size() * 8];
 
