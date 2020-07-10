@@ -11,8 +11,6 @@ void UISystem::init()
 
 void UISystem::frameTick(float delta)
 {
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
     vec2 surfaceSize = targetSurface->getSize() * uiScale;
     bool relayout = false;
     if(surfaceSize != lastSurfaceSize) {
@@ -41,6 +39,8 @@ void UISystem::frameTick(float delta)
         // After the first update, any subsequent updates will have no time expire.
         delta = 0;
     }
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
     for(const shared_ptr<UIElement>& element : elements) {
         element->render(screenBox, surfaceSize);
     }
