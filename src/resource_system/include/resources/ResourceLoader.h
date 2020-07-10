@@ -144,3 +144,8 @@ shared_ptr<T> ResourceRef<T>::resolve(ResolveMethod method)
     }
     return state == ResourceState::Ready ? resource : nullptr;
 }
+
+template<typename T, typename U>
+inline bool operator==(const ResourceRef<T>& A, const ResourceRef<U>& B) {
+    return A.id == B.id || A.resource == B.resource;
+}

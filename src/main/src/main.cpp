@@ -428,6 +428,7 @@ int main()
         };
         btn3->padding = vec4(1,1,1,1) * 15.f;
         btn3->cornerRadii = vec4(10, 10, 10, 10);
+        btn3->size.x = 300;
         box->addChild(btn3);
 
         shared_ptr<Text> text = make_shared<Text>();
@@ -436,7 +437,8 @@ int main()
         text->setLineSpacing(1.0f);
         text->font = 11;
         text->colour = vec4(0,0,0,1);
-        text->setText("Push Me!\nHello world It's a me, Mario!");
+        text->setText("Push Me!\nHello world It's a me, Mario! Blah Blah blah blah.");
+        text->setUnboundedLayout(true);
         text->setTextAlignment(Font::Center);
         btn3->addChild(text);
 
