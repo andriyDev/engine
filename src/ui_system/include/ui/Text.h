@@ -51,6 +51,8 @@ public:
     }
 
     virtual void render(vec4 mask, vec2 surfaceSize) override;
+
+    const Font::StringLayout& getTextLayout() const { return textLayout; }
 protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
 
