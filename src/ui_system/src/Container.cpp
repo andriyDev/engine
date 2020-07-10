@@ -82,8 +82,11 @@ bool Container::updateChildLayoutRequests()
 void Container::render(vec4 mask, vec2 surfaceSize)
 {
     renderSelf(mask, surfaceSize);
+    if(maskChildren) {
+        mask = intersect_boxes(mask, getLayoutBox() + vec4(1,1,-1,-1) * padding * (float)(!useUnpaddedBoxAsMask));
+    }
     for(shared_ptr<UIElement>& element : elements) {
-        element->render(maskChildren ? intersect_boxes(mask, getLayoutBox()) : mask, surfaceSize);
+        element->render(mask, surfaceSize);
     }
 }
 

@@ -13,6 +13,7 @@ public:
     virtual ~Container();
 
     bool maskChildren = true;
+    bool useUnpaddedBoxAsMask = false;
     ContainerLayout* layoutAlgorithm = nullptr;
 
     uint getChildCount() const { return (uint)elements.size(); }
