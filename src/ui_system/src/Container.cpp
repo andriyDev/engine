@@ -90,10 +90,13 @@ void Container::render(vec4 mask, vec2 surfaceSize)
     }
 }
 
-void Container::update(float delta, shared_ptr<UISystem> ui)
+void Container::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
 {
+    if(maskChildren) {
+        mask = intersect_boxes(mask, getLayoutBox() + vec4(1,1,-1,-1) * padding * (float)(!useUnpaddedBoxAsMask));
+    }
     for(shared_ptr<UIElement>& element : elements) {
-        element->update(delta, ui);
+        element->update(delta, mask, ui);
     }
 }
 

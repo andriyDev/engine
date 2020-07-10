@@ -9,9 +9,9 @@ Button::Button()
     canBeFocused = true;
 }
 
-void Button::update(float delta, shared_ptr<UISystem> ui)
+void Button::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
 {
-    Container::update(delta, ui);
+    Container::update(delta, mask, ui);
 
     shared_ptr<UIElement> focus = ui->getFocusedElement();
 

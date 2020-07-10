@@ -32,7 +32,7 @@ void UISystem::frameTick(float delta)
     }
     
     for(const shared_ptr<UIElement>& element : elements) {
-        element->update(delta, static_pointer_cast<UISystem>(shared_from_this()));
+            element->update(delta, screenBox, static_pointer_cast<UISystem>(shared_from_this()));
     }
     for(const shared_ptr<UIElement>& element : elements) {
         element->render(screenBox, surfaceSize);

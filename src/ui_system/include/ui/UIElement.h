@@ -80,7 +80,7 @@ public:
 
     virtual bool testPoint(vec2 point);
 
-    virtual void update(float delta, shared_ptr<UISystem> ui) {}
+    virtual void update(float delta, vec4 mask, shared_ptr<UISystem> ui) {}
 
     void getAncestors(vector<shared_ptr<UIElement>>& ancestors);
     vector<shared_ptr<UIElement>> getAncestors();

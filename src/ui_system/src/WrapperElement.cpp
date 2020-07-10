@@ -8,10 +8,10 @@ void WrapperElement::render(vec4 mask, vec2 surfaceSize)
     }
 }
 
-void WrapperElement::update(float delta, shared_ptr<UISystem> ui)
+void WrapperElement::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
 {
     if(wrappedElement) {
-        wrappedElement->update(delta, ui);
+        wrappedElement->update(delta, mask, ui);
     }
 }
 

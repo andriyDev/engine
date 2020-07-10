@@ -24,7 +24,7 @@ public:
 
     virtual void render(vec4 mask, vec2 surfaceSize) override;
 
-    virtual void update(float delta, shared_ptr<UISystem> ui) override;
+    virtual void update(float delta, vec4 mask, shared_ptr<UISystem> ui) override;
 
     virtual shared_ptr<UIElement> queryLayout(vec2 point, vec4 mask, bool onlyInteractive) override;
 protected:

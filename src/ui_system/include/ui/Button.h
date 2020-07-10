@@ -12,7 +12,7 @@ public:
 
     UIColour stateColours;
 
-    virtual void update(float delta, shared_ptr<UISystem> ui) override;
+    virtual void update(float delta, vec4 mask, shared_ptr<UISystem> ui) override;
 private:
     enum State : uint
     {

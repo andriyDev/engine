@@ -103,9 +103,9 @@ UIColour::Type convert(Slider::State state)
     }
 }
 
-void Slider::update(float delta, shared_ptr<UISystem> ui)
+void Slider::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
 {
-    WrapperElement::update(delta, ui);
+    WrapperElement::update(delta, mask, ui);
 
     shared_ptr<UIElement> focus = ui->getFocusedElement();
 
