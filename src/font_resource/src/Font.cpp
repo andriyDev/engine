@@ -43,6 +43,7 @@ bool Font::load(shared_ptr<Resource::BuildData> data)
     sourceSize.y = read_ushort(&file);
     spaceAdvance = read_ushort(&file);
     lineHeight = read_ushort(&file);
+    maxAscent = read_ushort(&file);
     maxDescent = read_ushort(&file);
     uchar packed_bool = 0;
     for(uint i = 0; i < FONT_CHAR_COUNT; i++) {
@@ -82,6 +83,7 @@ bool Font::save(string fileName)
     write_ushort(&file, (ushort)sourceSize.y);
     write_ushort(&file, spaceAdvance);
     write_ushort(&file, lineHeight);
+    write_ushort(&file, maxAscent);
     write_ushort(&file, maxDescent);
     uchar packed_bool = 0;
     for(uint i = 0; i < FONT_CHAR_COUNT; i++) {
@@ -260,7 +262,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
 
     vector<Token> tokens = tokenize(text, characters, data);
 
-    vec2 offset(0, data.lineHeight * data.pixelUnit);
+    vec2 offset(0, maxAscent * data.pixelUnit);
     uint startOfLine = 0;
     layoutData.bounds = offset;
 
@@ -350,7 +352,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
 
     vector<Token> tokens = tokenize(text, characters, data);
 
-    vec2 offset(0, data.lineHeight * data.pixelUnit);
+    vec2 offset(0, maxAscent * data.pixelUnit);
     layoutData.bounds = offset;
 
     for(Token& token : tokens) {

@@ -57,6 +57,7 @@ public:
     ushort sourceFontSize;
     ushort spaceAdvance;
     ushort lineHeight;
+    ushort maxAscent;
     ushort maxDescent;
 
     StringLayout layoutString(const string& text, float desiredFontSize,

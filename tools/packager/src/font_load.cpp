@@ -44,6 +44,7 @@ pair<Font*, Texture*> loadFont(string fontFile, uint faceIndex, uint size)
     }
     font->spaceAdvance = (uchar)(face->glyph->advance.x >> 6);
 
+    font->maxAscent = 0;
     font->maxDescent = 0;
 
     for(uint c = 0; c < FONT_CHAR_COUNT; c++) {
@@ -63,6 +64,7 @@ pair<Font*, Texture*> loadFont(string fontFile, uint faceIndex, uint size)
             // Take whichever is more down, the current height, or the bottom edge of this glyph.
             texDimensions.y = max(currentOffset.y + font->characters[c].size.y + 2, texDimensions.y);
 
+            font->maxAscent = (ushort)max((int)font->maxAscent, font->characters[c].bearing.y);
             font->maxDescent = (ushort)max((int)font->maxDescent,
                 (int)font->characters[c].size.y - (int)font->characters[c].bearing.y);
             // Increment the order index.
