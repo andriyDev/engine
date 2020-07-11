@@ -10,7 +10,11 @@ class Button : public Box
 public:
     Button();
 
-    UIColour stateColours;
+    UIColour stateColours = {
+        vec4(0.75f, 0.75f, 0.75f, 1.0f),
+        vec4(0.9f, 0.9f, 0.9f, 1.0f),
+        vec4(0.5f, 0.5f, 0.5f, 1.0f)
+    };
 
     virtual void update(float delta, vec4 mask, shared_ptr<UISystem> ui) override;
 private:

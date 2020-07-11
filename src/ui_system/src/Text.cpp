@@ -53,17 +53,19 @@ void Text::render(vec4 mask, vec2 surfaceSize)
         }
     }
 
-    textMaterial->setTexture("font_texture", fontPtr->getTextureSheet());
-    
-    textMaterial->use();
-    textMaterial->setVec2Property("surface_size", surfaceSize, true);
-    textMaterial->setVec4Property("rect", rect, true);
-    textMaterial->setVec4Property("mask", mask, true);
-    textMaterial->setVec4Property("colour", colour, true);
-    GLint uniformId = textMaterial->getUniformId("character_layout");
-    glUniform4fv(uniformId, (GLsizei)textLayout.layout.size() * 2, (float*)&textLayout.layout[0]);
-    UIUtil::bindRectangle();
-    UIUtil::renderRectangles((uint)textLayout.layout.size());
+    if(textLayout.layout.size() > 0) {
+        textMaterial->setTexture("font_texture", fontPtr->getTextureSheet());
+        
+        textMaterial->use();
+        textMaterial->setVec2Property("surface_size", surfaceSize, true);
+        textMaterial->setVec4Property("rect", rect, true);
+        textMaterial->setVec4Property("mask", mask, true);
+        textMaterial->setVec4Property("colour", colour, true);
+        GLint uniformId = textMaterial->getUniformId("character_layout");
+        glUniform4fv(uniformId, (GLsizei)textLayout.layout.size() * 2, (float*)&textLayout.layout[0]);
+        UIUtil::bindRectangle();
+        UIUtil::renderRectangles((uint)textLayout.layout.size());
+    }
 }
 
 pair<UILayoutRequest, bool> Text::computeLayoutRequest()
