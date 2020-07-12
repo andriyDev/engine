@@ -50,6 +50,7 @@ public:
         vector<CharacterLayout> layout;
         vector<vec2> advancePoints;
         vec2 bounds;
+        float lineHeight;
     };
 
     Character characters[FONT_CHAR_COUNT];

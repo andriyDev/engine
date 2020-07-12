@@ -110,6 +110,10 @@ void UISystem::onMouseMove(vec2 newMousePoint)
 
 void UISystem::updateTopElements()
 {
+    if(focusLocked) {
+        return;
+    }
+    
     shared_ptr<UIElement> _topInteractiveElement;
     shared_ptr<UIElement> _topElement;
 
@@ -125,9 +129,6 @@ void UISystem::updateTopElements()
     topElement = _topElement;
     topInteractiveElement = _topInteractiveElement;
 
-    if(focusLocked) {
-        return;
-    }
     if(_topInteractiveElement && _topInteractiveElement->canBeFocused) {
         if(_topInteractiveElement != focusedElement.lock()) {
             focusElement(_topInteractiveElement);

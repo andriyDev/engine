@@ -274,12 +274,16 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     data.width = width;
     data.align = horizontalAlignment;
 
+    layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
+
     vector<Token> tokens = tokenize(text, characters, data);
 
     vec2 offset(0, maxAscent * data.pixelUnit);
     uint startOfLine = 0;
     uint stringStartOfLine = 0;
     layoutData.bounds = offset;
+    
+    layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
@@ -362,10 +366,14 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     data.lineSpacing = lineSpacing;
     data.spaceAdvance = spaceAdvance;
 
+    layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
+
     vector<Token> tokens = tokenize(text, characters, data);
 
     vec2 offset(0, maxAscent * data.pixelUnit);
     layoutData.bounds = offset;
+
+    layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
