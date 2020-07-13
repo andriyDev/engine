@@ -78,7 +78,7 @@ pair<UILayoutRequest, bool> Text::computeLayoutRequest()
     }
     if(desiredNeedsUpdate) {
         desiredNeedsUpdate = false;
-        textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, lineSpacing);
+        textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, textAlign, lineSpacing);
     }
     info.desiredSize = textDesiredLayout.bounds + vec2(1,1);
     return make_pair(info, false);

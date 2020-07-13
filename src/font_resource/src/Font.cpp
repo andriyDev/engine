@@ -155,8 +155,8 @@ inline uchar getCharType(char c)
 
 struct Token
 {
-    int start;
-    int length;
+    uint start;
+    uint length;
     float width;
 
     operator bool() const { return length; }
@@ -230,36 +230,56 @@ int splitToken(const vector<float>& widths, int offset, float remainingLineSpace
     return offset;
 }
 
-void newLine(vec2& offset, Font::StringLayout& layout, uint* startOfLine, uint* stringStartOfLine,
-    const TextLayoutData& data, uint lines = 1)
+void endLine(Font::StringLayout& layout, vector<uvec4>& lineData, uvec2& startLine)
 {
-    if(startOfLine && data.align != Font::Left) {
-        float lineUsed = offset.x; // Rename for better understanding.
+    uvec2 endLinePoint(
+        (uint)layout.layout.size(),
+        (uint)layout.advancePoints.size()
+    );
+    lineData.push_back(uvec4(
+        startLine.x,
+        startLine.y,
+        endLinePoint.x,
+        endLinePoint.y
+    ));
+    startLine = endLinePoint;
+}
+
+void newLine(vec2& offset, Font::StringLayout& layout, const TextLayoutData& data, bool addAdvance)
+{
+    offset.x = 0;
+    offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing;
+    layout.bounds = vec2(layout.bounds.x, max(layout.bounds.y, offset.y));
+    if(addAdvance) {
+        layout.advancePoints.push_back(offset);
+    }
+}
+
+void shiftLines(Font::StringLayout& layout, const TextLayoutData& data, const vector<uvec4>& lineData)
+{
+    // We've already laid everything out as Left align.
+    if(data.align == Font::Left) {
+        return;
+    }
+
+    for(const uvec4& line : lineData) {
+        uvec2 layoutRange = uvec2(line.x, line.z);
+        uvec2 advanceRange = uvec2(line.y, line.w);
+
+        float lineUsed = layout.advancePoints[advanceRange.y - 1].x;
         float shift = data.width - lineUsed;
         if(data.align == Font::Center) {
             shift *= 0.5f;
         }
-        for(; (*startOfLine) < layout.layout.size(); (*startOfLine)++) {
-            layout.layout[*startOfLine].physicalLayout.x += shift;
-            layout.layout[*startOfLine].physicalLayout.z += shift;
+
+        for(uint i = layoutRange.x; i < layoutRange.y; i++) {
+            layout.layout[i].physicalLayout.x += shift;
+            layout.layout[i].physicalLayout.z += shift;
         }
-        for(; (*stringStartOfLine) < layout.advancePoints.size(); (*stringStartOfLine)++) {
-            layout.advancePoints[*stringStartOfLine].x += shift;
-        }
-    }
-    float lineShift = data.align == Font::Center ? data.width * 0.5f : (data.align == Font::Right ? data.width : 0);
-    if(lines > 0) {
-        for(uint i = 0; i < lines - 1; i++) {
-            layout.advancePoints.push_back(vec2(lineShift,
-                offset.y + data.lineHeight * data.pixelUnit * data.lineSpacing * (i + 1)));
+        for(uint i = advanceRange.x; i < advanceRange.y; i++) {
+            layout.advancePoints[i].x += shift;
         }
     }
-    offset.x = 0;
-    offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing * lines;
-    if(lines >= 0) {
-        layout.advancePoints.push_back(offset);
-    }
-    layout.bounds = vec2(layout.bounds.x, max(layout.bounds.y, offset.y));
 }
 
 Font::StringLayout Font::layoutString(const string& text, float desiredFontSize, float width,
@@ -274,6 +294,8 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     data.width = width;
     data.align = horizontalAlignment;
 
+    vector<uvec4> lineData;
+
     layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
     layoutData.maxAscent = maxAscent * data.pixelUnit;
     layoutData.maxDescent = maxDescent * data.pixelUnit;
@@ -281,8 +303,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     vector<Token> tokens = tokenize(text, characters, data);
 
     vec2 offset(0, maxAscent * data.pixelUnit);
-    uint startOfLine = 0;
-    uint stringStartOfLine = 0;
+    uvec2 startLine(0,0);
     layoutData.bounds = offset;
     
     layoutData.advancePoints.push_back(offset);
@@ -290,19 +311,22 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data, token.length);
+            for(uint i = 0; i < token.length; i++) {
+                endLine(layoutData, lineData, startLine);
+                newLine(offset, layoutData, data, true);
+            }
             continue;
         }
 
         vector<float> widths;
         if(type == WHITESPACE) {
             // Go through each character and add its width.
-            for(int i = 0; i < token.length; i++) {
+            for(uint i = 0; i < token.length; i++) {
                 widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * (data.spaceAdvance * data.pixelUnit));
             }
         } else if(type == ALPHABETIC || type == NUMERIC) {
             // Go through each character and add its width.
-            for(int i = 0; i < token.length; i++) {
+            for(uint i = 0; i < token.length; i++) {
                 widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * data.pixelUnit);
             }
         } else if(type == SPECIAL) {
@@ -316,12 +340,14 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
         while(currentChar != widths.size()) {
             // If the token will overflow to the next line, we should just move directly to the next line.
             if(token.width > width - offset.x && token.width <= width) {
-                newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data);
+                endLine(layoutData, lineData, startLine);
+                newLine(offset, layoutData, data, false);
                 currentChar = (int)widths.size();
             } else {
                 // For all iterations except the first, move to the next line.
                 if(currentChar != 0) {
-                    newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data);
+                    endLine(layoutData, lineData, startLine);
+                    newLine(offset, layoutData, data, false);
                 }
                 
                 // Split the token.
@@ -330,7 +356,8 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                 // Since we previously only move to the next line if not on the first iteration,
                 // we have to handle this case.
                 if(currentChar == 0) {
-                    newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data);
+                    endLine(layoutData, lineData, startLine);
+                    newLine(offset, layoutData, data, false);
                 }
             }
 
@@ -354,12 +381,14 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
             layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
         }
     }
-    newLine(offset, layoutData, &startOfLine, &stringStartOfLine, data, 0);
+    endLine(layoutData, lineData, startLine);
     layoutData.bounds.y += maxDescent * data.pixelUnit;
+    shiftLines(layoutData, data, lineData);
     return layoutData;
 }
 
-Font::StringLayout Font::layoutStringUnbounded(const string& text, float desiredFontSize, float lineSpacing) const
+Font::StringLayout Font::layoutStringUnbounded(const string& text, float desiredFontSize,
+    Alignment horizontalAlignment, float lineSpacing) const
 {
     StringLayout layoutData;
     TextLayoutData data;
@@ -367,6 +396,9 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     data.pixelUnit = getPixelUnit(desiredFontSize);
     data.lineSpacing = lineSpacing;
     data.spaceAdvance = spaceAdvance;
+    data.align = horizontalAlignment;
+
+    vector<uvec4> lineData;
 
     layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
     layoutData.maxAscent = maxAscent * data.pixelUnit;
@@ -376,25 +408,28 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
 
     vec2 offset(0, maxAscent * data.pixelUnit);
     layoutData.bounds = offset;
-
+    uvec2 startLine(0,0);
     layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
         if(type == NEWLINE) {
-            newLine(offset, layoutData, nullptr, nullptr, data, token.length);
+            for(uint i = 0; i < token.length; i++) {
+                endLine(layoutData, lineData, startLine);
+                newLine(offset, layoutData, data, true);
+            }
             continue;
         }
 
         vector<float> widths;
         if(type == WHITESPACE) {
             // Go through each character and add its width.
-            for(int i = 0; i < token.length; i++) {
+            for(uint i = 0; i < token.length; i++) {
                 widths.push_back((text[token.start + i] == '\t' ? 4 : 1) * (data.spaceAdvance * data.pixelUnit));
             }
         } else if(type == ALPHABETIC || type == NUMERIC) {
             // Go through each character and add its width.
-            for(int i = 0; i < token.length; i++) {
+            for(uint i = 0; i < token.length; i++) {
                 widths.push_back(characters[text[token.start + i] - FONT_CHAR_START].advance * data.pixelUnit);
             }
         } else if(type == SPECIAL) {
@@ -403,7 +438,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
         }
         
         // Move lastOffset up until it matches with offset.
-        for(int i = 0; i < token.length; i++) {
+        for(uint i = 0; i < token.length; i++) {
             // Only output characters if not whitespace.
             if(type != WHITESPACE) {
                 CharacterLayout charLayout;
@@ -418,7 +453,9 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
         }
         layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
     }
-    newLine(offset, layoutData, nullptr, nullptr, data, 0);
+    endLine(layoutData, lineData, startLine);
     layoutData.bounds.y += maxDescent * data.pixelUnit;
+    data.width = 0;
+    shiftLines(layoutData, data, lineData);
     return layoutData;
 }
