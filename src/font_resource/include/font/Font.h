@@ -51,6 +51,8 @@ public:
         vector<vec2> advancePoints;
         vec2 bounds;
         float lineHeight;
+        float maxAscent;
+        float maxDescent;
     };
 
     Character characters[FONT_CHAR_COUNT];
