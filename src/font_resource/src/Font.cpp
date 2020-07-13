@@ -249,7 +249,7 @@ void newLine(vec2& offset, Font::StringLayout& layout, const TextLayoutData& dat
 {
     offset.x = 0;
     offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing;
-    layout.bounds = vec2(layout.bounds.x, max(layout.bounds.y, offset.y));
+    layout.bounds = vec4(0, 0, layout.bounds.z, max(layout.bounds.w, offset.y));
     if(addAdvance) {
         layout.advancePoints.push_back(offset);
     }
@@ -260,6 +260,15 @@ void shiftLines(Font::StringLayout& layout, const TextLayoutData& data, const ve
     // We've already laid everything out as Left align.
     if(data.align == Font::Left) {
         return;
+    }
+
+    {
+        float shift = data.width - layout.bounds.x;
+        if(data.align == Font::Center) {
+            shift *= 0.5f;
+        }
+        layout.bounds.x += shift;
+        layout.bounds.z += shift;
     }
 
     for(const uvec4& line : lineData) {
@@ -304,7 +313,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
 
     vec2 offset(0, maxAscent * data.pixelUnit);
     uvec2 startLine(0,0);
-    layoutData.bounds = offset;
+    layoutData.bounds = vec4(0, 0, 0, offset.y);
     
     layoutData.advancePoints.push_back(offset);
 
@@ -378,11 +387,11 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                 layoutData.advancePoints.push_back(offset);
             }
             // We only need to update the bounds once this token chunk has been laid out.
-            layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
+            layoutData.bounds = vec4(0, 0, max(layoutData.bounds.z, offset.x), layoutData.bounds.w);
         }
     }
     endLine(layoutData, lineData, startLine);
-    layoutData.bounds.y += maxDescent * data.pixelUnit;
+    layoutData.bounds.w += maxDescent * data.pixelUnit;
     shiftLines(layoutData, data, lineData);
     return layoutData;
 }
@@ -407,7 +416,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     vector<Token> tokens = tokenize(text, characters, data);
 
     vec2 offset(0, maxAscent * data.pixelUnit);
-    layoutData.bounds = offset;
+    layoutData.bounds = vec4(0, 0, 0, offset.y);
     uvec2 startLine(0,0);
     layoutData.advancePoints.push_back(offset);
 
@@ -451,10 +460,10 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
             offset.x += widths[i];
             layoutData.advancePoints.push_back(offset);
         }
-        layoutData.bounds = vec2(max(layoutData.bounds.x, offset.x), layoutData.bounds.y);
+        layoutData.bounds = vec4(0, 0, max(layoutData.bounds.z, offset.x), layoutData.bounds.w);
     }
     endLine(layoutData, lineData, startLine);
-    layoutData.bounds.y += maxDescent * data.pixelUnit;
+    layoutData.bounds.w += maxDescent * data.pixelUnit;
     data.width = 0;
     shiftLines(layoutData, data, lineData);
     return layoutData;

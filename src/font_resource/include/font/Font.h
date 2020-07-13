@@ -49,7 +49,7 @@ public:
     {
         vector<CharacterLayout> layout;
         vector<vec2> advancePoints;
-        vec2 bounds;
+        vec4 bounds;
         float lineHeight;
         float maxAscent;
         float maxDescent;

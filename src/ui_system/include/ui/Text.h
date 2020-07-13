@@ -28,7 +28,7 @@ public:
     }
 
     void setFontSize(float _size) {
-        size = _size;
+        fontSize = _size;
         textNeedsUpdate = true;
         desiredNeedsUpdate = true;
     }
@@ -56,7 +56,7 @@ protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
 
     string text;
-    float size = 1.0f;
+    float fontSize = 1.0f;
     float lineSpacing = 1.0f;
     float layoutWidth = 0;
     Font::Alignment textAlign = Font::Alignment::Left;

@@ -42,3 +42,8 @@ private:
 
     void buildMesh();
 };
+
+inline vec2 getBoxSize(vec4 box)
+{
+    return vec2(box.z - box.x, box.w - box.y);
+}

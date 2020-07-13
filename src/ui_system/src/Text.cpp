@@ -43,13 +43,26 @@ void Text::render(vec4 mask, vec2 surfaceSize)
     }
     vec4 rect = getLayoutBox();
     float newWidth = rect.z - rect.x;
-    if(textNeedsUpdate || newWidth != layoutWidth && !useUnboundedLayout) {
+    if(textNeedsUpdate || newWidth != layoutWidth) {
         layoutWidth = newWidth;
         textNeedsUpdate = false;
         if(useUnboundedLayout) {
             textLayout = textDesiredLayout;
+            float shift = newWidth;
+            if(textAlign == Font::Center) {
+                shift *= 0.5f;
+            }
+            for(uint i = 0; i < textLayout.layout.size(); i++) {
+                textLayout.layout[i].physicalLayout.x += shift;
+                textLayout.layout[i].physicalLayout.z += shift;
+            }
+            for(uint i = 0; i < textLayout.advancePoints.size(); i++) {
+                textLayout.advancePoints[i].x += shift;
+            }
+            textLayout.bounds.x += shift;
+            textLayout.bounds.z += shift;
         } else {
-            textLayout = fontPtr->layoutString(text, size, layoutWidth, textAlign, lineSpacing);
+            textLayout = fontPtr->layoutString(text, fontSize, layoutWidth, textAlign, lineSpacing);
         }
     }
 
@@ -78,8 +91,8 @@ pair<UILayoutRequest, bool> Text::computeLayoutRequest()
     }
     if(desiredNeedsUpdate) {
         desiredNeedsUpdate = false;
-        textDesiredLayout = fontPtr->layoutStringUnbounded(text, size, textAlign, lineSpacing);
+        textDesiredLayout = fontPtr->layoutStringUnbounded(text, fontSize, textAlign, lineSpacing);
     }
-    info.desiredSize = textDesiredLayout.bounds + vec2(1,1);
+    info.desiredSize = getBoxSize(textDesiredLayout.bounds) + vec2(1,1);
     return make_pair(info, false);
 }
