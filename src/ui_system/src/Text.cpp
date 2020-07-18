@@ -23,15 +23,7 @@ Text::Text()
             common_shader, fragment_shader
         }));
 
-        if(!textProgram) {
-            throw "Failed to create UI program.";
-        }
-
         textMaterial = make_shared<Material>(textProgram);
-
-        if(!textMaterial) {
-            throw "Failed to create UI material.";
-        }
     }
 }
 
@@ -58,6 +50,7 @@ void Text::render(vec4 mask, vec2 surfaceSize)
             }
             for(uint i = 0; i < textLayout.advancePoints.size(); i++) {
                 textLayout.advancePoints[i].x += shift;
+                textLayout.prePoints[i].x += shift;
             }
             textLayout.bounds.x += shift;
             textLayout.bounds.z += shift;
