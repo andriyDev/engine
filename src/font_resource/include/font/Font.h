@@ -48,7 +48,9 @@ public:
     struct StringLayout
     {
         vector<CharacterLayout> layout;
+        vector<uvec4> lineData;
         vector<vec2> advancePoints;
+        vector<vec2> prePoints;
         vec4 bounds;
         float lineHeight;
         float maxAscent;

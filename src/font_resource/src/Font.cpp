@@ -247,6 +247,9 @@ void endLine(Font::StringLayout& layout, vector<uvec4>& lineData, uvec2& startLi
 
 void newLine(vec2& offset, Font::StringLayout& layout, const TextLayoutData& data, bool addAdvance)
 {
+    if(addAdvance) {
+        layout.prePoints.push_back(offset);
+    }
     offset.x = 0;
     offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing;
     layout.bounds = vec4(0, 0, layout.bounds.z, max(layout.bounds.w, offset.y));
@@ -286,7 +289,17 @@ void shiftLines(Font::StringLayout& layout, const TextLayoutData& data, const ve
             layout.layout[i].physicalLayout.z += shift;
         }
         for(uint i = advanceRange.x; i < advanceRange.y; i++) {
+            // If our pre point is on the same line as the advance point, shift it over.
+            if(layout.prePoints[i].y == layout.advancePoints[i].y) {
+                layout.prePoints[i].x += shift;
+            }
             layout.advancePoints[i].x += shift;
+        }
+        // If the character after this line exists, and its prepoint is on this line, shift it.
+        // Note we only need to do this for the posterior, since the prepoint can only be before or on the same line.
+        if(advanceRange.y < layout.prePoints.size()
+            && layout.prePoints[advanceRange.y].y == layout.advancePoints[advanceRange.x].y) {
+            layout.prePoints[advanceRange.y].x += shift;
         }
     }
 }
@@ -303,7 +316,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     data.width = width;
     data.align = horizontalAlignment;
 
-    vector<uvec4> lineData;
+    vector<uvec4>& lineData = layoutData.lineData;
 
     layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
     layoutData.maxAscent = maxAscent * data.pixelUnit;
@@ -315,6 +328,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     uvec2 startLine(0,0);
     layoutData.bounds = vec4(0, 0, 0, offset.y);
     
+    layoutData.prePoints.push_back(offset);
     layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
@@ -382,6 +396,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                     vec2 s = vec2(info.size) * data.pixelUnit;
                     layoutData.layout.push_back(charLayout);
                 }
+                layoutData.prePoints.push_back(offset);
                 offset.x += widths[lastChar];
                 token.width -= widths[lastChar];
                 layoutData.advancePoints.push_back(offset);
@@ -407,7 +422,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     data.spaceAdvance = spaceAdvance;
     data.align = horizontalAlignment;
 
-    vector<uvec4> lineData;
+    vector<uvec4>& lineData = layoutData.lineData;
 
     layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
     layoutData.maxAscent = maxAscent * data.pixelUnit;
@@ -418,6 +433,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     vec2 offset(0, maxAscent * data.pixelUnit);
     layoutData.bounds = vec4(0, 0, 0, offset.y);
     uvec2 startLine(0,0);
+    layoutData.prePoints.push_back(offset);
     layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
@@ -457,6 +473,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
                 charLayout.physicalLayout = vec4(tl, tl + vec2(info.size) * data.pixelUnit);
                 layoutData.layout.push_back(charLayout);
             }
+            layoutData.prePoints.push_back(offset);
             offset.x += widths[i];
             layoutData.advancePoints.push_back(offset);
         }
