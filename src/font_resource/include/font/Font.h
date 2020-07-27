@@ -47,6 +47,7 @@ public:
 
     struct StringLayout
     {
+        string text;
         vector<CharacterLayout> layout;
         vector<uvec4> lineData;
         vector<vec2> advancePoints;
@@ -55,6 +56,14 @@ public:
         float lineHeight;
         float maxAscent;
         float maxDescent;
+
+        /*
+        Returns the index of the character at the specified point.
+        The returned index means that the point is nearest to the pre-point for that character.
+        If the point is outside the bounds of a line, it will be clamped to the line.
+        If the point is past the end of the string, it returns the size of the string.
+        */
+        uint getCharacterAtPoint(const vec2& point) const;
     };
 
     Character characters[FONT_CHAR_COUNT];

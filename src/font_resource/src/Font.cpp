@@ -278,7 +278,7 @@ void shiftLines(Font::StringLayout& layout, const TextLayoutData& data, const ve
         uvec2 layoutRange = uvec2(line.x, line.z);
         uvec2 advanceRange = uvec2(line.y, line.w);
 
-        float lineUsed = layout.advancePoints[advanceRange.y - 1].x;
+        float lineUsed = advanceRange.y > 0 ? layout.advancePoints[advanceRange.y - 1].x : 0;
         float shift = data.width - lineUsed;
         if(data.align == Font::Center) {
             shift *= 0.5f;
@@ -308,6 +308,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     Alignment horizontalAlignment, float lineSpacing) const
 {
     StringLayout layoutData;
+    layoutData.text = text;
     TextLayoutData data;
     data.lineHeight = lineHeight;
     data.pixelUnit = getPixelUnit(desiredFontSize);;
@@ -327,9 +328,6 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     vec2 offset(0, maxAscent * data.pixelUnit);
     uvec2 startLine(0,0);
     layoutData.bounds = vec4(0, 0, 0, offset.y);
-    
-    layoutData.prePoints.push_back(offset);
-    layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
@@ -415,6 +413,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     Alignment horizontalAlignment, float lineSpacing) const
 {
     StringLayout layoutData;
+    layoutData.text = text;
     TextLayoutData data;
     data.lineHeight = lineHeight;
     data.pixelUnit = getPixelUnit(desiredFontSize);
@@ -433,8 +432,6 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     vec2 offset(0, maxAscent * data.pixelUnit);
     layoutData.bounds = vec4(0, 0, 0, offset.y);
     uvec2 startLine(0,0);
-    layoutData.prePoints.push_back(offset);
-    layoutData.advancePoints.push_back(offset);
 
     for(Token& token : tokens) {
         uchar type = getCharType(text[token.start]);
@@ -484,4 +481,73 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     data.width = 0;
     shiftLines(layoutData, data, lineData);
     return layoutData;
+}
+
+uint Font::StringLayout::getCharacterAtPoint(const vec2& point) const
+{
+    if(text.size() == 0) {
+        return 0;
+    }
+
+    // We now know there is at least one character.
+
+    // Compute the mid point of a line above its advance points.
+    float verticalShift = (maxAscent + maxDescent) * 0.5f;
+    // Compute the size of half the line to use as a threshold distance from a line center.
+    float verticalThreshold = lineHeight * 0.5f;
+    bool firstLine = true;
+    for(const uvec4& line : lineData) {
+        float lineHeight;
+        if(firstLine && line.y == line.w) {
+            // If this is the first line and it has no text, the first character must have been a new line.
+            // Therefore, we get the height of the prepoint for that new line.
+            lineHeight = prePoints[line.w].y;
+        } else {
+            // Otherwise, we know that the first character on the line must have ended on this line.
+            lineHeight = advancePoints[line.y].y;
+        }
+        // Move the line up based on the midpoint offset.
+        lineHeight -= verticalShift;
+        // We no longer care if this is the first line or not.
+        firstLine = false;
+
+        // If we aren't close enough to the line, just move to the next line.
+        if(abs(point.y - lineHeight) > verticalThreshold) {
+            continue;
+        }
+
+        // Otherwise, we know the correct character is somewhere on this line.
+
+        uint firstCharOnLine = line.y + (text[line.y] == '\n');
+        uint lastCharOnLine = line.w;
+
+        for(uint i = firstCharOnLine; i < lastCharOnLine; i++) {
+            if(i == firstCharOnLine) {
+                // If our point is to the left of the start of this line, return the start of this line.
+                if (point.x < prePoints[i].x) {
+                    return i;
+                }
+            }
+            // If for some reason, the character has no width, just move to the next element.
+            if(prePoints[i].x == advancePoints[i].x) {
+                continue;
+            }
+            
+            // Transform the point's x value to map onto the character range.
+            float x = (point.x - prePoints[i].x) / (advancePoints[i].x - prePoints[i].x);
+            // If the point is clearly outside the range, this is the wrong character.
+            if(x < 0 || x > 1) {
+                continue;
+            }
+            
+            // Otherwise, if we are closer to the prepoint, return this character's index, otherwise the next character.
+            return i + (x >= 0.5f);
+        }
+        // If we couldn't find a good character, we must be to the right of all the characters on this line.
+        // So go to the prepoint of the character on the next line (which is effectively the end of this line).
+        return line.w;
+    }
+
+    // If our point is on no line, then just return the end of the string.
+    return (uint)text.size();
 }
