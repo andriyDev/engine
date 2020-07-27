@@ -322,6 +322,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
     layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
     layoutData.maxAscent = maxAscent * data.pixelUnit;
     layoutData.maxDescent = maxDescent * data.pixelUnit;
+    layoutData.spaceWidth = spaceAdvance * data.pixelUnit;
 
     vector<Token> tokens = tokenize(text, characters, data);
 
@@ -426,6 +427,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
     layoutData.lineHeight = (float)data.lineHeight * (float)data.lineSpacing * data.pixelUnit;
     layoutData.maxAscent = maxAscent * data.pixelUnit;
     layoutData.maxDescent = maxDescent * data.pixelUnit;
+    layoutData.spaceWidth = spaceAdvance * data.pixelUnit;
 
     vector<Token> tokens = tokenize(text, characters, data);
 

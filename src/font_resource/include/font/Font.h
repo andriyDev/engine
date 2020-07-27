@@ -56,6 +56,7 @@ public:
         float lineHeight;
         float maxAscent;
         float maxDescent;
+        float spaceWidth;
 
         /*
         Returns the index of the character at the specified point.
