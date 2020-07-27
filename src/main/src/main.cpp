@@ -562,6 +562,13 @@ int main()
         if(IS->isKeyPressed(GLFW_KEY_LEFT)) { ui->changeFocus(UIElement::Left); }
         if(IS->isKeyPressed(GLFW_KEY_DOWN)) { ui->changeFocus(UIElement::Down); }
         if(IS->isKeyPressed(GLFW_KEY_RIGHT)) { ui->changeFocus(UIElement::Right); }
+        for(uint i = 0; i <= GLFW_KEY_LAST; i++) {
+            ui->updateKey(i, IS->isKeyPressed(i), IS->isKeyDown(i), IS->isKeyReleased(i));
+        }
+        uint c = IS->consumeCharTyped();
+        if(c) {
+            ui->onCharacterTyped(c);
+        }
 
         U.tick(delta);
     } while(running && !window.wantsClose());

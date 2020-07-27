@@ -4,6 +4,15 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+KeyTypeListener::~KeyTypeListener()
+{
+    shared_ptr<UISystem> sys = system.lock();
+    if(!sys) {
+        return;
+    }
+    sys->removeTypingListener(this);
+}
+
 void UISystem::init()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -106,6 +115,34 @@ void UISystem::onMouseMove(vec2 newMousePoint)
         mouseHasMoved = true;
         mousePoint = newMousePoint;
     }
+}
+
+void UISystem::onCharacterTyped(uint character)
+{
+    for(KeyTypeListener* listener : listeners) {
+        listener->onKeyTyped(character);
+    }
+}
+
+void UISystem::addTypingListener(KeyTypeListener* listener)
+{
+    if(!listener) { return; }
+    listeners.insert(listener);
+    listener->system = static_pointer_cast<UISystem>(shared_from_this());
+}
+
+void UISystem::removeTypingListener(KeyTypeListener* listener)
+{
+    if(listeners.erase(listener)) {
+        listener->system = shared_ptr<UISystem>(nullptr);
+    }
+}
+
+void UISystem::updateKey(uint key, bool pressed, bool down, bool released)
+{
+    keys[key].pressed = pressed;
+    keys[key].down = down;
+    keys[key].released = released;
 }
 
 void UISystem::updateTopElements()

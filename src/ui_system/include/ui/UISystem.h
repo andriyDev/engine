@@ -8,6 +8,18 @@
 
 #include "UIElement.h"
 
+class KeyTypeListener
+{
+public:
+    virtual ~KeyTypeListener();
+
+    virtual void onKeyTyped(uint key) = 0;
+private:
+    weak_ptr<UISystem> system;
+
+    friend class UISystem;
+};
+
 class UISystem : public System
 {
     virtual void init() override;
@@ -34,6 +46,8 @@ public:
     void onAcceptPressed();
     void onAcceptReleased();
 
+    void onCharacterTyped(uint character);
+
     bool isMousePressed(MouseButton btn) const { return mousePressed[(uchar)btn]; }
     bool isMouseDown(MouseButton btn) const { return mouseDown[(uchar)btn]; }
     bool isMouseReleased(MouseButton btn) const { return mouseReleased[(uchar)btn]; }
@@ -41,6 +55,12 @@ public:
     bool isAcceptPressed() const { return acceptPressed; }
     bool isAcceptDown() const { return acceptDown; }
     bool isAcceptReleased() const { return acceptReleased; }
+
+    bool isKeyPressed(uint key) const { return keys[key].pressed; }
+    bool isKeyDown(uint key) const { return keys[key].down; }
+    bool isKeyReleased(uint key) const { return keys[key].released; }
+
+    void updateKey(uint key, bool pressed, bool down, bool released);
 
     void addElement(shared_ptr<UIElement> element);
     void removeElement(shared_ptr<UIElement> element);
@@ -51,6 +71,9 @@ public:
     shared_ptr<UIElement> getFocusedElement() const { return focusedElement.lock(); }
 
     void forceUpdate();
+
+    void addTypingListener(KeyTypeListener* listener);
+    void removeTypingListener(KeyTypeListener* listener);
     
     bool focusLocked = false;
 private:
@@ -71,6 +94,14 @@ private:
     bool acceptPressed;
     bool acceptReleased;
     bool acceptDown;
+
+    struct KeyState {
+        bool pressed;
+        bool down;
+        bool released;
+    } keys[349];
+
+    hash_set<KeyTypeListener*> listeners;
 
     void updateMouseData();
     void updateTopElements();
