@@ -13,7 +13,7 @@ class KeyTypeListener
 public:
     virtual ~KeyTypeListener();
 
-    virtual void onKeyTyped(uint key) = 0;
+    virtual void onKeyTyped(uint key, shared_ptr<UISystem> ui) = 0;
 private:
     weak_ptr<UISystem> system;
 

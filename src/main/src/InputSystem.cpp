@@ -19,7 +19,7 @@ void InputSystem::frameTick(float delta)
     for(int i = 0; SPECIAL_KEYS[i]; i++) {
         keys_frame[SPECIAL_KEYS[i]].value = 0;
     }
-    lastCharTyped = 0;
+    charsTyped = "";
     mouseDelta = {0, 0};
     scrollDelta = {0, 0};
     if(targetWindow) {
@@ -39,10 +39,10 @@ void InputSystem::gameplayTick(float delta)
     }
 }
 
-uint InputSystem::consumeCharTyped()
+string InputSystem::consumeCharTyped()
 {
-    uint out = lastCharTyped;
-    lastCharTyped = 0;
+    string out = charsTyped;
+    charsTyped = "";
     return out;
 }
 
@@ -67,6 +67,37 @@ float InputSystem::consumeScrollDeltaY()
     return out;
 }
 
+uchar mapKeyToChar(int key, int mods)
+{
+    switch(key) {
+    case GLFW_KEY_ENTER:
+        return '\n';
+    case GLFW_KEY_BACKSPACE:
+        return 8; // Backspace in ASCII.
+    case GLFW_KEY_TAB:
+        return 9; // Tab in ASCII.
+    case GLFW_KEY_DELETE:
+        return 127; // DEL in ASCII.
+    case GLFW_KEY_LEFT:
+        return 17; // Device Control 1 in ASCII.
+    case GLFW_KEY_RIGHT:
+        return 18; // Device Control 2 in ASCII.
+    case GLFW_KEY_DOWN:
+        return 19; // Device Control 3 in ASCII.
+    case GLFW_KEY_UP:
+        return 20; // Device Control 4 in ASCII.
+    case GLFW_KEY_PAGE_UP:
+        return 128;
+    case GLFW_KEY_PAGE_DOWN:
+        return 129;
+    case GLFW_KEY_HOME:
+        return 130;
+    case GLFW_KEY_END:
+        return 131;
+    }
+    return 0;
+}
+
 void InputSystem::keyPressed(int key, int scancode, int mods)
 {
     if(key == GLFW_KEY_UNKNOWN) {
@@ -76,6 +107,9 @@ void InputSystem::keyPressed(int key, int scancode, int mods)
     keys_frame[key].value = 1;
     keys_gameplay[key].pressed = true;
     keys_gameplay[key].value = 1;
+
+    uchar val = mapKeyToChar(key, mods);
+    if(val) { charsTyped += val; }
 }
 
 void InputSystem::keyReleased(int key, int scancode, int mods)
@@ -96,11 +130,14 @@ void InputSystem::keyRepeated(int key, int scancode, int mods)
     }
     keys_frame[key].repeated = true;
     keys_gameplay[key].repeated = true;
+
+    uchar val = mapKeyToChar(key, mods);
+    if(val) { charsTyped += val; }
 }
 
 void InputSystem::charTyped(uint character)
 {
-    lastCharTyped = character;
+    charsTyped += (uchar)character;
 }
 
 void InputSystem::mousePressed(int button, int mods)

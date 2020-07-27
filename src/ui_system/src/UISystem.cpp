@@ -120,7 +120,7 @@ void UISystem::onMouseMove(vec2 newMousePoint)
 void UISystem::onCharacterTyped(uint character)
 {
     for(KeyTypeListener* listener : listeners) {
-        listener->onKeyTyped(character);
+        listener->onKeyTyped(character, static_pointer_cast<UISystem>(shared_from_this()));
     }
 }
 

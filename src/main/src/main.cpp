@@ -565,8 +565,8 @@ int main()
         for(uint i = 0; i <= GLFW_KEY_LAST; i++) {
             ui->updateKey(i, IS->isKeyPressed(i), IS->isKeyDown(i), IS->isKeyReleased(i));
         }
-        uint c = IS->consumeCharTyped();
-        if(c) {
+        string chars = IS->consumeCharTyped();
+        for(uchar c : chars) {
             ui->onCharacterTyped(c);
         }
 

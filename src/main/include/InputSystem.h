@@ -63,7 +63,7 @@ public:
     void setCursor(bool lock, bool hidden);
 
     void setTargetWindow(Window* _target);
-    uint consumeCharTyped();
+    string consumeCharTyped();
     vec2 consumeMouseDelta();
     float consumeScrollDeltaX();
     float consumeScrollDeltaY();
@@ -102,7 +102,7 @@ private:
     bool mouseOnWindow = false;
     KeyState keys_gameplay[GLFW_KEY_LAST + 1];
     KeyState keys_frame[GLFW_KEY_LAST + 1];
-    uint lastCharTyped = 0;
+    string charsTyped;
     vec2 mousePosition;
     vec2 mouseDelta;
     vec2 scrollDelta;
