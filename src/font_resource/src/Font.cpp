@@ -297,8 +297,11 @@ void shiftLines(Font::StringLayout& layout, const TextLayoutData& data, const ve
         }
         // If the character after this line exists, and its prepoint is on this line, shift it.
         // Note we only need to do this for the posterior, since the prepoint can only be before or on the same line.
+        // Also, if the line has no characters, it must be the first line, so shift the next character anyway
+        // since it is almost definitely a new line.
         if(advanceRange.y < layout.prePoints.size()
-            && layout.prePoints[advanceRange.y].y == layout.advancePoints[advanceRange.x].y) {
+            && (layout.prePoints[advanceRange.y].y == layout.advancePoints[advanceRange.x].y
+                || advanceRange.x == advanceRange.y)) {
             layout.prePoints[advanceRange.y].x += shift;
         }
     }
