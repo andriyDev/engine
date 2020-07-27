@@ -497,6 +497,7 @@ uint Font::StringLayout::getCharacterAtPoint(const vec2& point) const
     float verticalShift = (maxAscent + maxDescent) * 0.5f;
     // Compute the size of half the line to use as a threshold distance from a line center.
     float verticalThreshold = lineHeight * 0.5f;
+    
     bool firstLine = true;
     for(const uvec4& line : lineData) {
         float lineHeight;
@@ -510,6 +511,12 @@ uint Font::StringLayout::getCharacterAtPoint(const vec2& point) const
         }
         // Move the line up based on the midpoint offset.
         lineHeight -= verticalShift;
+
+        // If this is the first line and the point is above the line, just return the string start.
+        if(firstLine && point.y < lineHeight - verticalThreshold) {
+            return 0;
+        }
+
         // We no longer care if this is the first line or not.
         firstLine = false;
 
