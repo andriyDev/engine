@@ -10,6 +10,7 @@ list(APPEND SRC src/WrapperElement.cpp)
 list(APPEND SRC src/UISystem.cpp)
 list(APPEND SRC src/UIUtil.cpp)
 list(APPEND SRC src/Text.cpp)
+list(APPEND SRC src/TextField.cpp)
 list(APPEND SRC src/Image.cpp)
 list(APPEND SRC src/Slider.cpp)
 

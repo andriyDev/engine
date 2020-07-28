@@ -42,6 +42,7 @@
 #include "ui/Text.h"
 #include "ui/Image.h"
 #include "ui/Slider.h"
+#include "ui/TextField.h"
 
 #include <glm/gtx/string_cast.hpp>
 
@@ -405,18 +406,15 @@ int main()
         btn1->size.x = 300;
         box->addChild(btn1);
 
-        shared_ptr<Button> btn2 = make_shared<Button>();
-        btn2->label = "btn2";
-        btn2->layoutAlgorithm = new OverlayLayout();
-        btn2->stateColours = {
-            vec4(0.75f, 0.75f, 0.75f, 1.0f),
-            vec4(0.9f, 0.9f, 0.9f, 1.0f),
-            vec4(0.5f, 0.5f, 0.5f, 1.0f)
-        };
-        btn2->padding = vec4(1,1,1,1) * 15.f;
-        btn2->cornerRadii = vec4(10, 10, 10, 10);
-        btn2->weight = 1;
-        box->addChild(btn2);
+        shared_ptr<TextField> textField = make_shared<TextField>();
+        textField->label = "textField";
+        textField->font = 11;
+        textField->setValue("Hello friend!\n\nHow are you today? Blah Blah Blah Blah\nWasssup\n\nWhy is this?");
+        textField->useUnboundedLayout = false;
+        textField->fontSize = 25.0f;
+        textField->sync();
+        textField->size.x = 400;
+        box->addChild(textField);
 
         shared_ptr<Button> btn3 = make_shared<Button>();
         btn3->label = "btn3";
@@ -433,12 +431,11 @@ int main()
 
         shared_ptr<Text> text = make_shared<Text>();
         text->label = "text";
-        text->setFontSize(20.0f);
+        text->setFontSize(25.0f);
         text->setLineSpacing(1.0f);
         text->font = 11;
         text->colour = vec4(0,0,0,1);
-        text->setText("Push Me!\nHello world It's a me, Mario! Blah Blah blah blah.");
-        text->setUnboundedLayout(true);
+        text->setText("\n\nHello friend!\n\nHow are you today?\nWasssup\n\n");
         text->setTextAlignment(Font::Center);
         btn3->addChild(text);
 
@@ -455,11 +452,11 @@ int main()
         slider->sync();
         box->addChild(slider);
 
-        btn1->neighbours[UIElement::Right] = btn2;
-        btn2->neighbours[UIElement::Right] = btn3;
+        btn1->neighbours[UIElement::Right] = textField;
+        textField->neighbours[UIElement::Right] = btn3;
         
-        btn3->neighbours[UIElement::Left] = btn2;
-        btn2->neighbours[UIElement::Left] = btn1;
+        btn3->neighbours[UIElement::Left] = textField;
+        textField->neighbours[UIElement::Left] = btn1;
 
         defaultFocus = btn1;
     }
