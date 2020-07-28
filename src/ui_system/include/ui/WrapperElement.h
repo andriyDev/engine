@@ -15,6 +15,9 @@ protected:
     virtual hash_map<UIElement*, vec4> computeChildLayouts() override;
     virtual bool updateChildLayoutRequests() override;
     virtual void releaseChild(shared_ptr<UIElement> element) override;
+    
+    bool maskChildren = true;
+    bool useUnpaddedBoxAsMask = false;
 
-    shared_ptr<UIElement> wrappedElement;
+    vector<shared_ptr<UIElement>> wrappedElements;
 };
