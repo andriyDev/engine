@@ -19,9 +19,10 @@ UILayoutRequest OverlayLayout::computeLayoutRequest(const UIElement* rootElement
     vec2& bounds = info.desiredSize;
     bounds = vec2(0,0);
     for(int i = 0; i < elements.size(); i++) {
+        const UIElement::LayoutDetails& eld = elements[i]->getLayoutDetails();
         vec2 size = elements[i]->getLayoutRequest().desiredSize + vec2(
-            abs(elements[i]->margin.x) + abs(elements[i]->margin.z),
-            abs(elements[i]->margin.y) + abs(elements[i]->margin.w));
+            abs(eld.margin.x) + abs(eld.margin.z),
+            abs(eld.margin.y) + abs(eld.margin.w));
         bounds = vec2(max(bounds.x, size.x), max(bounds.y, size.y));
     }
     return info;

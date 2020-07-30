@@ -50,7 +50,8 @@ pair<UILayoutRequest, bool> Container::computeLayoutRequest()
             info.desiredSize = max(info.desiredSize, element->getLayoutRequest().desiredSize);
         }
     }
-    info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);
+    info.desiredSize += vec2(layoutDetails.padding.x + layoutDetails.padding.z,
+        layoutDetails.padding.y + layoutDetails.padding.w);
     return make_pair(info, false);
 }
 
@@ -58,7 +59,7 @@ hash_map<UIElement*, vec4> Container::computeChildLayouts()
 {
     hash_map<UIElement*, vec4> result;
     vector<vec4> boxes;
-    vec4 paddedBox = getLayoutBox() + padding * vec4(1, 1, -1, -1);
+    vec4 paddedBox = getLayoutBox() + layoutDetails.padding * vec4(1, 1, -1, -1);
     
     if(layoutAlgorithm) {
         boxes = layoutAlgorithm->layoutElements(this, paddedBox, elements);
@@ -83,7 +84,7 @@ void Container::render(vec4 mask, vec2 surfaceSize)
 {
     renderSelf(mask, surfaceSize);
     if(maskChildren) {
-        mask = intersect_boxes(mask, getLayoutBox() + vec4(1,1,-1,-1) * padding * (float)(!useUnpaddedBoxAsMask));
+        mask = intersect_boxes(mask, useUnpaddedBoxAsMask ? getLayoutBox() : getPaddedLayoutBox());
     }
     for(shared_ptr<UIElement>& element : elements) {
         element->render(mask, surfaceSize);
@@ -93,7 +94,7 @@ void Container::render(vec4 mask, vec2 surfaceSize)
 void Container::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
 {
     if(maskChildren) {
-        mask = intersect_boxes(mask, getLayoutBox() + vec4(1,1,-1,-1) * padding * (float)(!useUnpaddedBoxAsMask));
+        mask = intersect_boxes(mask, useUnpaddedBoxAsMask ? getLayoutBox() : getPaddedLayoutBox());
     }
     for(shared_ptr<UIElement>& element : elements) {
         element->update(delta, mask, ui);

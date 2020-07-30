@@ -36,22 +36,24 @@ void Slider::sync()
     }
     bar->colour = sliderBarColour;
     bar->cornerRadii = vec4(1,1,1,1) * (sliderBarWidth * .5f);
-    bar->padding = bar->cornerRadii;
+    UIElement::LayoutDetails ld = bar->getLayoutDetails();
+    ld.padding = bar->cornerRadii;
     if(isHorizontal(direction)) {
-        bar->margin.x = (buttonSize - sliderBarWidth) * 0.5f;
-        bar->margin.z = (buttonSize - sliderBarWidth) * 0.5f;
-        bar->origin.y = 0.5f;
-        bar->position.y = 0;
-        bar->size.y = sliderBarWidth;
-        bar->anchors = vec4(0, 0.5f, 1, 0.5f);
+        ld.margin.x = (buttonSize - sliderBarWidth) * 0.5f;
+        ld.margin.z = (buttonSize - sliderBarWidth) * 0.5f;
+        ld.origin.y = 0.5f;
+        ld.position.y = 0;
+        ld.size.y = sliderBarWidth;
+        ld.anchors = vec4(0, 0.5f, 1, 0.5f);
     } else {
-        bar->margin.y = (buttonSize - sliderBarWidth) * 0.5f;
-        bar->margin.w = (buttonSize - sliderBarWidth) * 0.5f;
-        bar->origin.x = 0.5f;
-        bar->position.x = 0;
-        bar->size.x = sliderBarWidth;
-        bar->anchors = vec4(0.5f, 0, 0.5f, 1);
+        ld.margin.y = (buttonSize - sliderBarWidth) * 0.5f;
+        ld.margin.w = (buttonSize - sliderBarWidth) * 0.5f;
+        ld.origin.x = 0.5f;
+        ld.position.x = 0;
+        ld.size.x = sliderBarWidth;
+        ld.anchors = vec4(0.5f, 0, 0.5f, 1);
     }
+    bar->setLayoutDetails(ld);
 
     if(!filledBar) {
         filledBar = make_shared<Box>();
@@ -74,19 +76,25 @@ void Slider::sync()
         filledBar->cornerRadii = vec4(0,0,1,1);
     }
     filledBar->cornerRadii *= (sliderBarWidth * .5f);
-    filledBar->anchors = vec4(0,0,1,1);
-    filledBar->margin = -bar->padding;
+    ld = filledBar->getLayoutDetails();
+    ld.anchors = vec4(0,0,1,1);
+    ld.margin = -bar->cornerRadii;
+    filledBar->setLayoutDetails(ld);
 
     if(!button) {
         button = make_shared<Box>();
         button->label = "sliderButton";
-        button->anchors = vec4(0, 0.5f, 0, 0.5f);
-        button->origin = vec2(0.5f, 0.5f);
+        ld = button->getLayoutDetails();
+        ld.anchors = vec4(0, 0.5f, 0, 0.5f);
+        ld.origin = vec2(0.5f, 0.5f);
+        button->setLayoutDetails(ld);
         button->blocksInteractive = false;
         bar->addChild(button);
     }
     button->cornerRadii = vec4(1,1,1,1) * (buttonSize * .5f);
-    button->size = vec2(1,1) * buttonSize;
+    ld = button->getLayoutDetails();
+    ld.size = vec2(1,1) * buttonSize;
+    button->setLayoutDetails(ld);
     button->colour = buttonColour.base;
 }
 
@@ -143,25 +151,29 @@ void Slider::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
     button->colour = buttonColour.byType(convert(currentState));
 
     // Update the button (and filled bar) to match the new value.
+    UIElement::LayoutDetails ldButton = button->getLayoutDetails();
+    UIElement::LayoutDetails ldBar = filledBar->getLayoutDetails();
 
     if(isHorizontal(direction)) {
         if(isReversed(direction)) {
-            button->anchors.x = 1.0f - value;
-            filledBar->anchors.x = 1.0f - value;
+            ldButton.anchors.x = 1.0f - value;
+            ldBar.anchors.x = 1.0f - value;
         } else {
-            button->anchors.x = value;
-            filledBar->anchors.z = value;
+            ldButton.anchors.x = value;
+            ldBar.anchors.z = value;
         }
-        button->anchors.z = button->anchors.x;
+        ldButton.anchors.z = ldButton.anchors.x;
     } else {
         if(isReversed(direction)) {
-            button->anchors.y = 1.0f - value;
-            filledBar->anchors.y = 1.0f - value;
+            ldButton.anchors.y = 1.0f - value;
+            ldBar.anchors.y = 1.0f - value;
         } else {
-            button->anchors.y = value;
-            filledBar->anchors.w = value;
+            ldButton.anchors.y = value;
+            ldBar.anchors.w = value;
         }
-        button->anchors.w = button->anchors.y;
+        ldButton.anchors.w = ldButton.anchors.y;
     }
+    button->setLayoutDetails(ldButton, false);
+    filledBar->setLayoutDetails(ldBar, false);
     bar->updateLayouts(bar->getLayoutBox(), false);
 }

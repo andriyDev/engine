@@ -71,7 +71,9 @@ void TextField::sync()
         box->blocksInteractive = false;
         wrappedElements.push_back(box);
     }
-    box->padding = interiorPadding;
+    UIElement::LayoutDetails ld = box->getLayoutDetails();
+    ld.padding = interiorPadding;
+    box->setLayoutDetails(ld);
     box->cornerRadii = cornerRadii;
 
     if(!textBox) {
@@ -80,13 +82,17 @@ void TextField::sync()
         textBox->blocksInteractive = false;
         wrappedElements.push_back(textBox);
     }
-    textBox->padding = interiorPadding;
+    ld = textBox->getLayoutDetails();
+    ld.padding = interiorPadding;
+    textBox->setLayoutDetails(ld);
 
     if(!text) {
         text = make_shared<Text>();
         text->setFontSize(fontSize);
         text->setLineSpacing(1.0f);
-        text->anchors = vec4(0,0,0,0);
+        ld = text->getLayoutDetails();
+        ld.anchors = vec4(0,0,0,0);
+        text->setLayoutDetails(ld);
         text->blocksInteractive = false;
         textBox->addChild(text);
     }
@@ -97,11 +103,15 @@ void TextField::sync()
 
     if(!textPulse) {
         textPulse = make_shared<Box>();
-        textPulse->anchors = vec4(0,0,0,0);
+        ld = textPulse->getLayoutDetails();
+        ld.anchors = vec4(0,0,0,0);
+        textPulse->setLayoutDetails(ld);
         textPulse->blocksInteractive = false;
         textBox->addChild(textPulse);
     }
-    textPulse->size.x = pulseWidth;
+    ld = textPulse->getLayoutDetails();
+    ld.size.x = pulseWidth;
+    textPulse->setLayoutDetails(ld);
     
     if(!dragBox) {
         dragBox = make_shared<Box>();
@@ -160,7 +170,7 @@ void TextField::setTextPoint(uint point, bool selectRange)
         text->getLayoutBox().x, text->getLayoutBox().y);
 
     // Compute the distance of each character edge to the box edges (ignoring padding).
-    charBounds -= textBox->getLayoutBox() + textBox->padding * vec4(1,1,-1,-1);
+    charBounds -= textBox->getPaddedLayoutBox();
     // We flip the top and left edges since we want positive distance to mean distance from outer bound.
     charBounds *= vec4(-1,-1,1,1);
     // Now we only care about moving the text box if the character is out of bounds, so clamp the distances to be +
@@ -431,7 +441,7 @@ void TextField::renderDragBoxes(vec4 mask, vec2 surfaceSize)
 void TextField::render(vec4 mask, vec2 surfaceSize)
 {
     if(maskChildren) {
-        mask = intersect_boxes(mask, getLayoutBox() + vec4(1,1,-1,-1) * padding * (float)(!useUnpaddedBoxAsMask));
+        mask = intersect_boxes(mask, useUnpaddedBoxAsMask ? getLayoutBox() : getPaddedLayoutBox());
     }
 
     box->render(mask, surfaceSize);
@@ -502,16 +512,26 @@ void TextField::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
     }
 
     bool needsLayoutUpdate = false;
+    bool needsDetailsUpdate = false;
 
-    if(text->position != textOffset) {
-        text->position = textOffset;
+    UIElement::LayoutDetails ld = text->getLayoutDetails();
+
+    if(ld.position != textOffset) {
+        ld.position = textOffset;
+        needsDetailsUpdate = true;
         needsLayoutUpdate = true;
     }
 
-    vec2 size = getBoxSize(getLayoutBox() + padding * vec4(1,1,-1,-1));
-    if(text->size != size) {
-        text->size = size;
+    vec2 size = getBoxSize(getPaddedLayoutBox());
+    if(ld.size != size) {
+        ld.size = size;
+        needsDetailsUpdate = true;
         needsLayoutUpdate = true;
+    }
+
+    if(needsDetailsUpdate) {
+        needsDetailsUpdate = false;
+        text->setLayoutDetails(ld, false);
     }
 
     shared_ptr<Font> fontPtr = font.resolve(Deferred);
@@ -521,8 +541,10 @@ void TextField::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
     } else {
         newVal = 0;
     }
-    if(textPulse->size.y != newVal) {
-        textPulse->size.y = newVal;
+    ld = textPulse->getLayoutDetails();
+    if(ld.size.y != newVal) {
+        ld.size.y = newVal;
+        needsDetailsUpdate = true;
         needsLayoutUpdate = true;
     }
 
@@ -530,9 +552,13 @@ void TextField::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
     vec2 pulsePos = getPointFromPrepointId(layout, getTextPoint(), getLayoutBox(), alignment);
     pulsePos.y -= layout.maxAscent;
 
-    if(textPulse->position != pulsePos) {
-        textPulse->position = pulsePos + textOffset;
+    if(ld.position != pulsePos) {
+        ld.position = pulsePos + textOffset;
+        needsDetailsUpdate = true;
         needsLayoutUpdate = true;
+    }
+    if(needsDetailsUpdate) {
+        textPulse->setLayoutDetails(ld, false);
     }
 
     if(needsLayoutUpdate) {
@@ -558,8 +584,10 @@ uint TextField::getTextPointFromPosition(vec2 position) const
         return 0;
     }
     const Font::StringLayout& layout = text->getTextLayout();
-    position -= vec2(textBox->getLayoutBox().x + textBox->padding.x, textBox->getLayoutBox().y + textBox->padding.y);
-    position -= text->position;
+    vec4 layoutBox = textBox->getLayoutBox();
+    const vec4& padding = textBox->getLayoutDetails().padding;
+    position -= vec2(layoutBox.x + padding.x, layoutBox.y + padding.y);
+    position -= text->getLayoutDetails().position;
     return layout.getCharacterAtPoint(position);
 }
 

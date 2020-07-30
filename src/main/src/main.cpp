@@ -382,15 +382,17 @@ int main()
         shared_ptr<Box> box = make_shared<Box>();
         box->label = "mainContainer";
         box->layoutAlgorithm = new ListLayout<ListDirection::Row>(10);
-        box->anchors = vec4(0, 1, 1, 1);
-        box->origin.y = 1;
-        box->position.y = -15;
-        box->margin.x = 15;
-        box->margin.z = 15;
-        box->size.y = 150;
+        UIElement::LayoutDetails ld = box->getLayoutDetails();
+        ld.anchors = vec4(0, 1, 1, 1);
+        ld.origin.y = 1;
+        ld.position.y = -15;
+        ld.margin.x = 15;
+        ld.margin.z = 15;
+        ld.size.y = 150;
         //box->cornerRadii = vec4(10, 10, 0, 0);
         box->colour = vec4(1, 0, 0, 1);
-        box->padding = vec4(1,1,1,1) * 10.f;
+        ld.padding = vec4(1,1,1,1) * 10.f;
+        box->setLayoutDetails(ld);
         layout->addChild(box);
 
         shared_ptr<Button> btn1 = make_shared<Button>();
@@ -401,9 +403,11 @@ int main()
             vec4(0.9f, 0.9f, 0.9f, 1.0f),
             vec4(0.5f, 0.5f, 0.5f, 1.0f)
         };
-        btn1->padding = vec4(1,1,1,1) * 15.f;
+        ld = btn1->getLayoutDetails();
+        ld.padding = vec4(1,1,1,1) * 15.f;
         btn1->cornerRadii = vec4(10, 10, 10, 10);
-        btn1->size.x = 300;
+        ld.size.x = 300;
+        btn1->setLayoutDetails(ld);
         box->addChild(btn1);
 
         shared_ptr<TextField> textField = make_shared<TextField>();
@@ -414,7 +418,9 @@ int main()
         textField->useUnboundedLayout = false;
         textField->fontSize = 25.0f;
         textField->sync();
-        textField->size.x = 400;
+        ld = textField->getLayoutDetails();
+        ld.size.x = 400;
+        textField->setLayoutDetails(ld);
         box->addChild(textField);
 
         shared_ptr<Button> btn3 = make_shared<Button>();
@@ -425,9 +431,11 @@ int main()
             vec4(0.9f, 0.9f, 0.9f, 1.0f),
             vec4(0.5f, 0.5f, 0.5f, 1.0f)
         };
-        btn3->padding = vec4(1,1,1,1) * 15.f;
+        ld = btn3->getLayoutDetails();
+        ld.padding = vec4(1,1,1,1) * 15.f;
         btn3->cornerRadii = vec4(10, 10, 10, 10);
-        btn3->size.x = 300;
+        ld.size.x = 300;
+        btn3->setLayoutDetails(ld);
         box->addChild(btn3);
 
         shared_ptr<Text> text = make_shared<Text>();
@@ -442,14 +450,16 @@ int main()
 
         shared_ptr<Slider> slider = make_shared<Slider>();
         slider->label = "slider";
-        slider->verticalGravity = UIElement::Center;
-        slider->horizontalGravity = UIElement::Center;
+        ld = slider->getLayoutDetails();
+        ld.verticalGravity = UIElement::Center;
+        ld.horizontalGravity = UIElement::Center;
         slider->direction = Slider::Horizontal;
-        slider->size.x = 200;
+        ld.size.x = 200;
         slider->filledBarColour = vec4(0,1,0,1);
         slider->value = 0.5f;
         slider->buttonSize = 25.f;
         slider->sliderBarWidth = 15.f;
+        slider->setLayoutDetails(ld);
         slider->sync();
         box->addChild(slider);
 

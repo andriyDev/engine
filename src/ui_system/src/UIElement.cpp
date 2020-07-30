@@ -1,53 +1,64 @@
 
 #include "ui/UIElement.h"
 
-void adjustX(vec2& min, vec2& max, const vec2& size, const vec4& margin, const vec2& origin, const vec2& position,
-    const UILayoutRequest& info, bool canUseAspect, bool anchorsMatch)
+vec4 UIElement::getPaddedLayoutBox() const
 {
-    if(anchorsMatch) {
+    return getLayoutBox() + layoutDetails.padding * vec4(1,1,-1,-1);
+}
+
+void adjustX(vec2& min, vec2& max, const UIElement::LayoutDetails& ld, const UILayoutRequest& info, bool canUseAspect)
+{
+    if(ld.anchors.x == ld.anchors.z) {
         float desiredWidth;
-        if(size.x == 0) {
+        if(ld.size.x == 0) {
             desiredWidth = canUseAspect && info.maintainAspect && info.desiredSize.y != 0
                 ? info.desiredSize.x / info.desiredSize.y * (max.y - min.y)
                 : info.desiredSize.x;
         } else {
-            desiredWidth = size.x;
+            desiredWidth = ld.size.x;
         }
         
-        min.x -= desiredWidth * origin.x;
-        max.x += desiredWidth * (1.f - origin.x);
+        min.x -= desiredWidth * ld.origin.x;
+        max.x += desiredWidth * (1.f - ld.origin.x);
 
-        min.x += position.x;
-        max.x += position.x;
+        min.x += ld.position.x;
+        max.x += ld.position.x;
     } else {
-        min.x += margin.x;
-        max.x -= margin.z;
+        min.x += ld.margin.x;
+        max.x -= ld.margin.z;
     }
 }
 
-void adjustY(vec2& min, vec2& max, const vec2& size, const vec4& margin, const vec2& origin, const vec2& position,
-    const UILayoutRequest& info, bool canUseAspect, bool anchorsMatch)
+void adjustY(vec2& min, vec2& max, const UIElement::LayoutDetails& ld, const UILayoutRequest& info, bool canUseAspect)
 {
-    if(anchorsMatch) {
+    if(ld.anchors.y == ld.anchors.w) {
         float desiredHeight;
-        if(size.y == 0) {
+        if(ld.size.y == 0) {
             desiredHeight = canUseAspect && info.maintainAspect && info.desiredSize.x != 0
                 ? info.desiredSize.y / info.desiredSize.x * (max.x - min.x)
                 : info.desiredSize.y;
         } else {
-            desiredHeight = size.y;
+            desiredHeight = ld.size.y;
         }
         
-        min.y -= desiredHeight * origin.y;
-        max.y += desiredHeight * (1.f - origin.y);
+        min.y -= desiredHeight * ld.origin.y;
+        max.y += desiredHeight * (1.f - ld.origin.y);
 
-        min.y += position.y;
-        max.y += position.y;
+        min.y += ld.position.y;
+        max.y += ld.position.y;
     }
     else
     {
-        min.y += margin.y;
-        max.y -= margin.w;
+        min.y += ld.margin.y;
+        max.y -= ld.margin.w;
+    }
+}
+
+void UIElement::setLayoutDetails(LayoutDetails details, bool markDirty)
+{
+    layoutDetails = details;
+    if(markDirty) {
+        markLayoutDirty();
     }
 }
 
@@ -57,20 +68,20 @@ vec4 UIElement::adjustRect(vec4 rect) const
     vec2 rectMax(rect.z, rect.w);
     vec2 rectWidth = rectMax - rectMin;
     
-    vec2 min = vec2(anchors.x, anchors.y) * rectWidth + rectMin;
-    vec2 max = vec2(anchors.z, anchors.w) * rectWidth + rectMin;
+    vec2 min = vec2(layoutDetails.anchors.x, layoutDetails.anchors.y) * rectWidth + rectMin;
+    vec2 max = vec2(layoutDetails.anchors.z, layoutDetails.anchors.w) * rectWidth + rectMin;
 
-    bool widthDetermined = min.x != max.x || size.x != 0;
-    bool heightDetermined = min.y != max.y || size.y != 0;
+    bool widthDetermined = min.x != max.x || layoutDetails.size.x != 0;
+    bool heightDetermined = min.y != max.y || layoutDetails.size.y != 0;
 
     UILayoutRequest info = getLayoutRequest();
 
     if(widthDetermined) {
-        adjustX(min, max, size, margin, origin, position, info, false, anchors.x == anchors.z);
-        adjustY(min, max, size, margin, origin, position, info, true, anchors.y == anchors.w);
+        adjustX(min, max, layoutDetails, info, false);
+        adjustY(min, max, layoutDetails, info, true);
     } else {
-        adjustY(min, max, size, margin, origin, position, info, false, anchors.y == anchors.w);
-        adjustX(min, max, size, margin, origin, position, info, true, anchors.x == anchors.z);
+        adjustY(min, max, layoutDetails, info, false);
+        adjustX(min, max, layoutDetails, info, true);
     }
 
     return vec4(min, max);
