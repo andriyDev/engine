@@ -10,14 +10,27 @@ inline bool isControlDown(shared_ptr<UISystem> ui) {
     return ui->isKeyDown(341) || ui->isKeyDown(345);
 }
 
-inline vec2 getPointFromPrepointId(const Font::StringLayout& layout, uint id)
+inline vec2 getPointFromPrepointId(const Font::StringLayout& layout, uint id, const vec4& layoutBox,
+    Font::Alignment alignment)
 {
     if(id < layout.text.size()) {
         return layout.prePoints[id];
     } else if(layout.advancePoints.size() > 0) {
         return layout.advancePoints.back();
     } else {
-        return vec2(0, layout.maxAscent);
+        float xVal = 0;
+        switch(alignment) {
+        case Font::Alignment::Right:
+            xVal = layoutBox.z - layoutBox.x;
+            break;
+        case Font::Alignment::Center:
+            xVal = (layoutBox.z - layoutBox.x) * 0.5f;
+            break;
+        default:
+            xVal = 0;
+            break;
+        }
+        return vec2(xVal, layout.maxAscent);
     }
 }
 
@@ -71,16 +84,15 @@ void TextField::sync()
 
     if(!text) {
         text = make_shared<Text>();
-        text->setUnboundedLayout(useUnboundedLayout);
         text->setFontSize(fontSize);
         text->setLineSpacing(1.0f);
         text->anchors = vec4(0,0,0,0);
-        text->colour = vec4(0,0,0,1);
         text->blocksInteractive = false;
-        text->setTextAlignment(Font::Center);
         textBox->addChild(text);
     }
     text->font = font;
+    text->setUnboundedLayout(useUnboundedLayout);
+    text->setTextAlignment(alignment);
     text->setText(value);
 
     if(!textPulse) {
@@ -241,7 +253,7 @@ void TextField::movePointerRightToken(bool select)
 void TextField::movePointerDown(bool select)
 {
     const Font::StringLayout& layout = text->getTextLayout();
-    vec2 point = getPointFromPrepointId(layout, getTextPoint());
+    vec2 point = getPointFromPrepointId(layout, getTextPoint(), getLayoutBox(), alignment);
     point.y += layout.lineHeight;
     uint newTextPoint = layout.getCharacterAtPoint(point);
     setTextPoint(newTextPoint, select);
@@ -250,7 +262,7 @@ void TextField::movePointerDown(bool select)
 void TextField::movePointerUp(bool select)
 {
     const Font::StringLayout& layout = text->getTextLayout();
-    vec2 point = getPointFromPrepointId(layout, getTextPoint());
+    vec2 point = getPointFromPrepointId(layout, getTextPoint(), getLayoutBox(), alignment);
     point.y -= layout.lineHeight;
     uint newTextPoint = layout.getCharacterAtPoint(point);
     setTextPoint(newTextPoint, select);
@@ -259,7 +271,7 @@ void TextField::movePointerUp(bool select)
 void TextField::movePointerPageUp(bool select)
 {
     const Font::StringLayout& layout = text->getTextLayout();
-    vec2 point = getPointFromPrepointId(layout, getTextPoint());
+    vec2 point = getPointFromPrepointId(layout, getTextPoint(), getLayoutBox(), alignment);
     point.y -= text->getLayoutBox().w - text->getLayoutBox().y;
     uint newTextPoint = layout.getCharacterAtPoint(point);
     setTextPoint(newTextPoint, select);
@@ -268,7 +280,7 @@ void TextField::movePointerPageUp(bool select)
 void TextField::movePointerPageDown(bool select)
 {
     const Font::StringLayout& layout = text->getTextLayout();
-    vec2 point = getPointFromPrepointId(layout, getTextPoint());
+    vec2 point = getPointFromPrepointId(layout, getTextPoint(), getLayoutBox(), alignment);
     point.y += text->getLayoutBox().w - text->getLayoutBox().y;
     uint newTextPoint = layout.getCharacterAtPoint(point);
     setTextPoint(newTextPoint, select);
@@ -397,7 +409,7 @@ void TextField::renderDragBoxes(vec4 mask, vec2 surfaceSize)
                 continue;
             }
             
-            startPoint = getPointFromPrepointId(layout, clipStart);
+            startPoint = getPointFromPrepointId(layout, clipStart, getLayoutBox(), alignment);
             endPoint = getPointFromAdvanceId(layout, clipEnd);
             if(clipEnd < orderedPoints.y && clipEnd + 1 < layout.text.size()
                 && layout.text[clipEnd + 1] == '\n') {
@@ -515,7 +527,7 @@ void TextField::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
     }
 
     const Font::StringLayout& layout = text->getTextLayout();
-    vec2 pulsePos = getPointFromPrepointId(layout, getTextPoint());
+    vec2 pulsePos = getPointFromPrepointId(layout, getTextPoint(), getLayoutBox(), alignment);
     pulsePos.y -= layout.maxAscent;
 
     if(textPulse->position != pulsePos) {

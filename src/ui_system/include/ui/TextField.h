@@ -28,6 +28,7 @@ public:
     };
     vec4 dragColour = vec4(45.0f/255, 144.0f/255, 214.0f/255, 0.5f);
     bool useUnboundedLayout = true;
+    Font::Alignment alignment = Font::Alignment::Left;
     float pulseRate = 0.5f;
     float pulseWidth = 1.0f;
     float fontSize = 15.0f;

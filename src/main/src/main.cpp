@@ -410,6 +410,7 @@ int main()
         textField->label = "textField";
         textField->font = 11;
         textField->setValue("Hello friend!\n\nHow are you today? Blah Blah Blah Blah\nWasssup\n\nWhy is this?");
+        textField->alignment = Font::Alignment::Center;
         textField->useUnboundedLayout = false;
         textField->fontSize = 25.0f;
         textField->sync();
