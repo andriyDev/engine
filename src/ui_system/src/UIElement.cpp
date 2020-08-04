@@ -96,14 +96,47 @@ void UIElement::markLayoutDirty()
     }
 }
 
-void UIElement::setParent(shared_ptr<UIElement> element)
+void UIElement::addElementChild(shared_ptr<UIElement> newChild)
 {
-    shared_ptr<UIElement> currentParent = parentElement.lock();
-    if(currentParent) {
-        currentParent->releaseChild(shared_from_this());
+    if(!newChild) {
+        throw "Attempting to make null a child of this element.";
     }
-    parentElement = element;
-    markLayoutDirty();
+    shared_ptr<UIElement> currentParent = newChild->parentElement.lock();
+    if(currentParent) {
+        throw "Attempting to add element as child which already has a parent!";
+    }
+    newChild->parentElement = shared_from_this();
+    children.push_back(newChild);
+}
+
+void UIElement::removeElementChild(shared_ptr<UIElement> child)
+{
+    auto it = find(children.begin(), children.end(), child);
+    if(it == children.end()) {
+        return;
+    }
+
+    releaseChild(child);
+    child->parentElement = shared_ptr<UIElement>();
+    children.erase(it);
+}
+
+void UIElement::clearElementChildren()
+{
+    for(int i = children.size() - 1; i >= 0; i--) {
+        releaseChild(children[i]);
+        children[i]->parentElement = shared_ptr<UIElement>();
+        children.erase(children.end() - 1);
+    }
+}
+
+bool UIElement::updateChildLayoutRequests()
+{
+    bool stillDirty = false;
+    for(shared_ptr<UIElement>& child : children) {
+        stillDirty = stillDirty || child->updateLayoutRequest();
+    }
+    return stillDirty;
 }
 
 bool UIElement::updateLayoutRequest()
@@ -137,6 +170,14 @@ shared_ptr<UIElement> UIElement::queryLayout(vec2 point, vec4 mask, bool onlyInt
     }
 
     return isPointInBox(mask, point) && testPoint(point) ? shared_from_this() : nullptr;
+}
+
+pair<UILayoutRequest, bool> UIElement::computeLayoutRequest()
+{
+    UILayoutRequest req;
+    req.desiredSize = vec2(0,0);
+    req.maintainAspect = false;
+    return make_pair(req, false);
 }
 
 bool UIElement::testPoint(vec2 point)

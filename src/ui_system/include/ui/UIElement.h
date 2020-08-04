@@ -51,7 +51,7 @@ public:
     };
 
     void setLayoutDetails(LayoutDetails details, bool markDirty = true);
-    inline const LayoutDetails& getLayoutDetails() { return layoutDetails; }
+    inline const LayoutDetails& getLayoutDetails() const { return layoutDetails; }
 
     const char* label = "";
 
@@ -73,9 +73,6 @@ public:
     */
     bool updateLayouts(vec4 newLayout, bool clearDirtyFlag);
 
-    // Sets the parent of this element. Should only be called by containers.
-    void setParent(shared_ptr<UIElement> element);
-
     UILayoutRequest getLayoutRequest() const { return layoutRequest; }
     vec4 getLayoutBox() const { return layoutBox; }
     vec4 getPaddedLayoutBox() const;
@@ -95,20 +92,28 @@ protected:
     Computes the layout request for this element (children all have valid layout requests).
     Returns the layout request and a bool indicating whether the layout request is still dirty.
     */
-    virtual pair<UILayoutRequest, bool> computeLayoutRequest() = 0;
+    virtual pair<UILayoutRequest, bool> computeLayoutRequest();
     // Computes a layout for each child.
     virtual hash_map<UIElement*, vec4> computeChildLayouts() { return hash_map<UIElement*, vec4>(); }
-    // Calls updateLayoutRequest on each child of this element. Returns a bool which is an OR of the resulting calls.
-    virtual bool updateChildLayoutRequests() { return false; }
 
     virtual void releaseChild(shared_ptr<UIElement> element) {}
 
+    void addElementChild(shared_ptr<UIElement> newChild);
+    void removeElementChild(shared_ptr<UIElement> child);
+    void clearElementChildren();
+
+    inline const vector<shared_ptr<UIElement>>& getElementChildren() const { return children; }
+
     LayoutDetails layoutDetails;
 private:
+    // Calls updateLayoutRequest on each child of this element. Returns a bool which is an OR of the resulting calls.
+    bool updateChildLayoutRequests();
+
     bool layoutDirty = true;
     UILayoutRequest layoutRequest;
     vec4 layoutBox;
     weak_ptr<UIElement> parentElement;
+    vector<shared_ptr<UIElement>> children;
 };
 
 inline vec4 intersect_boxes(vec4 box1, vec4 box2)

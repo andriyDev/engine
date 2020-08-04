@@ -13,11 +13,7 @@ public:
 protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
     virtual hash_map<UIElement*, vec4> computeChildLayouts() override;
-    virtual bool updateChildLayoutRequests() override;
-    virtual void releaseChild(shared_ptr<UIElement> element) override;
     
     bool maskChildren = true;
     bool useUnpaddedBoxAsMask = false;
-
-    vector<shared_ptr<UIElement>> wrappedElements;
 };

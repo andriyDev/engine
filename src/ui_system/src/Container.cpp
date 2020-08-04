@@ -9,44 +9,28 @@ Container::~Container()
 
 void Container::addChild(shared_ptr<UIElement> element)
 {
-    elements.push_back(element);
-    element->setParent(shared_from_this());
+    addElementChild(element);
 }
 
 void Container::removeChild(shared_ptr<UIElement> element)
 {
-    auto it = find(elements.begin(), elements.end(), element);
-    if(it != elements.end()) {
-        elements.erase(it);
-        element->setParent(nullptr);
-    }
+    removeElementChild(element);
 }
 
 void Container::clearChildren()
 {
-    for(shared_ptr<UIElement> element : elements) {
-        element->setParent(nullptr);
-    }
-    elements.clear();
-}
-
-void Container::releaseChild(shared_ptr<UIElement> element)
-{
-    auto it = find(elements.begin(), elements.end(), element);
-    if(it != elements.end()) {
-        elements.erase(it);
-    }
+    clearElementChildren();
 }
 
 pair<UILayoutRequest, bool> Container::computeLayoutRequest()
 {
     UILayoutRequest info;
     if(layoutAlgorithm) {
-        info = layoutAlgorithm->computeLayoutRequest(this, elements);
+        info = layoutAlgorithm->computeLayoutRequest(this, getChildren());
     } else {
         info.desiredSize = vec2(0,0);
         info.maintainAspect = false;
-        for(shared_ptr<UIElement>& element : elements) {
+        for(const shared_ptr<UIElement>& element : getChildren()) {
             info.desiredSize = max(info.desiredSize, element->getLayoutRequest().desiredSize);
         }
     }
@@ -61,23 +45,15 @@ hash_map<UIElement*, vec4> Container::computeChildLayouts()
     vector<vec4> boxes;
     vec4 paddedBox = getLayoutBox() + layoutDetails.padding * vec4(1, 1, -1, -1);
     
+    const vector<shared_ptr<UIElement>>& children = getChildren();
     if(layoutAlgorithm) {
-        boxes = layoutAlgorithm->layoutElements(this, paddedBox, elements);
+        boxes = layoutAlgorithm->layoutElements(this, paddedBox, children);
     }
-    for(uint i = 0; i < elements.size(); i++) {
+    for(uint i = 0; i < children.size(); i++) {
         vec4& box = layoutAlgorithm ? boxes[i] : paddedBox;
-        result.insert(make_pair(elements[i].get(), box));
+        result.insert(make_pair(children[i].get(), box));
     }
     return result;
-}
-
-bool Container::updateChildLayoutRequests()
-{
-    bool stillDirty = false;
-    for(shared_ptr<UIElement>& element : elements) {
-        stillDirty = stillDirty || element->updateLayoutRequest();
-    }
-    return stillDirty;
 }
 
 void Container::render(vec4 mask, vec2 surfaceSize)
@@ -86,7 +62,7 @@ void Container::render(vec4 mask, vec2 surfaceSize)
     if(maskChildren) {
         mask = intersect_boxes(mask, useUnpaddedBoxAsMask ? getLayoutBox() : getPaddedLayoutBox());
     }
-    for(shared_ptr<UIElement>& element : elements) {
+    for(const shared_ptr<UIElement>& element : getChildren()) {
         element->render(mask, surfaceSize);
     }
 }
@@ -96,7 +72,7 @@ void Container::update(float delta, vec4 mask, shared_ptr<UISystem> ui)
     if(maskChildren) {
         mask = intersect_boxes(mask, useUnpaddedBoxAsMask ? getLayoutBox() : getPaddedLayoutBox());
     }
-    for(shared_ptr<UIElement>& element : elements) {
+    for(const shared_ptr<UIElement>& element : getChildren()) {
         element->update(delta, mask, ui);
     }
 }
@@ -105,8 +81,8 @@ shared_ptr<UIElement> Container::queryLayout(vec2 point, vec4 mask, bool onlyInt
 {
     vec4 childMask = maskChildren ? intersect_boxes(mask, getLayoutBox()) : mask;
     if(isPointInBox(childMask, point)) {
-        for(auto it = elements.rbegin(); it != elements.rend(); ++it) {
-            shared_ptr<UIElement>& element = *it;
+        for(auto it = getChildren().rbegin(); it != getChildren().rend(); ++it) {
+            const shared_ptr<UIElement>& element = *it;
             shared_ptr<UIElement> response = element->queryLayout(point, childMask, onlyInteractive);
             if(response) {
                 return response;

@@ -16,8 +16,7 @@ public:
     bool useUnpaddedBoxAsMask = false;
     ContainerLayout* layoutAlgorithm = nullptr;
 
-    uint getChildCount() const { return (uint)elements.size(); }
-    shared_ptr<UIElement> getChild(uint id) { return elements[id]; }
+    inline const vector<shared_ptr<UIElement>>& getChildren() const { return getElementChildren(); }
     virtual void addChild(shared_ptr<UIElement> element);
     virtual void removeChild(shared_ptr<UIElement> element);
     virtual void clearChildren();
@@ -30,11 +29,6 @@ public:
 protected:
     virtual pair<UILayoutRequest, bool> computeLayoutRequest() override;
     virtual hash_map<UIElement*, vec4> computeChildLayouts() override;
-    virtual bool updateChildLayoutRequests() override;
-
-    virtual void releaseChild(shared_ptr<UIElement> element) override;
     
     virtual void renderSelf(vec4 mask, vec2 surfaceSize) {}
-
-    vector<shared_ptr<UIElement>> elements;
 };

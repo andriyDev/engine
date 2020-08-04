@@ -17,13 +17,13 @@ Slider::Slider()
 void Slider::sync()
 {
     shared_ptr<Container> base;
-    if(wrappedElements.size() > 0) {
-        base = static_pointer_cast<Container>(wrappedElements[0]);
+    if(getElementChildren().size() > 0) {
+        base = static_pointer_cast<Container>(getElementChildren()[0]);
     } else {
         base = make_shared<Container>();
         base->label = "baseContainer";
         base->layoutAlgorithm = new OverlayLayout();
-        wrappedElements.push_back(base);
+        addElementChild(base);
     }
 
     if(!bar) {

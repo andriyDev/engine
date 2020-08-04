@@ -69,7 +69,7 @@ void TextField::sync()
         box = make_shared<Box>();
         box->layoutAlgorithm = new OverlayLayout();
         box->blocksInteractive = false;
-        wrappedElements.push_back(box);
+        addElementChild(box);
     }
     UIElement::LayoutDetails ld = box->getLayoutDetails();
     ld.padding = interiorPadding;
@@ -80,7 +80,7 @@ void TextField::sync()
         textBox = make_shared<Container>();
         textBox->layoutAlgorithm = new OverlayLayout();
         textBox->blocksInteractive = false;
-        wrappedElements.push_back(textBox);
+        addElementChild(textBox);
     }
     ld = textBox->getLayoutDetails();
     ld.padding = interiorPadding;
