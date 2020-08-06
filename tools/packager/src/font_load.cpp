@@ -60,12 +60,12 @@ pair<Font*, Texture*> loadFont(string fontFile, uint faceIndex, uint size)
             // Shift the offset to the right. This will be the new right-most edge for this row.
             currentOffset.x += font->characters[c].size.x + 2; // + 2 for margin.
             // Take whichever is more right, the current width, or the right-most edge of this glyph.
-            texDimensions.x = max(currentOffset.x, texDimensions.x);
+            texDimensions.x = glm::max(currentOffset.x, texDimensions.x);
             // Take whichever is more down, the current height, or the bottom edge of this glyph.
-            texDimensions.y = max(currentOffset.y + font->characters[c].size.y + 2, texDimensions.y);
+            texDimensions.y = glm::max(currentOffset.y + font->characters[c].size.y + 2, texDimensions.y);
 
-            font->maxAscent = (ushort)max((int)font->maxAscent, font->characters[c].bearing.y);
-            font->maxDescent = (ushort)max((int)font->maxDescent,
+            font->maxAscent = (ushort)glm::max((int)font->maxAscent, font->characters[c].bearing.y);
+            font->maxDescent = (ushort)glm::max((int)font->maxDescent,
                 (int)font->characters[c].size.y - (int)font->characters[c].bearing.y);
             // Increment the order index.
             orderIndex++;

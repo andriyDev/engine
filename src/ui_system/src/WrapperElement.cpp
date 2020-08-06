@@ -43,7 +43,7 @@ pair<UILayoutRequest, bool> WrapperElement::computeLayoutRequest()
     info.desiredSize = vec2(0,0);
     info.maintainAspect = false;
     for(const shared_ptr<UIElement>& element : getElementChildren()) {
-        info.desiredSize = max(info.desiredSize, element->getLayoutRequest().desiredSize);
+        info.desiredSize = glm::max(info.desiredSize, element->getLayoutRequest().desiredSize);
     }
     const vec4& padding = getLayoutDetails().padding;
     info.desiredSize += vec2(padding.x + padding.z, padding.y + padding.w);

@@ -52,9 +52,9 @@ template<ListDirection dir>
 void maintainAspect(vec2& size, const vec4& box)
 {
     if(isHorizontal(dir)) {
-        size.x = size.y == 0 ? 0 : (size.x / size.y * max(box.w - box.y, 0.f));
+        size.x = size.y == 0 ? 0 : (size.x / size.y * glm::max(box.w - box.y, 0.f));
     } else {
-        size.y = size.x == 0 ? 0 : (size.y / size.x * max(box.z - box.x, 0.f));
+        size.y = size.x == 0 ? 0 : (size.y / size.x * glm::max(box.z - box.x, 0.f));
     }
 }
 
@@ -244,10 +244,10 @@ UILayoutRequest ListLayout<dir>::computeLayoutRequest(const UIElement* rootEleme
         // Now for each child, add its size along the main axis, take the max along the cross axis.
         if(isHorizontal(dir)) {
             sum.x += size.x;
-            maxCross = max(size.y, maxCross);
+            maxCross = glm::max(size.y, maxCross);
         } else {
             sum.y += size.y;
-            maxCross = max(size.x, maxCross);
+            maxCross = glm::max(size.x, maxCross);
         }
     }
     // Handle the cross direction.

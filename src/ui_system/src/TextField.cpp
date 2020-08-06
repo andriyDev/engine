@@ -174,7 +174,8 @@ void TextField::setTextPoint(uint point, bool selectRange)
     // We flip the top and left edges since we want positive distance to mean distance from outer bound.
     charBounds *= vec4(-1,-1,1,1);
     // Now we only care about moving the text box if the character is out of bounds, so clamp the distances to be +
-    charBounds = vec4(max(0.f, charBounds.x), max(0.f, charBounds.y), max(0.f, charBounds.z), max(0.f, charBounds.w));
+    charBounds = vec4(glm::max(0.f, charBounds.x), glm::max(0.f, charBounds.y),
+        glm::max(0.f, charBounds.z), glm::max(0.f, charBounds.w));
 
     textOffset.x += charBounds.x - charBounds.z;
     textOffset.y += charBounds.y - charBounds.w;
@@ -183,9 +184,9 @@ void TextField::setTextPoint(uint point, bool selectRange)
 void TextField::movePointerLeft(bool select)
 {
     if(!select && textPoints.x != textPoints.y) {
-        setTextPoint(min(textPoints.x, textPoints.y));
+        setTextPoint(glm::min(textPoints.x, textPoints.y));
     } else {
-        setTextPoint(max((uint)1, textPoints.y) - 1, select);
+        setTextPoint(glm::max((uint)1, textPoints.y) - 1, select);
     }
     currentState = Typing;
 }
@@ -193,9 +194,9 @@ void TextField::movePointerLeft(bool select)
 void TextField::movePointerRight(bool select)
 {
     if(!select && textPoints.x != textPoints.y) {
-        setTextPoint(max(textPoints.x, textPoints.y));
+        setTextPoint(glm::max(textPoints.x, textPoints.y));
     } else {
-        setTextPoint(min((uint)value.size(), textPoints.y + 1), select);
+        setTextPoint(glm::min((uint)value.size(), textPoints.y + 1), select);
     }
     currentState = Typing;
 }
@@ -412,8 +413,8 @@ void TextField::renderDragBoxes(vec4 mask, vec2 surfaceSize)
                 continue;
             }
         } else {
-            uint clipStart = max(lineStart, orderedPoints.x);
-            uint clipEnd = min(lineEnd, orderedPoints.y);
+            uint clipStart = glm::max(lineStart, orderedPoints.x);
+            uint clipEnd = glm::min(lineEnd, orderedPoints.y);
             // If the clip area is inconsistent, this line is not part of our selection.
             if(clipStart > clipEnd + 1) {
                 continue;

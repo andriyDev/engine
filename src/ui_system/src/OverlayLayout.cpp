@@ -23,7 +23,7 @@ UILayoutRequest OverlayLayout::computeLayoutRequest(const UIElement* rootElement
         vec2 size = elements[i]->getLayoutRequest().desiredSize + vec2(
             abs(eld.margin.x) + abs(eld.margin.z),
             abs(eld.margin.y) + abs(eld.margin.w));
-        bounds = vec2(max(bounds.x, size.x), max(bounds.y, size.y));
+        bounds = vec2(glm::max(bounds.x, size.x), glm::max(bounds.y, size.y));
     }
     return info;
 }

@@ -118,7 +118,8 @@ private:
 
 inline vec4 intersect_boxes(vec4 box1, vec4 box2)
 {
-    return vec4(max(box1.x, box2.x), max(box1.y, box2.y), min(box1.z, box2.z), min(box1.w, box2.w));
+    return vec4(glm::max(box1.x, box2.x), glm::max(box1.y, box2.y),
+        glm::min(box1.z, box2.z), glm::min(box1.w, box2.w));
 }
 
 inline bool isPointInBox(vec4 box, vec2 point)

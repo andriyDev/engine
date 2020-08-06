@@ -252,7 +252,7 @@ void newLine(vec2& offset, Font::StringLayout& layout, const TextLayoutData& dat
     }
     offset.x = 0;
     offset.y += data.lineHeight * data.pixelUnit * data.lineSpacing;
-    layout.bounds = vec4(0, 0, layout.bounds.z, max(layout.bounds.w, offset.y));
+    layout.bounds = vec4(0, 0, layout.bounds.z, glm::max(layout.bounds.w, offset.y));
     if(addAdvance) {
         layout.advancePoints.push_back(offset);
     }
@@ -404,7 +404,7 @@ Font::StringLayout Font::layoutString(const string& text, float desiredFontSize,
                 layoutData.advancePoints.push_back(offset);
             }
             // We only need to update the bounds once this token chunk has been laid out.
-            layoutData.bounds = vec4(0, 0, max(layoutData.bounds.z, offset.x), layoutData.bounds.w);
+            layoutData.bounds = vec4(0, 0, glm::max(layoutData.bounds.z, offset.x), layoutData.bounds.w);
         }
     }
     endLine(layoutData, lineData, startLine);
@@ -479,7 +479,7 @@ Font::StringLayout Font::layoutStringUnbounded(const string& text, float desired
             offset.x += widths[i];
             layoutData.advancePoints.push_back(offset);
         }
-        layoutData.bounds = vec4(0, 0, max(layoutData.bounds.z, offset.x), layoutData.bounds.w);
+        layoutData.bounds = vec4(0, 0, glm::max(layoutData.bounds.z, offset.x), layoutData.bounds.w);
     }
     endLine(layoutData, lineData, startLine);
     layoutData.bounds.w += maxDescent * data.pixelUnit;

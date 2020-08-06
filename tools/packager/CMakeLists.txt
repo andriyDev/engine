@@ -22,4 +22,4 @@ target_include_directories(packager
     PRIVATE src)
 
 target_link_libraries(packager
-    PRIVATE resource_system base_resources font_resource assimp::assimp png_static IrrXML Freetype::Freetype)
+    PRIVATE resource_system base_resources font_resource assimp::assimp PNG::PNG IrrXML Freetype::Freetype)

@@ -31,7 +31,7 @@ pair<UILayoutRequest, bool> Container::computeLayoutRequest()
         info.desiredSize = vec2(0,0);
         info.maintainAspect = false;
         for(const shared_ptr<UIElement>& element : getChildren()) {
-            info.desiredSize = max(info.desiredSize, element->getLayoutRequest().desiredSize);
+            info.desiredSize = glm::max(info.desiredSize, element->getLayoutRequest().desiredSize);
         }
     }
     info.desiredSize += vec2(layoutDetails.padding.x + layoutDetails.padding.z,
