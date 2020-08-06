@@ -1,6 +1,7 @@
 
 #define GLEW_STATIC
 #include <GL/glew.h>
+#include <GL/GL.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 
@@ -274,6 +275,9 @@ int main()
     if(glewInit() != GLEW_OK) {
         return -1;
     }
+
+    printf("OpenGL version: %s\n", glGetString(GL_VERSION));
+    fflush(stdout);
 
     ResourceLoader& loader = ResourceLoader::get();
     {

@@ -27,7 +27,8 @@ RenderableTexture::~RenderableTexture()
 
 void RenderableTexture::bind(GLuint textureUnit)
 {
-    glBindTextureUnit(textureUnit, textureId);
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    glBindTexture(GL_TEXTURE_2D, textureId);
 }
 
 bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
@@ -38,40 +39,41 @@ bool RenderableTexture::load(shared_ptr<Resource::BuildData> data)
         return false;
     }
 
-    glCreateTextures(GL_TEXTURE_2D, 1, &textureId);
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
     uint filter;
     if(bd->mipMapLevels > 1) { filter = 0x2700 | bd->minFilter | (bd->minFilterMipMap << 1); }
     else { filter = (bd->minFilter == Linear ? GL_LINEAR : GL_NEAREST); }
-    glTextureParameteri(textureId, GL_TEXTURE_MIN_FILTER, filter);
-    glTextureParameteri(textureId, GL_TEXTURE_MAG_FILTER, bd->magFilter == Linear ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bd->magFilter == Linear ? GL_LINEAR : GL_NEAREST);
 
-    glTextureParameteri(textureId, GL_TEXTURE_WRAP_S, bd->wrapU == Clamp ? GL_CLAMP : GL_REPEAT);
-    glTextureParameteri(textureId, GL_TEXTURE_WRAP_T, bd->wrapV == Clamp ? GL_CLAMP : GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, bd->wrapU == Clamp ? GL_CLAMP : GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, bd->wrapV == Clamp ? GL_CLAMP : GL_REPEAT);
 
     if(texture->getMode() == Texture::RGB_8) {
         if(texture->getWidth() % 4 != 0) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         }
-        glTextureStorage2D(textureId, bd->mipMapLevels, GL_RGB8, texture->getWidth(), texture->getHeight());
-        glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
+        glTexStorage2D(GL_TEXTURE_2D, bd->mipMapLevels, GL_RGB8, texture->getWidth(), texture->getHeight());
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture->getWidth(), texture->getHeight(),
             GL_RGB, GL_UNSIGNED_BYTE, texture->asRGB_8());
-        glGenerateTextureMipmap(textureId);
+        glGenerateMipmap(GL_TEXTURE_2D);
         if(texture->getWidth() % 4 != 0) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         }
     } else if(texture->getMode() == Texture::RGBA_8) {
-        glTextureStorage2D(textureId, bd->mipMapLevels, GL_RGBA8, texture->getWidth(), texture->getHeight());
-        glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
+        glTexStorage2D(GL_TEXTURE_2D, bd->mipMapLevels, GL_RGBA8, texture->getWidth(), texture->getHeight());
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture->getWidth(), texture->getHeight(),
             GL_RGBA, GL_UNSIGNED_BYTE, texture->asRGBA_8());
-        glGenerateTextureMipmap(textureId);
+        glGenerateMipmap(GL_TEXTURE_2D);
     } else if(texture->getMode() == Texture::GREYSCALE_8) {
         if(texture->getWidth() % 4 != 0) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         }
-        glTextureStorage2D(textureId, bd->mipMapLevels, GL_R8, texture->getWidth(), texture->getHeight());
-        glTextureSubImage2D(textureId, 0, 0, 0, texture->getWidth(), texture->getHeight(),
+        glTexStorage2D(GL_TEXTURE_2D, bd->mipMapLevels, GL_R8, texture->getWidth(), texture->getHeight());
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture->getWidth(), texture->getHeight(),
             GL_RED, GL_UNSIGNED_BYTE, texture->asGreyscale_8());
-        glGenerateTextureMipmap(textureId);
+        glGenerateMipmap(GL_TEXTURE_2D);
         if(texture->getWidth() % 4 != 0) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         }
