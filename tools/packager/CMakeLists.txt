@@ -1,11 +1,11 @@
 
 project(packager VERSION 0.1)
 
-find_package(zlib REQUIRED)
+find_package(ZLIB REQUIRED)
 find_package(IrrXML REQUIRED)
 find_package(ASSIMP REQUIRED)
 find_package(Freetype REQUIRED)
-find_package(libpng REQUIRED)
+find_package(PNG REQUIRED)
 
 set(SRC)
 list(APPEND SRC src/main.cpp)
